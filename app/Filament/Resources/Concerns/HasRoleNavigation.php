@@ -5,6 +5,10 @@ namespace App\Filament\Resources\Concerns;
 use Illuminate\Support\Facades\Auth;
 use UnitEnum;
 
+/**
+ * @property-read string|UnitEnum|null $roleNavigationGroup
+ * @property-read string[] $allowedRoles
+ */
 trait HasRoleNavigation
 {
     public static function getNavigationGroup(): string|UnitEnum|null

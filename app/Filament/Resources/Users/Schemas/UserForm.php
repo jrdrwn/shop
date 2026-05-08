@@ -21,6 +21,7 @@ class UserForm
                     TextInput::make('phone')->label('Phone'),
                     Select::make('role')->options([
                         'admin' => 'Admin',
+                        'super_admin' => 'Super Admin',
                         'manager' => 'Manager',
                         'cashier' => 'Cashier',
                     ])->required(),

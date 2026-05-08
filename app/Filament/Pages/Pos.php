@@ -18,7 +18,17 @@ class Pos extends Page
 
     public function mount(): void
     {
-        $this->products = Product::where('is_active', true)->get()->toArray();
+        $query = Product::query()
+            ->where('is_active', true)
+            ->select(['id', 'cafe_id', 'name', 'sku', 'price', 'stock', 'image_url']);
+
+        $user = Auth::user();
+
+        if ($user?->role === 'cashier' && filled($user->cafe_id)) {
+            $query->where('cafe_id', $user->cafe_id);
+        }
+
+        $this->products = $query->orderBy('name')->get()->toArray();
     }
 
     public static function canAccess(): bool

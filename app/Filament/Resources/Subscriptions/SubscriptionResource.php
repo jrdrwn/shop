@@ -25,7 +25,7 @@ class SubscriptionResource extends Resource
 
     protected static ?string $roleNavigationGroup = 'Sistem';
 
-    protected static array $allowedRoles = ['admin'];
+    protected static array $allowedRoles = ['admin', 'super_admin'];
 
     protected static ?string $recordTitleAttribute = 'name';
 

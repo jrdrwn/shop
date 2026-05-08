@@ -18,17 +18,23 @@ class SampleDataSeeder extends Seeder
     public function run(): void
     {
         // prevent duplicate run
-        if (User::where('email', 'admin@example.com')->exists()) {
+        $existingSuperAdmin = User::where('email', 'admin@example.com')->first();
+
+        if ($existingSuperAdmin) {
+            if ($existingSuperAdmin->role !== 'super_admin') {
+                $existingSuperAdmin->update(['role' => 'super_admin']);
+            }
+
             return;
         }
 
         DB::transaction(function () {
-            // Admin
+            // Super Admin
             $admin = User::create([
                 'name' => 'Super Admin',
                 'email' => 'admin@example.com',
                 'password' => Hash::make('password'),
-                'role' => 'admin',
+                'role' => 'super_admin',
                 'phone' => '08123456789',
                 'is_active' => true,
             ]);

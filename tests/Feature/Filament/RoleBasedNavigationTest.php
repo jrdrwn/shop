@@ -23,21 +23,21 @@ use function Pest\Laravel\actingAs;
 uses(RefreshDatabase::class);
 
 $resourceRoleMatrix = [
-    UserResource::class => ['admin' => true, 'manager' => true, 'cashier' => false],
-    'App\\Filament\\Resources\\CafeManagers\\CafeManagerResource' => ['admin' => true, 'manager' => true, 'cashier' => false],
-    CafeResource::class => ['admin' => true, 'manager' => true, 'cashier' => false],
-    CategoryResource::class => ['admin' => true, 'manager' => true, 'cashier' => false],
-    ProductResource::class => ['admin' => true, 'manager' => true, 'cashier' => false],
-    PaymentMethodResource::class => ['admin' => true, 'manager' => true, 'cashier' => false],
-    TransactionResource::class => ['admin' => true, 'manager' => true, 'cashier' => true],
-    PaymentResource::class => ['admin' => true, 'manager' => false, 'cashier' => false],
-    TransactionItemResource::class => ['admin' => true, 'manager' => false, 'cashier' => false],
-    DailyReportResource::class => ['admin' => true, 'manager' => true, 'cashier' => false],
-    InventoryLogResource::class => ['admin' => true, 'manager' => true, 'cashier' => false],
-    TransactionHistoryResource::class => ['admin' => true, 'manager' => true, 'cashier' => false],
-    UserActivityLogResource::class => ['admin' => true, 'manager' => true, 'cashier' => false],
-    SettingResource::class => ['admin' => true, 'manager' => false, 'cashier' => false],
-    SubscriptionResource::class => ['admin' => true, 'manager' => false, 'cashier' => false],
+    UserResource::class => ['admin' => true, 'super_admin' => false, 'manager' => true, 'cashier' => false],
+    'App\\Filament\\Resources\\CafeManagers\\CafeManagerResource' => ['admin' => true, 'super_admin' => false, 'manager' => true, 'cashier' => false],
+    CafeResource::class => ['admin' => true, 'super_admin' => false, 'manager' => true, 'cashier' => false],
+    CategoryResource::class => ['admin' => true, 'super_admin' => false, 'manager' => true, 'cashier' => false],
+    ProductResource::class => ['admin' => true, 'super_admin' => false, 'manager' => true, 'cashier' => false],
+    PaymentMethodResource::class => ['admin' => true, 'super_admin' => false, 'manager' => true, 'cashier' => false],
+    TransactionResource::class => ['admin' => true, 'super_admin' => false, 'manager' => true, 'cashier' => true],
+    PaymentResource::class => ['admin' => true, 'super_admin' => false, 'manager' => false, 'cashier' => false],
+    TransactionItemResource::class => ['admin' => true, 'super_admin' => false, 'manager' => false, 'cashier' => false],
+    DailyReportResource::class => ['admin' => true, 'super_admin' => false, 'manager' => true, 'cashier' => false],
+    InventoryLogResource::class => ['admin' => true, 'super_admin' => false, 'manager' => true, 'cashier' => false],
+    TransactionHistoryResource::class => ['admin' => true, 'super_admin' => false, 'manager' => true, 'cashier' => false],
+    UserActivityLogResource::class => ['admin' => true, 'super_admin' => false, 'manager' => true, 'cashier' => false],
+    SettingResource::class => ['admin' => true, 'super_admin' => false, 'manager' => false, 'cashier' => false],
+    SubscriptionResource::class => ['admin' => true, 'super_admin' => true, 'manager' => false, 'cashier' => false],
 ];
 
 foreach ($resourceRoleMatrix as $resourceClass => $accessMap) {
