@@ -7,6 +7,7 @@ use App\Filament\Resources\Cafes\Pages\EditCafe;
 use App\Filament\Resources\Cafes\Pages\ListCafes;
 use App\Filament\Resources\Cafes\Schemas\CafeForm;
 use App\Filament\Resources\Cafes\Tables\CafesTable;
+use App\Filament\Resources\Concerns\HasRoleNavigation;
 use App\Models\Cafe;
 use BackedEnum;
 use Filament\Resources\Resource;
@@ -18,9 +19,15 @@ use Illuminate\Support\Facades\Auth;
 
 class CafeResource extends Resource
 {
+    use HasRoleNavigation;
+
     protected static ?string $model = Cafe::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+
+    protected static ?string $roleNavigationGroup = 'Master Data';
+
+    protected static array $allowedRoles = ['admin', 'manager'];
 
     protected static ?string $recordTitleAttribute = 'name';
 

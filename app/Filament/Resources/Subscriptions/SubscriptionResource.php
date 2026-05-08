@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Subscriptions;
 
+use App\Filament\Resources\Concerns\HasRoleNavigation;
 use App\Filament\Resources\Subscriptions\Pages\CreateSubscription;
 use App\Filament\Resources\Subscriptions\Pages\EditSubscription;
 use App\Filament\Resources\Subscriptions\Pages\ListSubscriptions;
@@ -16,9 +17,15 @@ use Filament\Tables\Table;
 
 class SubscriptionResource extends Resource
 {
+    use HasRoleNavigation;
+
     protected static ?string $model = Subscription::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedCurrencyDollar;
+
+    protected static ?string $roleNavigationGroup = 'Sistem';
+
+    protected static array $allowedRoles = ['admin'];
 
     protected static ?string $recordTitleAttribute = 'name';
 

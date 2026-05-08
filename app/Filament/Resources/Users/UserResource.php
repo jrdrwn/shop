@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Users;
 
+use App\Filament\Resources\Concerns\HasRoleNavigation;
 use App\Filament\Resources\Users\Pages\CreateUser;
 use App\Filament\Resources\Users\Pages\EditUser;
 use App\Filament\Resources\Users\Pages\ListUsers;
@@ -18,9 +19,15 @@ use Illuminate\Support\Facades\Auth;
 
 class UserResource extends Resource
 {
+    use HasRoleNavigation;
+
     protected static ?string $model = User::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+
+    protected static ?string $roleNavigationGroup = 'Manajemen Pengguna';
+
+    protected static array $allowedRoles = ['admin', 'manager'];
 
     protected static ?string $recordTitleAttribute = 'name';
 

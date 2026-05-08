@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Payments;
 
+use App\Filament\Resources\Concerns\HasRoleNavigation;
 use App\Filament\Resources\Payments\Pages\CreatePayment;
 use App\Filament\Resources\Payments\Pages\EditPayment;
 use App\Filament\Resources\Payments\Pages\ListPayments;
@@ -16,9 +17,15 @@ use Filament\Tables\Table;
 
 class PaymentResource extends Resource
 {
+    use HasRoleNavigation;
+
     protected static ?string $model = Payment::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+
+    protected static ?string $roleNavigationGroup = 'Operasional';
+
+    protected static array $allowedRoles = ['admin'];
 
     protected static ?string $recordTitleAttribute = 'reference_number';
 

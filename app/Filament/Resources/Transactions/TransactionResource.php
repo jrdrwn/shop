@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Transactions;
 
+use App\Filament\Resources\Concerns\HasRoleNavigation;
 use App\Filament\Resources\Transactions\Pages\CreateTransaction;
 use App\Filament\Resources\Transactions\Pages\EditTransaction;
 use App\Filament\Resources\Transactions\Pages\ListTransactions;
@@ -18,9 +19,15 @@ use Illuminate\Support\Facades\Auth;
 
 class TransactionResource extends Resource
 {
+    use HasRoleNavigation;
+
     protected static ?string $model = Transaction::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+
+    protected static ?string $roleNavigationGroup = 'Operasional';
+
+    protected static array $allowedRoles = ['admin', 'manager', 'cashier'];
 
     protected static ?string $recordTitleAttribute = 'transaction_number';
 

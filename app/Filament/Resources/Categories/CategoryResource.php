@@ -7,6 +7,7 @@ use App\Filament\Resources\Categories\Pages\EditCategory;
 use App\Filament\Resources\Categories\Pages\ListCategories;
 use App\Filament\Resources\Categories\Schemas\CategoryForm;
 use App\Filament\Resources\Categories\Tables\CategoriesTable;
+use App\Filament\Resources\Concerns\HasRoleNavigation;
 use App\Models\Category;
 use BackedEnum;
 use Filament\Resources\Resource;
@@ -18,9 +19,15 @@ use Illuminate\Support\Facades\Auth;
 
 class CategoryResource extends Resource
 {
+    use HasRoleNavigation;
+
     protected static ?string $model = Category::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+
+    protected static ?string $roleNavigationGroup = 'Master Data';
+
+    protected static array $allowedRoles = ['admin', 'manager'];
 
     protected static ?string $recordTitleAttribute = 'name';
 

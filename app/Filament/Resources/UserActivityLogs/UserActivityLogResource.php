@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\UserActivityLogs;
 
+use App\Filament\Resources\Concerns\HasRoleNavigation;
 use App\Filament\Resources\UserActivityLogs\Pages\CreateUserActivityLog;
 use App\Filament\Resources\UserActivityLogs\Pages\EditUserActivityLog;
 use App\Filament\Resources\UserActivityLogs\Pages\ListUserActivityLogs;
@@ -18,9 +19,15 @@ use Illuminate\Support\Facades\Auth;
 
 class UserActivityLogResource extends Resource
 {
+    use HasRoleNavigation;
+
     protected static ?string $model = UserActivityLog::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+
+    protected static ?string $roleNavigationGroup = 'Laporan';
+
+    protected static array $allowedRoles = ['admin', 'manager'];
 
     protected static ?string $recordTitleAttribute = 'activity_type';
 

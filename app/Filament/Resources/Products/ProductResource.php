@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Products;
 
+use App\Filament\Resources\Concerns\HasRoleNavigation;
 use App\Filament\Resources\Products\Pages\CreateProduct;
 use App\Filament\Resources\Products\Pages\EditProduct;
 use App\Filament\Resources\Products\Pages\ListProducts;
@@ -18,9 +19,15 @@ use Illuminate\Support\Facades\Auth;
 
 class ProductResource extends Resource
 {
+    use HasRoleNavigation;
+
     protected static ?string $model = Product::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+
+    protected static ?string $roleNavigationGroup = 'Master Data';
+
+    protected static array $allowedRoles = ['admin', 'manager'];
 
     protected static ?string $recordTitleAttribute = 'name';
 

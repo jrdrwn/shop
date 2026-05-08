@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\TransactionItems;
 
+use App\Filament\Resources\Concerns\HasRoleNavigation;
 use App\Filament\Resources\TransactionItems\Pages\CreateTransactionItem;
 use App\Filament\Resources\TransactionItems\Pages\EditTransactionItem;
 use App\Filament\Resources\TransactionItems\Pages\ListTransactionItems;
@@ -16,9 +17,15 @@ use Filament\Tables\Table;
 
 class TransactionItemResource extends Resource
 {
+    use HasRoleNavigation;
+
     protected static ?string $model = TransactionItem::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+
+    protected static ?string $roleNavigationGroup = 'Operasional';
+
+    protected static array $allowedRoles = ['admin'];
 
     protected static ?string $recordTitleAttribute = 'id';
 

@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\TransactionHistories;
 
+use App\Filament\Resources\Concerns\HasRoleNavigation;
 use App\Filament\Resources\TransactionHistories\Pages\CreateTransactionHistory;
 use App\Filament\Resources\TransactionHistories\Pages\EditTransactionHistory;
 use App\Filament\Resources\TransactionHistories\Pages\ListTransactionHistories;
@@ -18,9 +19,15 @@ use Illuminate\Support\Facades\Auth;
 
 class TransactionHistoryResource extends Resource
 {
+    use HasRoleNavigation;
+
     protected static ?string $model = TransactionHistory::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+
+    protected static ?string $roleNavigationGroup = 'Laporan';
+
+    protected static array $allowedRoles = ['admin', 'manager'];
 
     protected static ?string $recordTitleAttribute = 'action';
 

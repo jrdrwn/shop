@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Settings;
 
+use App\Filament\Resources\Concerns\HasRoleNavigation;
 use App\Filament\Resources\Settings\Pages\CreateSetting;
 use App\Filament\Resources\Settings\Pages\EditSetting;
 use App\Filament\Resources\Settings\Pages\ListSettings;
@@ -16,9 +17,15 @@ use Filament\Tables\Table;
 
 class SettingResource extends Resource
 {
+    use HasRoleNavigation;
+
     protected static ?string $model = Setting::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedCog6Tooth;
+
+    protected static ?string $roleNavigationGroup = 'Sistem';
+
+    protected static array $allowedRoles = ['admin'];
 
     protected static ?string $recordTitleAttribute = 'key';
 

@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\DailyReports;
 
+use App\Filament\Resources\Concerns\HasRoleNavigation;
 use App\Filament\Resources\DailyReports\Pages\CreateDailyReport;
 use App\Filament\Resources\DailyReports\Pages\EditDailyReport;
 use App\Filament\Resources\DailyReports\Pages\ListDailyReports;
@@ -18,9 +19,15 @@ use Illuminate\Support\Facades\Auth;
 
 class DailyReportResource extends Resource
 {
+    use HasRoleNavigation;
+
     protected static ?string $model = DailyReport::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+
+    protected static ?string $roleNavigationGroup = 'Laporan';
+
+    protected static array $allowedRoles = ['admin', 'manager'];
 
     protected static ?string $recordTitleAttribute = 'report_date';
 

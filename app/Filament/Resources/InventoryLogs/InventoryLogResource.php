@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\InventoryLogs;
 
+use App\Filament\Resources\Concerns\HasRoleNavigation;
 use App\Filament\Resources\InventoryLogs\Pages\CreateInventoryLog;
 use App\Filament\Resources\InventoryLogs\Pages\EditInventoryLog;
 use App\Filament\Resources\InventoryLogs\Pages\ListInventoryLogs;
@@ -18,9 +19,15 @@ use Illuminate\Support\Facades\Auth;
 
 class InventoryLogResource extends Resource
 {
+    use HasRoleNavigation;
+
     protected static ?string $model = InventoryLog::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+
+    protected static ?string $roleNavigationGroup = 'Laporan';
+
+    protected static array $allowedRoles = ['admin', 'manager'];
 
     protected static ?string $recordTitleAttribute = 'action';
 

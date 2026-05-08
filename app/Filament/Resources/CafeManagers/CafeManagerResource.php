@@ -7,6 +7,7 @@ use App\Filament\Resources\CafeManagers\Pages\EditCafeManager;
 use App\Filament\Resources\CafeManagers\Pages\ListCafeManagers;
 use App\Filament\Resources\CafeManagers\Schemas\CafeManagerForm;
 use App\Filament\Resources\CafeManagers\Tables\CafeManagersTable;
+use App\Filament\Resources\Concerns\HasRoleNavigation;
 use App\Models\CafeManager;
 use BackedEnum;
 use Filament\Resources\Resource;
@@ -18,11 +19,17 @@ use Illuminate\Support\Facades\Auth;
 
 class CafeManagerResource extends Resource
 {
+    use HasRoleNavigation;
+
     protected static ?string $model = CafeManager::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
 
     protected static ?string $recordTitleAttribute = 'manager_id';
+
+    protected static ?string $roleNavigationGroup = 'Manajemen Pengguna';
+
+    protected static array $allowedRoles = ['admin', 'manager'];
 
     public static function form(Schema $schema): Schema
     {
