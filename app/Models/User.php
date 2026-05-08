@@ -11,7 +11,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 
-#[Fillable(['name', 'email', 'password'])]
+#[Fillable(['name', 'email', 'password', 'role', 'phone', 'cafe_id', 'is_active'])]
 #[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -30,5 +30,20 @@ class User extends Authenticatable
             'password' => 'hashed',
             'two_factor_confirmed_at' => 'datetime',
         ];
+    }
+
+    public function cafe()
+    {
+        return $this->belongsTo(Cafe::class);
+    }
+
+    public function transactions()
+    {
+        return $this->hasMany(Transaction::class, 'cashier_id');
+    }
+
+    public function activityLogs()
+    {
+        return $this->hasMany(UserActivityLog::class);
     }
 }

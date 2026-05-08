@@ -1,0 +1,220 @@
+// Cafe Management System - ERD
+
+// Tabel Users (Admin, Manager, Cashier)
+Table users {
+  id int [pk]
+  name string
+  email string [unique]
+  password string
+  phone string
+  role enum [note: 'admin, manager, cashier']
+  cafe_id int [note: 'nullable hanya untuk admin super']
+  is_active bool
+  created_at timestamp
+  updated_at timestamp
+
+  Note: '''
+    Admin: cafe_id = NULL, mengelola semua cafe & platform
+    Manager: cafe_id = NOT NULL, 1 manager untuk 1 cafe ONLY
+    Cashier: cafe_id = NOT NULL, bisa multiple cashier per cafe
+  '''
+}
+
+// Tabel Cafes
+Table cafes {
+  id int [pk]
+  name string
+  address string
+  phone string
+  email string
+  city string
+  province string
+  description text
+  owner_name string
+  logo_url string
+  is_active bool
+  created_at timestamp
+  updated_at timestamp
+
+  Note: '''
+    1 Cafe memiliki 1 Manager (unique constraint pada manager_id)
+    Admin dapat edit profile cafe ini
+  '''
+}
+
+// Tabel Manager Cafe (Relasi 1:1 antara Manager dan Cafe)
+Table cafe_managers {
+  id int [pk]
+  cafe_id int [ unique, note: '1 cafe hanya punya 1 manager']
+  manager_id int [ unique, note: '1 manager hanya kelola 1 cafe']
+  assigned_at timestamp
+  assigned_by int [ note: 'admin yang assign']
+  created_at timestamp
+  updated_at timestamp
+}
+
+// Tabel Categories (Kategori Produk)
+Table categories {
+  id int [pk]
+  cafe_id int
+  name string
+  description text
+  image_url string
+  display_order int
+  is_active bool
+  created_at timestamp
+  updated_at timestamp
+}
+
+// Tabel Products (Produk)
+Table products {
+  id int [pk]
+  cafe_id int
+  category_id int
+  name string
+  description text
+  price decimal [note: 'harga jual']
+  cost decimal [note: 'harga beli untuk analisis keuntungan']
+  stock int
+  sku string
+  image_url string
+  is_active bool
+  created_at timestamp
+  updated_at timestamp
+}
+
+// Tabel Payment Methods (Metode Pembayaran)
+Table payment_methods {
+  id int [pk]
+  cafe_id int
+  name string [note: 'contoh: Cash, Debit, QRIS']
+  type enum [note: 'cash, debit, qris']
+  is_active bool
+  created_at timestamp
+  updated_at timestamp
+}
+
+// Tabel Transactions (Transaksi/Pesanan)
+Table transactions {
+  id int [pk]
+  cafe_id int
+  cashier_id int [ note: 'kasir yang membuat transaksi']
+  transaction_number string [unique]
+  total_amount decimal
+  discount_amount decimal
+  tax_amount decimal
+  paid_amount decimal
+  change_amount decimal
+  status enum [note: 'pending, completed, cancelled']
+  notes text
+  created_at timestamp
+  updated_at timestamp
+}
+
+// Tabel Transaction Items (Detail Transaksi)
+Table transaction_items {
+  id int [pk]
+  transaction_id int
+  product_id int
+  quantity int
+  unit_price decimal
+  subtotal decimal
+  notes string [note: 'catatan khusus untuk item']
+  created_at timestamp
+  updated_at timestamp
+}
+
+// Tabel Payments (Pembayaran)
+Table payments {
+  id int [pk]
+  transaction_id int
+  payment_method_id int
+  amount decimal
+  reference_number string [note: 'no referensi untuk debit/QRIS']
+  status enum [note: 'success, pending, failed']
+  created_at timestamp
+  updated_at timestamp
+}
+
+// Tabel Transaction History (Riwayat Transaksi untuk Laporan)
+Table transaction_history {
+  id int [pk]
+  cafe_id int
+  transaction_id int
+  action string [note: 'created, updated, completed, cancelled']
+  performed_by int [ note: 'user yang melakukan']
+  description text
+  created_at timestamp
+}
+
+// Tabel Inventory Logs (Log Perubahan Stok)
+Table inventory_logs {
+  id int [pk]
+  cafe_id int
+  product_id int
+  action enum [note: 'sale, adjustment, return']
+  quantity_change int
+  quantity_before int
+  quantity_after int
+  reference_id int [note: 'transaction_id atau adjustment_id']
+  reference_type string [note: 'transaction, adjustment']
+  notes string
+  created_by int
+  created_at timestamp
+}
+
+// Tabel Daily Reports (Laporan Harian)
+Table daily_reports {
+  id int [pk]
+  cafe_id int
+  report_date date
+  total_transactions int
+  total_sales decimal
+  total_discount decimal
+  total_tax decimal
+  total_cash decimal
+  total_debit decimal
+  total_qris decimal
+  opening_balance decimal
+  closing_balance decimal
+  created_by int
+  created_at timestamp
+}
+
+// Tabel User Activity Logs (Log Aktivitas)
+Table user_activity_logs {
+  id int [pk]
+  cafe_id int
+  user_id int
+  activity_type string [note: 'login, logout, create, update, delete']
+  description text
+  ip_address string
+  user_agent string
+  created_at timestamp
+}
+
+// Foreign Keys
+Ref: users.cafe_id > cafes.id [delete: set null]
+Ref: cafe_managers.cafe_id > cafes.id [delete: restrict]
+Ref: cafe_managers.manager_id > users.id [delete: restrict]
+Ref: cafe_managers.assigned_by > users.id [delete: restrict] // note: 'admin yang assign'
+Ref: categories.cafe_id > cafes.id [delete: cascade]
+Ref: products.cafe_id > cafes.id [delete: cascade]
+Ref: products.category_id > categories.id [delete: restrict]
+Ref: payment_methods.cafe_id > cafes.id [delete: cascade]
+Ref: transactions.cafe_id > cafes.id [delete: restrict]
+Ref: transactions.cashier_id > users.id [delete: restrict]
+Ref: transaction_items.transaction_id > transactions.id [delete: cascade]
+Ref: transaction_items.product_id > products.id [delete: restrict]
+Ref: payments.transaction_id > transactions.id [delete: cascade]
+Ref: payments.payment_method_id > payment_methods.id [delete: restrict]
+Ref: transaction_history.cafe_id > cafes.id [delete: cascade]
+Ref: transaction_history.transaction_id > transactions.id [delete: cascade]
+Ref: transaction_history.performed_by > users.id [delete: restrict]
+Ref: inventory_logs.cafe_id > cafes.id [delete: cascade]
+Ref: inventory_logs.product_id > products.id [delete: restrict]
+Ref: inventory_logs.created_by > users.id [delete: restrict]
+Ref: daily_reports.cafe_id > cafes.id [delete: cascade]
+Ref: daily_reports.created_by > users.id [delete: restrict]
+Ref: user_activity_logs.cafe_id > cafes.id [delete: cascade]
+Ref: user_activity_logs.user_id > users.id [delete: cascade]
