@@ -30,7 +30,7 @@ class UsersTable
                         'super_admin' => 'Super Admin',
                         'manager' => 'Manager',
                         'cashier' => 'Cashier',
-                        default => 'Admin',
+                        default => 'Super Admin',
                     }),
                 TextColumn::make('cafe.name')
                     ->label('Cafe')

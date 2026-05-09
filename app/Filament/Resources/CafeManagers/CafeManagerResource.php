@@ -20,7 +20,6 @@ use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Facades\Auth;
 
 class CafeManagerResource extends Resource
 {
@@ -34,7 +33,21 @@ class CafeManagerResource extends Resource
 
     protected static ?string $roleNavigationGroup = 'Manajemen Pengguna';
 
-    protected static array $allowedRoles = ['admin', 'manager', 'super_admin'];
+    protected static array $allowedRoles = ['super_admin'];
+
+    /**
+     * @deprecated Fully replaced by Cafes table/infolist showing manager info inline.
+     *             No longer accessible from the panel.
+     */
+    public static function canAccess(): bool
+    {
+        return false;
+    }
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        return false;
+    }
 
     protected static ?SubNavigationPosition $subNavigationPosition = SubNavigationPosition::Top;
 
@@ -55,18 +68,7 @@ class CafeManagerResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        $user = Auth::user();
-
-        $query = parent::getEloquentQuery();
-
-        // eager-load related models to avoid N+1 when showing subscription badge
-        $query = $query->with(['cafe.subscription', 'manager', 'assignedBy']);
-
-        if ($user?->role === 'manager' && filled($user->cafe_id)) {
-            return $query->where('cafe_id', $user->cafe_id);
-        }
-
-        return $query;
+        return parent::getEloquentQuery()->with(['cafe.subscription', 'manager', 'assignedBy']);
     }
 
     public static function getRelations(): array

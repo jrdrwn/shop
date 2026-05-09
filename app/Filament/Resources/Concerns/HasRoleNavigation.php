@@ -26,7 +26,7 @@ trait HasRoleNavigation
 
         $allowedRoles = property_exists(static::class, 'allowedRoles')
             ? static::$allowedRoles
-            : ['admin'];
+            : ['super_admin'];
 
         return is_string($role) && in_array($role, $allowedRoles, true);
     }

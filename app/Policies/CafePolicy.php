@@ -9,7 +9,7 @@ class CafePolicy
 {
     public function before(User $user)
     {
-        if ($user->role === 'admin') {
+        if ($user->role === 'super_admin') {
             return true;
         }
     }
@@ -25,7 +25,7 @@ class CafePolicy
 
     public function create(User $user): bool
     {
-        return $user->role === 'admin';
+        return $user->role === 'super_admin';
     }
 
     public function update(User $user, Cafe $cafe): bool
@@ -39,6 +39,6 @@ class CafePolicy
 
     public function delete(User $user, Cafe $cafe): bool
     {
-        return $user->role === 'admin';
+        return $user->role === 'super_admin';
     }
 }

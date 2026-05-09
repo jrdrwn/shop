@@ -27,7 +27,7 @@ class UserResource extends Resource
 
     protected static ?string $roleNavigationGroup = 'Manajemen Pengguna';
 
-    protected static array $allowedRoles = ['admin', 'manager'];
+    protected static array $allowedRoles = ['manager'];
 
     protected static ?string $recordTitleAttribute = 'name';
 
@@ -44,13 +44,12 @@ class UserResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         $user = Auth::user();
-
         $query = parent::getEloquentQuery();
 
         if ($user?->role === 'manager' && filled($user->cafe_id)) {
-            return $query->where(function (Builder $builder) use ($user): void {
-                $builder->where('cafe_id', $user->cafe_id)->orWhere('id', $user->id);
-            });
+            // Only show cashiers in this cafe — manager themselves is managed separately
+            $query->where('cafe_id', $user->cafe_id)
+                ->where('role', 'cashier');
         }
 
         return $query;

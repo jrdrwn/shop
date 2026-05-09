@@ -27,7 +27,7 @@ class ProductResource extends Resource
 
     protected static ?string $roleNavigationGroup = 'Master Data';
 
-    protected static array $allowedRoles = ['admin', 'manager'];
+    protected static array $allowedRoles = ['manager'];
 
     protected static ?string $recordTitleAttribute = 'name';
 

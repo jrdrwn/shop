@@ -12,7 +12,7 @@ class CafeManager extends Model
     protected $table = 'cafe_managers';
 
     protected $fillable = [
-        'cafe_id','manager_id','assigned_at','assigned_by'
+        'cafe_id', 'manager_id', 'assigned_at', 'assigned_by',
     ];
 
     public function cafe()

@@ -27,7 +27,7 @@ class InventoryLogResource extends Resource
 
     protected static ?string $roleNavigationGroup = 'Laporan';
 
-    protected static array $allowedRoles = ['admin', 'manager'];
+    protected static array $allowedRoles = ['manager'];
 
     protected static ?string $recordTitleAttribute = 'action';
 

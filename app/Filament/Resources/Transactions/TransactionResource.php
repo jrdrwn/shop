@@ -6,6 +6,8 @@ use App\Filament\Resources\Concerns\HasRoleNavigation;
 use App\Filament\Resources\Transactions\Pages\CreateTransaction;
 use App\Filament\Resources\Transactions\Pages\EditTransaction;
 use App\Filament\Resources\Transactions\Pages\ListTransactions;
+use App\Filament\Resources\Transactions\RelationManagers\ItemsRelationManager;
+use App\Filament\Resources\Transactions\RelationManagers\PaymentsRelationManager;
 use App\Filament\Resources\Transactions\Schemas\TransactionForm;
 use App\Filament\Resources\Transactions\Tables\TransactionsTable;
 use App\Models\Transaction;
@@ -25,9 +27,9 @@ class TransactionResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
 
-    protected static ?string $roleNavigationGroup = 'Operasional';
+    protected static ?string $roleNavigationGroup = 'Laporan';
 
-    protected static array $allowedRoles = ['admin', 'manager', 'cashier'];
+    protected static array $allowedRoles = ['manager', 'cashier'];
 
     protected static ?string $recordTitleAttribute = 'transaction_number';
 
@@ -61,7 +63,8 @@ class TransactionResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            ItemsRelationManager::class,
+            PaymentsRelationManager::class,
         ];
     }
 

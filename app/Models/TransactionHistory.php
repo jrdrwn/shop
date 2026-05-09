@@ -11,7 +11,7 @@ class TransactionHistory extends Model
 
     protected $table = 'transaction_history';
 
-    protected $fillable = ['cafe_id','transaction_id','action','performed_by','description'];
+    protected $fillable = ['cafe_id', 'transaction_id', 'action', 'performed_by', 'description'];
 
     public function cafe()
     {

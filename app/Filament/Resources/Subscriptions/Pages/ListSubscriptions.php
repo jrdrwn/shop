@@ -15,7 +15,7 @@ class ListSubscriptions extends ListRecords
     {
         $role = Auth::user()?->role;
 
-        if (is_string($role) && in_array($role, ['admin', 'super_admin'], true)) {
+        if (is_string($role) && in_array($role, ['super_admin'], true)) {
             return [
                 CreateAction::make(),
             ];

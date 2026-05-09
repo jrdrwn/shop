@@ -15,4 +15,9 @@ class Subscription extends Model
         'features' => 'array',
         'is_active' => 'boolean',
     ];
+
+    public function cafes()
+    {
+        return $this->hasMany(Cafe::class);
+    }
 }

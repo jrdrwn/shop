@@ -171,36 +171,36 @@
                     </div>
                     <div class="pos-pricing-body">
                         <div class="pos-field-row">
-                            <label>Pajak (%)</label>
+                            <label>Pajak</label>
                             <div class="pos-field-inline">
-                                <input type="number" id="tax-rate" min="0" max="100" step="0.5" value="10" class="pos-input">
+                                <span class="pos-rate-badge">{{ $taxPercentage }}%</span>
                                 <span id="tax-amt-display" class="pos-field-result">Rp 0</span>
                             </div>
                         </div>
                         <div class="pos-field-row">
-                            <label>Service (%)</label>
+                            <label>Service Charge</label>
                             <div class="pos-field-inline">
-                                <input type="number" id="service-rate" min="0" max="100" step="0.5" value="0" class="pos-input">
+                                <span class="pos-rate-badge">{{ $serviceChargePercentage }}%</span>
                                 <span id="service-amt-display" class="pos-field-result">Rp 0</span>
                             </div>
                         </div>
                         <div class="pos-field-row">
-                            <label>Diskon (Rp)</label>
+                            <label>Diskon Produk</label>
                             <div class="pos-field-inline">
-                                <input type="number" id="discount-amt" min="0" value="0" class="pos-input">
-                                <span id="discount-display" class="pos-field-result">Rp 0</span>
+                                <span class="pos-rate-badge pos-rate-badge--discount">per item</span>
+                                <span id="discount-display" class="pos-field-result text-success">Rp 0</span>
                             </div>
                         </div>
 
                         <div class="pos-summary-block">
-                            <div class="pos-summary-row" id="summary-tax-row" style="display:none">
-                                <span>Pajak</span><span id="display-tax">Rp 0</span>
-                            </div>
-                            <div class="pos-summary-row" id="summary-service-row" style="display:none">
-                                <span>Service</span><span id="display-service">Rp 0</span>
-                            </div>
                             <div class="pos-summary-row" id="summary-discount-row" style="display:none">
                                 <span>Diskon</span><span id="display-discount" class="text-success">-Rp 0</span>
+                            </div>
+                            <div class="pos-summary-row" id="summary-tax-row" style="display:none">
+                                <span>Pajak ({{ $taxPercentage }}%)</span><span id="display-tax">Rp 0</span>
+                            </div>
+                            <div class="pos-summary-row" id="summary-service-row" style="display:none">
+                                <span>Service ({{ $serviceChargePercentage }}%)</span><span id="display-service">Rp 0</span>
                             </div>
                             <div class="pos-summary-row">
                                 <span>Subtotal</span><span id="display-subtotal">Rp 0</span>
@@ -408,6 +408,11 @@
         .pos-field-row { display:flex; flex-direction:column; gap:.25rem; }
         .pos-field-row label { font-size:.72rem; font-weight:600; color:rgb(var(--color-gray-500,107 114 128)); text-transform:uppercase; letter-spacing:.05em; }
         .pos-field-inline { display:flex; align-items:center; gap:.5rem; }
+        /* Read-only rate badge replaces editable input */
+        .pos-rate-badge { display:inline-flex; align-items:center; padding:.3rem .7rem; background:rgb(var(--color-gray-100,243 244 246)); border:1px solid rgb(var(--color-gray-200,229 231 235)); border-radius:6px; font-size:.85rem; font-weight:600; color:rgb(var(--color-gray-700,55 65 81)); min-width:60px; justify-content:center; }
+        .dark .pos-rate-badge { background:rgb(var(--color-gray-700,55 65 81)); border-color:rgb(var(--color-gray-600,75 85 99)); color:rgb(var(--color-gray-300,209 213 219)); }
+        .pos-rate-badge--discount { background:rgb(var(--color-success-50,240 253 244)); border-color:rgb(var(--color-success-200,187 247 208)); color:rgb(var(--color-success-700,21 128 61)); }
+        .dark .pos-rate-badge--discount { background:rgb(var(--color-success-950,5 46 22)); border-color:rgb(var(--color-success-800,22 101 52)); color:rgb(var(--color-success-400,74 222 128)); }
         .pos-input { flex:1; padding:.45rem .65rem; border:1px solid rgb(var(--color-gray-300,209 213 219)); border-radius:6px; background:rgb(255 255 255); color:rgb(var(--color-gray-900,17 24 39)); font-size:.875rem; }
         .dark .pos-input { background:rgb(var(--color-gray-800,31 41 55)); border-color:rgb(var(--color-gray-600,75 85 99)); color:rgb(var(--color-gray-100,243 244 246)); }
         .pos-input:focus { outline:none; border-color:rgb(var(--color-primary-500,245 158 11)); box-shadow:0 0 0 2px rgb(var(--color-primary-200,254 243 199) / 0.5); }
@@ -503,6 +508,10 @@
     </style>
 <script>
     (() => {
+        // ── Cafe settings (read-only, from server) ───────────────────────────
+        const CAFE_TAX_RATE     = {{ $taxPercentage }};
+        const CAFE_SERVICE_RATE = {{ $serviceChargePercentage }};
+
         const cart = [];
         const cartList = document.getElementById('cart-list');
         const cartCount = document.getElementById('cart-count');
@@ -510,9 +519,6 @@
         const paymentPanel = document.getElementById('payment-panel');
         const receiptModal = document.getElementById('receipt-modal');
 
-        const taxRateInput = document.getElementById('tax-rate');
-        const serviceRateInput = document.getElementById('service-rate');
-        const discountAmtInput = document.getElementById('discount-amt');
         const paidAmountInput = document.getElementById('paid-amount');
         const paymentMethodBtns = document.querySelectorAll('.pos-method-btn');
         const checkoutBtn = document.getElementById('checkout-btn');
@@ -536,28 +542,31 @@
         }
 
         function calculateTotals() {
-            const subtotal = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
-            const taxRate = parseFloat(taxRateInput.value) || 0;
-            const serviceRate = parseFloat(serviceRateInput.value) || 0;
-            const discountAmt = parseFloat(discountAmtInput.value) || 0;
+            // subtotal BEFORE discount
+            const grossSubtotal = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
+            // per-product discount total
+            const discountAmt   = cart.reduce((sum, item) => {
+                const disc = Math.round(item.price * (item.discount_pct || 0) / 100) * item.qty;
+                return sum + disc;
+            }, 0);
+            const subtotal   = grossSubtotal - discountAmt;
+            const taxAmt     = Math.round(subtotal * CAFE_TAX_RATE / 100);
+            const serviceAmt = Math.round(subtotal * CAFE_SERVICE_RATE / 100);
+            const total      = subtotal + taxAmt + serviceAmt;
 
-            const taxAmt = Math.round(subtotal * taxRate / 100);
-            const serviceAmt = Math.round(subtotal * serviceRate / 100);
-            const total = subtotal + taxAmt + serviceAmt - discountAmt;
-
-            return {subtotal, taxRate, taxAmt, serviceRate, serviceAmt, discountAmt, total};
+            return {grossSubtotal, discountAmt, subtotal, taxAmt, serviceAmt, total};
         }
 
         function updateDisplay() {
-            const {subtotal, taxRate, taxAmt, serviceRate, serviceAmt, discountAmt, total} = calculateTotals();
+            const {discountAmt, subtotal, taxAmt, serviceAmt, total} = calculateTotals();
             const paidAmt = parseFloat(paidAmountInput.value) || 0;
-            const change = Math.max(0, paidAmt - total);
+            const change  = Math.max(0, paidAmt - total);
 
             // Update pricing display
             document.getElementById('display-subtotal').textContent = formatCurrency(subtotal);
             document.getElementById('tax-amt-display').textContent = formatCurrency(taxAmt);
             document.getElementById('service-amt-display').textContent = formatCurrency(serviceAmt);
-            document.getElementById('discount-display').textContent = formatCurrency(discountAmt);
+            document.getElementById('discount-display').textContent = discountAmt > 0 ? '-' + formatCurrency(discountAmt) : formatCurrency(0);
             document.getElementById('display-tax').textContent = formatCurrency(taxAmt);
             document.getElementById('display-service').textContent = formatCurrency(serviceAmt);
             document.getElementById('display-discount').textContent = formatCurrency(discountAmt);
@@ -591,6 +600,12 @@
             cartCount.textContent = cart.length;
             pricingPanel.style.display = 'block';
             paymentPanel.style.display = 'block';
+
+            // Keep debit/QRIS paid amount in sync with new total
+            if (selectedPaymentMethod === 'debit' || selectedPaymentMethod === 'qris') {
+                const { total } = calculateTotals();
+                if (total > 0) { paidAmountInput.value = Math.ceil(total); }
+            }
 
             cart.forEach(item => {
                 const row = document.createElement('div');
@@ -704,6 +719,7 @@
                     id: product.id,
                     name: product.name + (variantNote ? ' (' + variantNote + ')' : ''),
                     price: Number(product.price),
+                    discount_pct: Number(product.discount_percentage || 0),
                     qty: 1,
                     notes: variantNote || null,
                 });
@@ -782,14 +798,28 @@
                 paymentMethodBtns.forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
                 selectedPaymentMethod = btn.getAttribute('data-method');
+
+                // Debit / QRIS: no change expected — auto-fill exact total
+                if (selectedPaymentMethod === 'debit' || selectedPaymentMethod === 'qris') {
+                    const { total } = calculateTotals();
+                    if (total > 0) {
+                        paidAmountInput.value = Math.ceil(total);
+                        paidAmountInput.readOnly = true;
+                        paidAmountInput.style.opacity = '0.6';
+                    }
+                } else {
+                    // Cash: let cashier type the amount
+                    paidAmountInput.readOnly = false;
+                    paidAmountInput.style.opacity = '';
+                    paidAmountInput.value = '';
+                }
+                updateDisplay();
             });
         });
 
-        // Pricing inputs
-        [taxRateInput, serviceRateInput, discountAmtInput, paidAmountInput].forEach(input => {
-            input.addEventListener('change', updateDisplay);
-            input.addEventListener('input', updateDisplay);
-        });
+        // Only paidAmountInput triggers recalc now (tax/service/discount are server-side read-only)
+        paidAmountInput.addEventListener('change', updateDisplay);
+        paidAmountInput.addEventListener('input', updateDisplay);
 
         // Paid amount: cap max digits & enforce min = total on blur
         paidAmountInput.addEventListener('input', () => {
@@ -814,9 +844,9 @@
                 return;
             }
 
-            const {subtotal, taxRate, taxAmt, serviceRate, serviceAmt, discountAmt, total} = calculateTotals();
+            const {discountAmt, subtotal, taxAmt, serviceAmt, total} = calculateTotals();
             const paidAmt = parseFloat(paidAmountInput.value) || 0;
-            const change = paidAmt - total;
+            const change  = Math.max(0, paidAmt - total);
 
             if (paidAmt < total) {
                 showToast('Jumlah pembayaran kurang dari total.');
@@ -835,15 +865,10 @@
                     },
                     body: JSON.stringify({
                         cart: cart.map(item => ({id: item.id, qty: item.qty, notes: item.notes || null})),
-                        tax_rate: taxRate,
-                        service_charge: serviceRate,
+                        payment_method:  selectedPaymentMethod,
                         discount_amount: discountAmt,
-                        tax_amount: taxAmt,
-                        service_amount: serviceAmt,
-                        total_amount: total,
-                        paid_amount: paidAmt,
-                        change_amount: change,
-                        payment_method: selectedPaymentMethod
+                        paid_amount:     Math.round(paidAmt),
+                        change_amount:   Math.round(change),
                     }),
                 });
 
@@ -870,11 +895,11 @@
                 // Show receipt
                 document.getElementById('receipt-trx-num').textContent = data.transaction_number;
                 document.getElementById('receipt-subtotal').textContent = formatCurrency(subtotal);
-                document.getElementById('receipt-tax-rate').textContent = taxRate;
+                document.getElementById('receipt-tax-rate').textContent = CAFE_TAX_RATE;
                 document.getElementById('receipt-tax-amt').textContent = formatCurrency(taxAmt);
-                document.getElementById('receipt-service-rate').textContent = serviceRate;
+                document.getElementById('receipt-service-rate').textContent = CAFE_SERVICE_RATE;
                 document.getElementById('receipt-service-amt').textContent = formatCurrency(serviceAmt);
-                document.getElementById('receipt-discount-amt').textContent = formatCurrency(discountAmt);
+                document.getElementById('receipt-discount-amt').textContent = discountAmt > 0 ? '-' + formatCurrency(discountAmt) : formatCurrency(0);
                 document.getElementById('receipt-total').textContent = formatCurrency(total);
                 document.getElementById('receipt-payment-method').textContent = selectedPaymentMethod.toUpperCase();
                 document.getElementById('receipt-paid').textContent = formatCurrency(paidAmt);
@@ -891,8 +916,19 @@
                 });
 
                 receiptModal.classList.remove('hidden');
+
+                // Patch data-stock attributes before resetting cache,
+                // so initStockCache() reads the correct post-sale values.
+                const soldItems = cart.map(item => ({id: item.id, qty: item.qty}));
                 cart.length = 0;
-                // Reset stok display ke nilai server (baca dari data-stock attribute)
+
+                soldItems.forEach(({id, qty}) => {
+                    const card = document.querySelector(`[data-product-id="${id}"]`);
+                    if (!card) return;
+                    const prev = parseInt(card.getAttribute('data-stock')) || 0;
+                    card.setAttribute('data-stock', Math.max(0, prev - qty));
+                });
+
                 initStockCache();
                 renderCart();
                 checkoutBtn.textContent = 'Proses Pembayaran';

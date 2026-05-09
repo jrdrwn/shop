@@ -5,11 +5,14 @@ namespace App\Filament\Resources\Cafes\Infolists;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
+use Illuminate\Support\Facades\Auth;
 
 class CafeInfolist
 {
     public static function configure(Schema $schema): Schema
     {
+        $isSuperAdmin = Auth::user()?->role === 'super_admin';
+
         return $schema
             ->components([
                 Section::make('Informasi Cafe')
@@ -34,9 +37,27 @@ class CafeInfolist
                             ->label('Provinsi')
                             ->placeholder('Belum diisi'),
                     ]),
+
+                Section::make('Pengaturan Transaksi')
+                    ->description('Pajak dan biaya layanan yang diterapkan pada setiap transaksi.')
+                    ->columns(2)
+                    ->schema([
+                        TextEntry::make('tax_percentage')
+                            ->label('Pajak')
+                            ->formatStateUsing(fn (int $state): string => $state > 0 ? "{$state}%" : 'Tidak ada pajak')
+                            ->badge()
+                            ->color(fn (int $state): string => $state > 0 ? 'warning' : 'gray'),
+                        TextEntry::make('service_charge_percentage')
+                            ->label('Service Charge')
+                            ->formatStateUsing(fn (int $state): string => $state > 0 ? "{$state}%" : 'Tidak ada service charge')
+                            ->badge()
+                            ->color(fn (int $state): string => $state > 0 ? 'info' : 'gray'),
+                    ]),
+
                 Section::make('Manager')
                     ->description('Informasi manager yang ditugaskan pada cafe ini.')
                     ->columns(2)
+                    ->visible($isSuperAdmin)
                     ->schema([
                         TextEntry::make('manager.manager.name')
                             ->label('Manager')
@@ -46,9 +67,11 @@ class CafeInfolist
                             ->dateTime('d M Y, H:i')
                             ->placeholder('Belum ditetapkan'),
                     ]),
+
                 Section::make('Langganan')
                     ->description('Paket aktif cafe dan masa berlakunya.')
                     ->columns(2)
+                    ->visible($isSuperAdmin)
                     ->schema([
                         TextEntry::make('subscription.name')
                             ->label('Paket')

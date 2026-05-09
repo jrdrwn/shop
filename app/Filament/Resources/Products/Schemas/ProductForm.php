@@ -47,7 +47,7 @@ class ProductForm
                             ->helperText('Item yang tidak aktif tidak muncul di POS.'),
                     ]),
                 Section::make('Harga & Stok')
-                    ->description('Harga, modal, dan stok dipakai untuk penjualan serta laporan.')
+                    ->description('Harga, diskon, modal, dan stok dipakai untuk penjualan serta laporan.')
                     ->columns(3)
                     ->schema([
                         TextInput::make('price')
@@ -56,6 +56,14 @@ class ProductForm
                             ->numeric()
                             ->prefix('Rp')
                             ->minValue(0),
+                        TextInput::make('discount_percentage')
+                            ->label('Diskon Produk (%)')
+                            ->numeric()
+                            ->suffix('%')
+                            ->default(0)
+                            ->minValue(0)
+                            ->maxValue(100)
+                            ->helperText('Diskon khusus produk ini. 0 = tidak ada diskon.'),
                         TextInput::make('cost')
                             ->label('Harga Modal')
                             ->numeric()

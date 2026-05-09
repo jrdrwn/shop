@@ -9,7 +9,7 @@ class InventoryLog extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['cafe_id','product_id','action','quantity_change','quantity_before','quantity_after','reference_id','reference_type','notes','created_by'];
+    protected $fillable = ['cafe_id', 'product_id', 'action', 'quantity_change', 'quantity_before', 'quantity_after', 'reference_id', 'reference_type', 'notes', 'created_by'];
 
     public function cafe()
     {

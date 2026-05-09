@@ -2,11 +2,11 @@
 
 namespace App\Filament\Resources\Cafes\Tables;
 
-use Filament\Actions\BulkActionGroup;
-use Filament\Actions\DeleteBulkAction;
+use App\Filament\Resources\Cafes\CafeResource;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\BadgeColumn;
+use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 
@@ -19,10 +19,11 @@ class CafesTable
                 TextColumn::make('name')
                     ->label('Nama Cafe')
                     ->searchable()
-                    ->sortable(),
+                    ->sortable()
+                    ->weight('semibold'),
                 TextColumn::make('manager.manager.name')
                     ->label('Manager')
-                    ->toggleable()
+                    ->placeholder('Belum ditetapkan')
                     ->searchable(),
                 BadgeColumn::make('subscription.name')
                     ->label('Langganan')
@@ -39,11 +40,13 @@ class CafesTable
                 TextColumn::make('city')
                     ->label('Kota')
                     ->searchable(),
-                TextColumn::make('is_active')
+                IconColumn::make('is_active')
                     ->label('Status')
-                    ->badge()
-                    ->formatStateUsing(fn (bool $state): string => $state ? 'Aktif' : 'Nonaktif')
-                    ->color(fn (bool $state): string => $state ? 'success' : 'gray'),
+                    ->boolean()
+                    ->trueIcon('heroicon-o-check-circle')
+                    ->falseIcon('heroicon-o-x-circle')
+                    ->trueColor('success')
+                    ->falseColor('gray'),
                 TextColumn::make('created_at')
                     ->label('Dibuat')
                     ->dateTime('d M Y, H:i')
@@ -52,12 +55,12 @@ class CafesTable
             ->filters([])
             ->recordActions([
                 ViewAction::make(),
-                EditAction::make(),
+                // Edit only visible when the current user can edit this record
+                EditAction::make()
+                    ->visible(fn ($record): bool => CafeResource::canEdit($record)),
             ])
             ->toolbarActions([
-                BulkActionGroup::make([
-                    DeleteBulkAction::make(),
-                ]),
+                // No bulk delete — cafes are read-only from the panel
             ]);
     }
 }

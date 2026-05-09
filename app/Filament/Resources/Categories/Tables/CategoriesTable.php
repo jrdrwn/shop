@@ -22,6 +22,10 @@ class CategoriesTable
                     ->label('Kategori')
                     ->searchable()
                     ->sortable(),
+                TextColumn::make('products_count')
+                    ->counts('products')
+                    ->label('Jumlah Produk')
+                    ->sortable(),
                 TextColumn::make('display_order')
                     ->label('Urutan')
                     ->sortable(),

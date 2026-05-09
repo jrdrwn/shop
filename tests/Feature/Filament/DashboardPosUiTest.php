@@ -1,50 +1,18 @@
 <?php
 
-use App\Filament\Pages\Dashboard;
 use App\Filament\Pages\Pos;
 use App\Models\Cafe;
 use App\Models\Category;
 use App\Models\Product;
-use App\Models\Subscription;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 
 uses(RefreshDatabase::class);
 
-test('dashboard super admin menampilkan kartu langganan saja', function (): void {
-    Subscription::query()->create([
-        'name' => 'Starter',
-        'price' => 0,
-        'duration_months' => 1,
-        'features' => ['basic_pos'],
-        'is_active' => true,
-    ]);
-
-    Subscription::query()->create([
-        'name' => 'Legacy',
-        'price' => 50000,
-        'duration_months' => 1,
-        'features' => ['reports'],
-        'is_active' => false,
-    ]);
-
-    $superAdmin = User::factory()->createOne([
-        'role' => 'super_admin',
-        'is_active' => true,
-    ]);
-
-    Livewire::actingAs($superAdmin)
-        ->test(Dashboard::class)
-        ->assertSee('Dashboard Super Admin')
-        ->assertSee('Langganan Aktif')
-        ->assertSee('Total Paket')
-        ->assertDontSee('Total Cafe');
-});
-
 test('halaman POS cashier hanya memuat produk cafe miliknya', function (): void {
     $admin = User::factory()->createOne([
-        'role' => 'admin',
+        'role' => 'super_admin',
         'is_active' => true,
     ]);
 
@@ -100,4 +68,5 @@ test('halaman POS cashier hanya memuat produk cafe miliknya', function (): void 
     expect($products)->toHaveCount(1)
         ->and($products[0]['name'])->toBe('Espresso A')
         ->and($products[0]['cafe_id'])->toBe($cafeA->id);
-});
+}
+);

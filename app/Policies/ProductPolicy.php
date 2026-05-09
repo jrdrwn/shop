@@ -9,7 +9,7 @@ class ProductPolicy
 {
     public function before(User $user)
     {
-        if ($user->role === 'admin') {
+        if ($user->role === 'super_admin') {
             return true;
         }
     }
@@ -25,7 +25,7 @@ class ProductPolicy
 
     public function create(User $user): bool
     {
-        return in_array($user->role, ['admin', 'manager']);
+        return in_array($user->role, ['super_admin', 'manager']);
     }
 
     public function update(User $user, Product $product): bool

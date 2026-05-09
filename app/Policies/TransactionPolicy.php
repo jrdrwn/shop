@@ -9,7 +9,7 @@ class TransactionPolicy
 {
     public function before(User $user)
     {
-        if ($user->role === 'admin') {
+        if ($user->role === 'super_admin') {
             return true;
         }
     }
@@ -28,16 +28,16 @@ class TransactionPolicy
 
     public function create(User $user): bool
     {
-        return in_array($user->role, ['admin', 'manager', 'cashier']);
+        return in_array($user->role, ['super_admin', 'manager', 'cashier']);
     }
 
     public function update(User $user, Transaction $transaction): bool
     {
-        return $user->role === 'admin';
+        return $user->role === 'super_admin';
     }
 
     public function delete(User $user, Transaction $transaction): bool
     {
-        return $user->role === 'admin';
+        return $user->role === 'super_admin';
     }
 }

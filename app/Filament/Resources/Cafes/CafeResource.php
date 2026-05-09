@@ -3,7 +3,6 @@
 namespace App\Filament\Resources\Cafes;
 
 use App\Filament\Resources\Cafes\Infolists\CafeInfolist;
-use App\Filament\Resources\Cafes\Pages\CreateCafe;
 use App\Filament\Resources\Cafes\Pages\EditCafe;
 use App\Filament\Resources\Cafes\Pages\ListCafes;
 use App\Filament\Resources\Cafes\Pages\ViewCafe;
@@ -20,6 +19,7 @@ use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
 
 class CafeResource extends Resource
@@ -28,11 +28,17 @@ class CafeResource extends Resource
 
     protected static ?string $model = Cafe::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedBuildingStorefront;
 
-    protected static ?string $roleNavigationGroup = 'Master Data';
+    protected static ?string $navigationLabel = 'Cafes & Managers';
 
-    protected static array $allowedRoles = ['admin', 'manager', 'super_admin'];
+    protected static ?string $roleNavigationGroup = 'Platform';
+
+    /**
+     * super_admin : read-only (list + view)
+     * manager     : edit their own cafe only
+     */
+    protected static array $allowedRoles = ['super_admin', 'manager'];
 
     protected static ?SubNavigationPosition $subNavigationPosition = SubNavigationPosition::Top;
 
@@ -55,22 +61,39 @@ class CafeResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        $user = Auth::user();
-
         $query = parent::getEloquentQuery()->with(['manager.manager', 'subscription']);
 
-        if ($user?->role === 'manager' && filled($user->cafe_id)) {
-            return $query->whereKey($user->cafe_id);
+        // Manager can only see their own cafe
+        if (Auth::user()?->role === 'manager') {
+            $query->where('id', Auth::user()?->cafe_id);
         }
 
         return $query;
     }
 
+    /** Nobody creates cafes from the panel */
+    public static function canCreate(): bool
+    {
+        return false;
+    }
+
+    /** Only manager can edit — and only their own cafe */
+    public static function canEdit(Model $record): bool
+    {
+        $user = Auth::user();
+
+        return $user?->role === 'manager' && (int) $user->cafe_id === (int) $record->id;
+    }
+
+    /** Nobody deletes cafes from the panel */
+    public static function canDelete(Model $record): bool
+    {
+        return false;
+    }
+
     public static function getRelations(): array
     {
-        return [
-            //
-        ];
+        return [];
     }
 
     /**
@@ -79,17 +102,22 @@ class CafeResource extends Resource
     public static function getRecordSubNavigation(Page $page): array
     {
         $record = $page->getRecord();
-
-        return [
-            NavigationItem::make('View')
+        $items = [
+            NavigationItem::make('Detail')
                 ->icon(Heroicon::OutlinedEye)
                 ->isActiveWhen(fn (): bool => $page::getRouteName() === ViewCafe::getRouteName())
                 ->url(static::getUrl('view', ['record' => $record])),
-            NavigationItem::make('Edit')
+        ];
+
+        // Only show Edit tab if manager can edit this cafe
+        if (static::canEdit($record)) {
+            $items[] = NavigationItem::make('Edit')
                 ->icon(Heroicon::OutlinedPencilSquare)
                 ->isActiveWhen(fn (): bool => $page::getRouteName() === EditCafe::getRouteName())
-                ->url(static::getUrl('edit', ['record' => $record])),
-        ];
+                ->url(static::getUrl('edit', ['record' => $record]));
+        }
+
+        return $items;
     }
 
     public static function getPages(): array
@@ -97,7 +125,6 @@ class CafeResource extends Resource
         return [
             'index' => ListCafes::route('/'),
             'view' => ViewCafe::route('/{record}'),
-            'create' => CreateCafe::route('/create'),
             'edit' => EditCafe::route('/{record}/edit'),
         ];
     }

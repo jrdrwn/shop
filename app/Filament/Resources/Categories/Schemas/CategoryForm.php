@@ -9,6 +9,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
+use Illuminate\Support\Facades\Auth;
 
 class CategoryForm
 {
@@ -25,7 +26,8 @@ class CategoryForm
                             ->relationship('cafe', 'name')
                             ->searchable()
                             ->preload()
-                            ->required(),
+                            ->required(fn () => Auth::user()->role !== 'manager')
+                            ->hidden(fn () => Auth::user()->role === 'manager'),
                         TextInput::make('name')
                             ->label('Nama Kategori')
                             ->required()

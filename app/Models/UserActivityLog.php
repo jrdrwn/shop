@@ -9,7 +9,7 @@ class UserActivityLog extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['cafe_id','user_id','activity_type','description','ip_address','user_agent'];
+    protected $fillable = ['cafe_id', 'user_id', 'activity_type', 'description', 'ip_address', 'user_agent'];
 
     public function cafe()
     {

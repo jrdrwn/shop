@@ -9,7 +9,7 @@ class PaymentMethod extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['cafe_id','name','type','is_active'];
+    protected $fillable = ['cafe_id', 'name', 'type', 'is_active'];
 
     public function cafe()
     {

@@ -18,13 +18,19 @@ class Pos extends Page
 
     public array $categories = [];
 
+    /** Tax percentage from the cafe — read-only in POS */
+    public int $taxPercentage = 0;
+
+    /** Service charge percentage from the cafe — read-only in POS */
+    public int $serviceChargePercentage = 0;
+
     public function mount(): void
     {
         $user = Auth::user();
 
         $productQuery = Product::query()
             ->where('is_active', true)
-            ->select(['id', 'cafe_id', 'category_id', 'name', 'sku', 'price', 'stock', 'image_url', 'has_variants', 'variants']);
+            ->select(['id', 'cafe_id', 'category_id', 'name', 'sku', 'price', 'discount_percentage', 'stock', 'image_url', 'has_variants', 'variants']);
 
         $categoryQuery = Category::query()
             ->select(['id', 'name']);
@@ -32,10 +38,17 @@ class Pos extends Page
         if ($user?->role === 'cashier' && filled($user->cafe_id)) {
             $productQuery->where('cafe_id', $user->cafe_id);
             $categoryQuery->where('cafe_id', $user->cafe_id);
+
+            // Sync tax & service from the cafe record
+            $cafe = $user->cafe;
+            if ($cafe) {
+                $this->taxPercentage = (int) $cafe->tax_percentage;
+                $this->serviceChargePercentage = (int) $cafe->service_charge_percentage;
+            }
         }
 
-        $this->products = $productQuery->orderBy('name')->get()->toArray();
-        $this->categories = $categoryQuery->orderBy('name')->get()->toArray();
+        $this->products = $productQuery->orderBy('name', 'asc')->get()->toArray();
+        $this->categories = $categoryQuery->orderBy('name', 'asc')->get()->toArray();
     }
 
     public static function canAccess(): bool

@@ -28,14 +28,14 @@ class AssignSubscriptionsToCafesSeeder extends Seeder
             ]);
         }
 
-        $free = Subscription::where('name', 'Free')->orWhere('name', 'free')->first();
+        $free = Subscription::whereName('Free')->orWhere('name', 'free')->first();
 
         if (! $free) {
-            $free = Subscription::first();
+            $free = Subscription::first('id');
         }
 
         if ($free) {
-            Cafe::whereNull('subscription_id')->update(['subscription_id' => $free->id]);
+            Cafe::whereSubscriptionId(null)->update(['subscription_id' => $free->id]);
         }
     }
 }

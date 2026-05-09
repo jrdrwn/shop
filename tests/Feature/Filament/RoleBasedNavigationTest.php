@@ -3,17 +3,11 @@
 use App\Filament\Pages\Pos;
 use App\Filament\Resources\Cafes\CafeResource;
 use App\Filament\Resources\Categories\CategoryResource;
-use App\Filament\Resources\DailyReports\DailyReportResource;
 use App\Filament\Resources\InventoryLogs\InventoryLogResource;
 use App\Filament\Resources\PaymentMethods\PaymentMethodResource;
-use App\Filament\Resources\Payments\PaymentResource;
 use App\Filament\Resources\Products\ProductResource;
-use App\Filament\Resources\Settings\SettingResource;
 use App\Filament\Resources\Subscriptions\SubscriptionResource;
-use App\Filament\Resources\TransactionHistories\TransactionHistoryResource;
-use App\Filament\Resources\TransactionItems\TransactionItemResource;
 use App\Filament\Resources\Transactions\TransactionResource;
-use App\Filament\Resources\UserActivityLogs\UserActivityLogResource;
 use App\Filament\Resources\Users\UserResource;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -22,22 +16,26 @@ use function Pest\Laravel\actingAs;
 
 uses(RefreshDatabase::class);
 
+/**
+ * Role matrix:
+ * - super_admin : platform management only (Cafe, CafeManager, Subscription)
+ * - manager     : all operational resources, scoped to their own cafe
+ * - cashier     : transactions only (for POS)
+ */
 $resourceRoleMatrix = [
-    UserResource::class => ['admin' => true, 'super_admin' => false, 'manager' => true, 'cashier' => false],
-    'App\\Filament\\Resources\\CafeManagers\\CafeManagerResource' => ['admin' => true, 'super_admin' => false, 'manager' => true, 'cashier' => false],
-    CafeResource::class => ['admin' => true, 'super_admin' => false, 'manager' => true, 'cashier' => false],
-    CategoryResource::class => ['admin' => true, 'super_admin' => false, 'manager' => true, 'cashier' => false],
-    ProductResource::class => ['admin' => true, 'super_admin' => false, 'manager' => true, 'cashier' => false],
-    PaymentMethodResource::class => ['admin' => true, 'super_admin' => false, 'manager' => true, 'cashier' => false],
-    TransactionResource::class => ['admin' => true, 'super_admin' => false, 'manager' => true, 'cashier' => true],
-    PaymentResource::class => ['admin' => true, 'super_admin' => false, 'manager' => false, 'cashier' => false],
-    TransactionItemResource::class => ['admin' => true, 'super_admin' => false, 'manager' => false, 'cashier' => false],
-    DailyReportResource::class => ['admin' => true, 'super_admin' => false, 'manager' => true, 'cashier' => false],
-    InventoryLogResource::class => ['admin' => true, 'super_admin' => false, 'manager' => true, 'cashier' => false],
-    TransactionHistoryResource::class => ['admin' => true, 'super_admin' => false, 'manager' => true, 'cashier' => false],
-    UserActivityLogResource::class => ['admin' => true, 'super_admin' => false, 'manager' => true, 'cashier' => false],
-    SettingResource::class => ['admin' => true, 'super_admin' => false, 'manager' => false, 'cashier' => false],
-    SubscriptionResource::class => ['admin' => true, 'super_admin' => true, 'manager' => false, 'cashier' => false],
+    // ── Super Admin Only ────────────────────────────────────────────────────
+    CafeResource::class => ['super_admin' => true,  'manager' => true,  'cashier' => false],
+    SubscriptionResource::class => ['super_admin' => true,  'manager' => false, 'cashier' => false],
+
+    // ── Manager Only (full ops, cafe-scoped) ────────────────────────────────
+    UserResource::class => ['super_admin' => false, 'manager' => true, 'cashier' => false],
+    CategoryResource::class => ['super_admin' => false, 'manager' => true, 'cashier' => false],
+    ProductResource::class => ['super_admin' => false, 'manager' => true, 'cashier' => false],
+    PaymentMethodResource::class => ['super_admin' => false, 'manager' => true, 'cashier' => false],
+    InventoryLogResource::class => ['super_admin' => false, 'manager' => true, 'cashier' => false],
+
+    // ── Manager + Cashier ───────────────────────────────────────────────────
+    TransactionResource::class => ['super_admin' => false, 'manager' => true, 'cashier' => true],
 ];
 
 foreach ($resourceRoleMatrix as $resourceClass => $accessMap) {
@@ -62,7 +60,7 @@ test('guest tidak bisa akses resource', function () use ($resourceRoleMatrix): v
 
 test('hanya cashier yang dapat mengakses halaman POS', function (): void {
     /** @var User $admin */
-    $admin = User::factory()->createOne(['role' => 'admin']);
+    $admin = User::factory()->createOne(['role' => 'super_admin']);
     actingAs($admin);
     expect(Pos::canAccess())->toBeFalse();
 

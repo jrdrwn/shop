@@ -22,12 +22,7 @@ class PosController extends Controller
             'cart.*.qty' => 'required|integer|min:1',
             'cart.*.notes' => 'nullable|string|max:255',
             'payment_method' => 'required|string|in:cash,debit,qris',
-            'tax_rate' => 'required|numeric|min:0|max:100',
-            'service_charge' => 'required|numeric|min:0|max:100',
             'discount_amount' => 'required|numeric|min:0',
-            'tax_amount' => 'required|numeric|min:0',
-            'service_amount' => 'required|numeric|min:0',
-            'total_amount' => 'required|numeric|min:0',
             'paid_amount' => 'required|numeric|min:0',
             'change_amount' => 'required|numeric|min:0',
         ]);
@@ -43,19 +38,17 @@ class PosController extends Controller
 
         $cart = $request->input('cart');
         $paymentMethod = $request->input('payment_method');
-        $taxAmount = (int) $request->input('tax_amount');
-        $serviceAmount = (int) $request->input('service_amount');
         $discountAmount = (int) $request->input('discount_amount');
-        $totalAmount = (int) $request->input('total_amount');
         $paidAmount = (int) $request->input('paid_amount');
         $changeAmount = (int) $request->input('change_amount');
 
-        if ($paidAmount < $totalAmount) {
-            return response()->json(['message' => 'Jumlah pembayaran kurang dari total.'], 400);
-        }
+        // Tax & service are authoritative from the cafe — never trust the client
+        $cafe = $user->cafe;
+        $taxRate = (int) ($cafe?->tax_percentage ?? 0);
+        $serviceRate = (int) ($cafe?->service_charge_percentage ?? 0);
 
         try {
-            return DB::transaction(function () use ($user, $cart, $paymentMethod, $taxAmount, $serviceAmount, $discountAmount, $totalAmount, $paidAmount, $changeAmount) {
+            return DB::transaction(function () use ($user, $cart, $paymentMethod, $taxRate, $serviceRate, $paidAmount, $changeAmount) {
                 $subtotal = 0;
                 $cartDetails = [];
 
@@ -80,15 +73,32 @@ class PosController extends Controller
                         'product' => $product,
                         'qty' => $qty,
                         'price' => $product->price,
+                        'discount_pct' => (int) $product->discount_percentage,
                         'subtotal' => $itemSubtotal,
                         'notes' => $item['notes'] ?? null,
                     ];
                 }
 
-                $calculatedTotal = $subtotal + $taxAmount + $serviceAmount - $discountAmount;
-                if (abs($calculatedTotal - $totalAmount) > 1) {
-                    throw new \Exception('Total tidak sesuai, coba refresh halaman.');
+                $calculatedDiscount = 0;
+                foreach ($cartDetails as $detail) {
+                    $calculatedDiscount += (int) round($detail['price'] * ($detail['discount_pct'] / 100)) * $detail['qty'];
                 }
+
+                $netSubtotal = $subtotal - $calculatedDiscount;
+                $taxAmount = (int) round($netSubtotal * $taxRate / 100);
+                $serviceAmount = (int) round($netSubtotal * $serviceRate / 100);
+                $discountAmount = $calculatedDiscount;
+                $totalAmount = $netSubtotal + $taxAmount + $serviceAmount;
+
+                if ($paidAmount < $totalAmount) {
+                    throw new \Exception('Jumlah pembayaran kurang dari total.');
+                }
+
+                $changeAmount = max(0, $paidAmount - $totalAmount);
+
+                // Transaction status mirrors payment settlement:
+                // cash = completed immediately; debit/qris = pending until confirmed
+                $transactionStatus = $paymentMethod === 'cash' ? 'completed' : 'pending';
 
                 $transaction = Transaction::create([
                     'cafe_id' => $user->cafe_id,
@@ -99,7 +109,7 @@ class PosController extends Controller
                     'tax_amount' => $taxAmount,
                     'paid_amount' => $paidAmount,
                     'change_amount' => $changeAmount,
-                    'status' => 'completed',
+                    'status' => $transactionStatus,
                     'notes' => "POS checkout - {$paymentMethod} payment",
                 ]);
 

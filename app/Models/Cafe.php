@@ -10,7 +10,16 @@ class Cafe extends Model
     use HasFactory;
 
     protected $fillable = [
-        'name', 'address', 'phone', 'email', 'city', 'province', 'description', 'owner_name', 'logo_url', 'is_active', 'created_by', 'subscription_id',
+        'name', 'address', 'phone', 'email', 'city', 'province',
+        'description', 'owner_name', 'logo_url', 'is_active',
+        'created_by', 'subscription_id',
+        'tax_percentage', 'service_charge_percentage',
+    ];
+
+    protected $casts = [
+        'tax_percentage' => 'integer',
+        'service_charge_percentage' => 'integer',
+        'is_active' => 'boolean',
     ];
 
     public function manager()
