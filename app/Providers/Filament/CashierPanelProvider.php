@@ -2,8 +2,9 @@
 
 namespace App\Providers\Filament;
 
-use App\Filament\Pages\AdminLogin;
-use App\Filament\Pages\Dashboard;
+use App\Filament\Pages\Cashier\CashierPanelDashboard;
+use App\Filament\Pages\Pos;
+use App\Filament\Pages\CashierLogin;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -20,25 +21,25 @@ use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 
-class AdminPanelProvider extends PanelProvider
+class CashierPanelProvider extends PanelProvider
 {
     public function panel(Panel $panel): Panel
     {
         return $panel
-            ->default()
-            ->brandName('Admin Semua Cafe')
-            ->id('admin')
-            ->path('admin')
-            ->login(AdminLogin::class)
-            ->homeUrl('/admin')
+            ->id('cashier')
+            ->brandName('Cashier Cafe')
+            ->path('cashier')
+            ->login(CashierLogin::class)
+            ->homeUrl('/cashier')
             ->colors([
-                'primary' => Color::Amber,
+                'primary' => Color::Emerald,
             ])
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
-            ->pages([
-                Dashboard::class,
-            ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\Filament\Widgets')
+            ->pages([
+                CashierPanelDashboard::class,
+                Pos::class,
+            ])
             ->middleware([
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,
@@ -55,7 +56,7 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->renderHook(
                 PanelsRenderHook::AUTH_LOGIN_FORM_AFTER,
-                fn (): string => Blade::render('<x-admin-role-links />')
+                fn (): string => Blade::render('<x-cashier-role-links />')
             );
     }
 }

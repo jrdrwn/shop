@@ -71,7 +71,7 @@ class CafeInfolist
                 Section::make('Langganan')
                     ->description('Paket aktif cafe dan masa berlakunya.')
                     ->columns(2)
-                    ->visible($isSuperAdmin)
+                    // ->visible($isSuperAdmin)
                     ->schema([
                         TextEntry::make('subscription.name')
                             ->label('Paket')

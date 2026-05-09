@@ -3,10 +3,14 @@
 namespace App\Providers;
 
 use Carbon\CarbonImmutable;
+use Filament\Auth\Http\Responses\Contracts\RegistrationResponse;
+use Filament\Facades\Filament;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
+use Livewire\Features\SupportRedirects\Redirector;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -15,7 +19,24 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // Register custom registration response untuk redirect ke panel yang benar
+        $this->app->bind(RegistrationResponse::class, function ($app) {
+            return new class implements RegistrationResponse
+            {
+                public function toResponse($request): RedirectResponse|Redirector
+                {
+                    $panel = Filament::getCurrentPanel();
+
+                    // Jika dari panel manager, redirect ke manager
+                    if ($panel && $panel->getId() === 'manager') {
+                        return redirect()->intended($panel->getUrl());
+                    }
+
+                    // Default: redirect ke panel saat ini atau default
+                    return redirect()->intended(Filament::getUrl());
+                }
+            };
+        });
     }
 
     /**

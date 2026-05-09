@@ -25,6 +25,13 @@ class ProductForm
                         FileUpload::make('image_url')
                             ->label('Gambar')
                             ->image()
+                            ->imageEditor()
+                            ->imageAspectRatio('1:1')
+                            ->automaticallyOpenImageEditorForAspectRatio()
+                            ->visibility('public')
+                            ->openable()
+                            ->disk('public')
+                            ->maxSize(2048) // 1MB
                             ->directory('products')
                             ->columnSpanFull(),
                         TextInput::make('name')
@@ -62,13 +69,7 @@ class ProductForm
                             ->suffix('%')
                             ->default(0)
                             ->minValue(0)
-                            ->maxValue(100)
-                            ->helperText('Diskon khusus produk ini. 0 = tidak ada diskon.'),
-                        TextInput::make('cost')
-                            ->label('Harga Modal')
-                            ->numeric()
-                            ->prefix('Rp')
-                            ->minValue(0),
+                            ->maxValue(100),
                         TextInput::make('stock')
                             ->label('Stok')
                             ->numeric()
@@ -100,7 +101,7 @@ class ProductForm
                                     ->suggestions(['Hot', 'Ice', 'Warm'])
                                     ->helperText('Contoh: Hot, Ice'),
                             ])
-                            ->visible(fn ($get) => (bool) $get('has_variants')),
+                            ->visible(fn($get) => (bool) $get('has_variants')),
                     ]),
             ]);
     }

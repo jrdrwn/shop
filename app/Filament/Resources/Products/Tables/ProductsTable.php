@@ -18,8 +18,9 @@ class ProductsTable
             ->columns([
                 ImageColumn::make('image_url')
                     ->label('Gambar')
-                    ->rounded()
-                    ->size(48),
+                    ->circular()
+                    ->disk('public')
+                    ->imageSize(32),
                 TextColumn::make('name')
                     ->label('Nama Produk')
                     ->searchable()

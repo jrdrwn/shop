@@ -2,15 +2,10 @@
 
 use App\Http\Controllers\PosController;
 use Illuminate\Support\Facades\Route;
-use Laravel\Fortify\Features;
 
-Route::inertia('/', 'welcome', [
-    'canRegister' => Features::enabled(Features::registration()),
-])->name('home');
+// POS checkout endpoint used by the Filament Cashier POS page
+Route::post('/cashier/pos/checkout', [PosController::class, 'checkout'])
+	->name('pos.checkout')
+	->middleware(['auth']);
 
-Route::middleware(['auth', 'verified'])->group(function () {
-    Route::inertia('dashboard', 'dashboard')->name('dashboard');
-    Route::post('/pos/checkout', [PosController::class, 'checkout'])->name('pos.checkout');
-});
-
-require __DIR__.'/settings.php';
+// require __DIR__.'/settings.php';

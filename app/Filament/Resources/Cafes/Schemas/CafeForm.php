@@ -50,32 +50,7 @@ class CafeForm
                             ->helperText('Cafe nonaktif akan disembunyikan dari pemilihan data utama.'),
                     ]),
 
-                Section::make('Lokasi & Brand')
-                    ->description('Tambahkan alamat dan aset visual agar tampilan lebih profesional.')
-                    ->columns(2)
-                    ->schema([
-                        TextInput::make('city')
-                            ->label('Kota')
-                            ->placeholder('Bandung')
-                            ->maxLength(255),
-                        TextInput::make('province')
-                            ->label('Provinsi')
-                            ->placeholder('Jawa Barat')
-                            ->maxLength(255),
-                        FileUpload::make('logo_url')
-                            ->label('Logo')
-                            ->image()
-                            ->directory('cafes')
-                            ->columnSpanFull(),
-                        Textarea::make('address')
-                            ->label('Alamat')
-                            ->rows(4)
-                            ->columnSpanFull(),
-                        Textarea::make('description')
-                            ->label('Deskripsi')
-                            ->rows(4)
-                            ->columnSpanFull(),
-                    ]),
+
 
                 Section::make('Pengaturan Transaksi')
                     ->description('Tax dan service charge yang diterapkan pada setiap transaksi di cafe ini.')
@@ -104,7 +79,7 @@ class CafeForm
                 // Subscription assignment — super admin only
                 Section::make('Langganan')
                     ->description('Pilih paket langganan yang sesuai dengan kebutuhan cafe.')
-                    ->visible($isSuperAdmin)
+                    // ->visible($isSuperAdmin)
                     ->schema([
                         Select::make('subscription_id')
                             ->label('Paket Langganan')
@@ -117,7 +92,38 @@ class CafeForm
                             ->searchable()
                             ->nullable(),
                     ]),
-
+                Section::make('Lokasi & Brand')
+                    ->description('Tambahkan alamat dan aset visual agar tampilan lebih profesional.')
+                    ->columns(2)
+                    ->schema([
+                        TextInput::make('city')
+                            ->label('Kota')
+                            ->placeholder('Bandung')
+                            ->maxLength(255),
+                        TextInput::make('province')
+                            ->label('Provinsi')
+                            ->placeholder('Jawa Barat')
+                            ->maxLength(255),
+                        FileUpload::make('logo_url')
+                            ->label('Logo')
+                            ->disk('public')
+                            ->image()
+                            ->directory('cafe-logos')
+                            ->visibility('public')
+                            ->imageEditor()
+                            ->imageAspectRatio('1:1')
+                            ->automaticallyOpenImageEditorForAspectRatio()
+                            ->maxSize(2048) // 1MB
+                            ->columnSpanFull(),
+                        Textarea::make('address')
+                            ->label('Alamat')
+                            ->rows(4)
+                            ->columnSpanFull(),
+                        Textarea::make('description')
+                            ->label('Deskripsi')
+                            ->rows(4)
+                            ->columnSpanFull(),
+                    ]),
             ]);
     }
 }

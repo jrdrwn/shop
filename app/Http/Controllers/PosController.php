@@ -53,7 +53,7 @@ class PosController extends Controller
                 $cartDetails = [];
 
                 foreach ($cart as $item) {
-                    $product = Product::where('id', $item['id'])
+                    $product = Product::whereId($item['id'])
                         ->where('cafe_id', $user->cafe_id)
                         ->first();
 

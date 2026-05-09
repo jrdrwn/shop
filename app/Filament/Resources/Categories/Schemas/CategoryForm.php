@@ -49,6 +49,13 @@ class CategoryForm
                         FileUpload::make('image_url')
                             ->label('Gambar')
                             ->image()
+                            ->disk('public')
+                            ->imageEditor()
+                            ->imageAspectRatio('1:1')
+                            ->automaticallyOpenImageEditorForAspectRatio()
+                            ->visibility('public')
+                            ->openable()
+                            ->maxSize(2048) // 1MB
                             ->directory('categories')
                             ->columnSpanFull(),
                         Textarea::make('description')
