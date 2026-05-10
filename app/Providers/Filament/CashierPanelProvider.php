@@ -5,6 +5,7 @@ namespace App\Providers\Filament;
 use App\Filament\Pages\Cashier\CashierPanelDashboard;
 use App\Filament\Pages\Pos;
 use App\Filament\Pages\CashierLogin;
+use Awcodes\LightSwitch\LightSwitchPlugin;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -29,6 +30,9 @@ class CashierPanelProvider extends PanelProvider
             ->id('cashier')
             ->brandName('Cashier Cafe')
             ->path('cashier')
+            ->brandLogo(asset('/default-logo/light-mode.png'))
+            ->darkModeBrandLogo(asset('/default-logo/dark-mode.png'))
+            ->brandLogoHeight("2rem")
             ->login(CashierLogin::class)
             ->homeUrl('/cashier')
             ->colors([

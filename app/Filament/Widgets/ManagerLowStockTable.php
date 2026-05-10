@@ -47,6 +47,7 @@ class ManagerLowStockTable extends TableWidget
             ->emptyStateDescription('Tidak ada produk yang stoknya menipis.')
             ->emptyStateIcon('heroicon-o-check-circle')
             ->striped()
-            ->paginated(false);
+            ->searchable(false)
+            ->defaultPaginationPageOption(5);
     }
 }

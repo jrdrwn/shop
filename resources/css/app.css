@@ -4,6 +4,7 @@
 
 @source '../views';
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../../../vendor/awcodes/light-switch/resources/**/*.blade.php';
 
 @custom-variant dark (&:is(.dark *));
 

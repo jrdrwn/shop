@@ -44,6 +44,6 @@ class ManagerCafeTransactionsTable extends TableWidget
                 TextColumn::make('created_at')->label('Waktu')->time()->sortable(),
             ])
             ->striped()
-            ->paginated(false);
+            ->defaultPaginationPageOption(5);
     }
 }

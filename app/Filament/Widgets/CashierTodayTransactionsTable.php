@@ -42,6 +42,6 @@ class CashierTodayTransactionsTable extends TableWidget
                 TextColumn::make('created_at')->label('Waktu')->dateTime('H:i'),
             ])
             ->striped()
-            ->paginated(false);
+            ->defaultPaginationPageOption(5);
     }
 }

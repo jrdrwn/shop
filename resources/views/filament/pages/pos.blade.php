@@ -8,15 +8,12 @@
             <div class="receipt-container">
                 <div class="receipt-header">
                     <div class="receipt-logo">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="1.5"
-                            style="color:rgb(var(--color-success-600,22 163 74))">
-                            <path d="M18 8h1a4 4 0 0 1 0 8h-1" />
-                            <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z" />
-                            <line x1="6" y1="1" x2="6" y2="4" />
-                            <line x1="10" y1="1" x2="10" y2="4" />
-                            <line x1="14" y1="1" x2="14" y2="4" />
-                        </svg>
+                        @if($cafeLogo)
+                            <img src="{{ asset('storage/' . $cafeLogo) }}" alt="Logo Cafe" style="max-height: 48px; max-width: 100%;">
+@else
+                            <img src="{{ asset('/default-logo/light-mode.png') }}" class="logo-light" alt="Logo Default" style="max-height: 48px; max-width: 100%;">
+                            <img src="{{ asset('/default-logo/dark-mode.png') }}" class="logo-dark" alt="Logo Default" style="max-height: 48px; max-width: 100%;">
+                        @endif
                     </div>
                     <h2>{{ strtoupper($cafeName) }}</h2>
                     <p id="receipt-trx-num" class="receipt-trx-num">TRX...</p>
@@ -1375,11 +1372,19 @@
         }
 
 
+        .logo-light { display: inline-block; }
+        .logo-dark { display: none; }
+
+        .dark .logo-light { display: none; }
+        .dark .logo-dark { display: inline-block; }
+
         @media print {
             body {
                 background: #fff !important;
                 padding: 0 !important;
             }
+            .logo-light { display: inline-block !important; }
+            .logo-dark { display: none !important; }
 
             /* Sembunyikan SEMUA, tampilkan HANYA struk berdasarkan ID */
             body * {

@@ -11,6 +11,8 @@
         .receipt-container { background: #fff; color: #111827; border-radius: 16px; box-shadow: 0 24px 64px rgba(0,0,0,.1); width: min(460px, 94vw); max-height: 90vh; display: flex; flex-direction: column; overflow: hidden; }
         .receipt-header { text-align: center; padding: 1.75rem 2rem 1.25rem; border-bottom: 1px solid #e5e7eb; background: #f9fafb; }
         .receipt-logo { font-size: 2.5rem; margin-bottom: .5rem; }
+        .logo-light { display: inline-block; }
+        .logo-dark { display: none; }
         .receipt-header h2 { margin: 0; font-size: 1.1rem; font-weight: 700; letter-spacing: .15em; color: #374151; }
         .receipt-trx-num { margin: .35rem 0 0; font-size: .8rem; color: #9ca3af; font-family: monospace; }
         
@@ -34,6 +36,8 @@
 
         @media (prefers-color-scheme: dark) {
             body { background: #111827; }
+            .logo-light { display: none; }
+            .logo-dark { display: inline-block; }
             
             .receipt-container { 
                 background: #1f2937; 
@@ -67,6 +71,8 @@
 
         @media print {
             body { background: #fff; padding: 0; }
+            .logo-light { display: inline-block !important; }
+            .logo-dark { display: none !important; }
             .receipt-container {
                 box-shadow: none !important;
                 border-radius: 0 !important;
@@ -99,7 +105,12 @@
     <div class="receipt-container">
         <div class="receipt-header">
             <div class="receipt-logo">
-                <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:#16a34a"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
+                @if($transaction->cafe && $transaction->cafe->logo_url)
+                    <img src="{{ asset('storage/' . $transaction->cafe->logo_url) }}" alt="Logo Cafe" style="max-height: 48px; max-width: 100%;">
+                @else
+                    <img src="{{ asset('/default-logo/light-mode.png') }}" class="logo-light" alt="Logo Default" style="max-height: 48px; max-width: 100%;">
+                    <img src="{{ asset('/default-logo/dark-mode.png') }}" class="logo-dark" alt="Logo Default" style="max-height: 48px; max-width: 100%;">
+                @endif
             </div>
             <h2>{{ strtoupper($transaction->cafe->name ?? 'CAFE') }}</h2>
             <p class="receipt-trx-num">{{ $transaction->transaction_number }}</p>

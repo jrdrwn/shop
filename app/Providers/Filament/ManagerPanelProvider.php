@@ -5,6 +5,7 @@ namespace App\Providers\Filament;
 use App\Filament\Pages\Manager\ManagerPanelDashboard;
 use App\Filament\Pages\Manager\ManagerRegistration;
 use App\Filament\Pages\ManagerLogin;
+use Awcodes\LightSwitch\LightSwitchPlugin;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -30,6 +31,9 @@ class ManagerPanelProvider extends PanelProvider
             ->path('manajer')
             ->viteTheme('resources/css/filament/manager/theme.css')
             ->brandName('Manager Cafe')
+            ->brandLogo(asset('/default-logo/light-mode.png'))
+            ->darkModeBrandLogo(asset('/default-logo/dark-mode.png'))
+            ->brandLogoHeight("2rem")
             ->login(ManagerLogin::class)
             ->registration(ManagerRegistration::class)
             ->homeUrl('/manajer')
@@ -60,6 +64,9 @@ class ManagerPanelProvider extends PanelProvider
             ->renderHook(
                 PanelsRenderHook::AUTH_LOGIN_FORM_AFTER,
                 fn(): string => Blade::render('<x-manager-role-links />')
-            );
+            )
+            ->plugins([
+                LightSwitchPlugin::make(),
+            ]);
     }
 }

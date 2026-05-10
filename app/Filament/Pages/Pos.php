@@ -26,6 +26,8 @@ class Pos extends Page
 
     public string $cafeName = 'CAFE';
 
+    public ?string $cafeLogo = null;
+
     /** Tax percentage from the cafe — read-only in POS */
     public int $taxPercentage = 0;
 
@@ -53,6 +55,7 @@ class Pos extends Page
                 $this->taxPercentage = (int) $cafe->tax_percentage;
                 $this->serviceChargePercentage = (int) $cafe->service_charge_percentage;
                 $this->cafeName = $cafe->name;
+                $this->cafeLogo = $cafe->logo_url;
             }
         }
 

@@ -4,6 +4,7 @@ namespace App\Providers\Filament;
 
 use App\Filament\Pages\AdminLogin;
 use App\Filament\Pages\Dashboard;
+use Awcodes\LightSwitch\LightSwitchPlugin;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -28,6 +29,9 @@ class AdminPanelProvider extends PanelProvider
             ->default()
             ->brandName('Admin Semua Cafe')
             ->id('admin')
+            ->brandLogo(asset('/default-logo/light-mode.png'))
+            ->darkModeBrandLogo(asset('/default-logo/dark-mode.png'))
+            ->brandLogoHeight("2rem")
             ->path('admin')
             ->login(AdminLogin::class)
             ->homeUrl('/admin')
@@ -57,6 +61,8 @@ class AdminPanelProvider extends PanelProvider
             ->renderHook(
                 PanelsRenderHook::AUTH_LOGIN_FORM_AFTER,
                 fn(): string => Blade::render('<x-admin-role-links />')
-            );
+            )->plugins([
+                    LightSwitchPlugin::make(),
+                ]);
     }
 }

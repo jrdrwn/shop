@@ -57,6 +57,7 @@ class ManagerStaffPerformanceTable extends TableWidget
             ])
             ->emptyStateHeading('Belum ada kasir aktif')
             ->striped()
-            ->paginated(false);
+            ->searchable(false)
+            ->defaultPaginationPageOption(5);
     }
 }
