@@ -49,4 +49,11 @@ class ListCategories extends ListRecords
             CreateAction::make(),
         ];
     }
+
+    protected function getHeaderWidgets(): array
+    {
+        return [
+            \App\Filament\Widgets\ResourceStats\CategoryStatsWidget::class,
+        ];
+    }
 }

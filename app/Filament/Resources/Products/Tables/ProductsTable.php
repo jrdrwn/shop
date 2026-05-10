@@ -54,6 +54,10 @@ class ProductsTable
                         'gray' => false,
                     ]),
             ])
+            ->groups([
+                \Filament\Tables\Grouping\Group::make('category.name')
+                    ->label('Kategori'),
+            ])
             ->filters([
                 // future filters (category, price range)
             ])

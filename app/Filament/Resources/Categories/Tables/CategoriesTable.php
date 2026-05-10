@@ -33,8 +33,8 @@ class CategoriesTable
                 TextColumn::make('is_active')
                     ->label('Status')
                     ->badge()
-                    ->formatStateUsing(fn (bool $state): string => $state ? 'Aktif' : 'Nonaktif')
-                    ->color(fn (bool $state): string => $state ? 'success' : 'gray'),
+                    ->formatStateUsing(fn(bool $state): string => $state ? 'Aktif' : 'Nonaktif')
+                    ->color(fn(bool $state): string => $state ? 'success' : 'gray'),
             ])
             ->filters([])
             ->recordActions([

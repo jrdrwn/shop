@@ -27,14 +27,6 @@ class InventoryLogsTable
                 TextColumn::make('created_at')->dateTime()->sortable(),
             ])
             ->filters([])
-            ->recordActions([
-                EditAction::make(),
-            ])
-            ->toolbarActions([
-                BulkActionGroup::make([
-                    DeleteBulkAction::make(),
-                ]),
-            ])
             ->headerActions([
                 \Filament\Actions\Action::make('export_csv')
                     ->label('Ekspor CSV')

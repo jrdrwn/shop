@@ -92,8 +92,6 @@ class InventoryLogResource extends Resource
     {
         return [
             'index' => ListInventoryLogs::route('/'),
-            'create' => CreateInventoryLog::route('/create'),
-            'edit' => EditInventoryLog::route('/{record}/edit'),
         ];
     }
 }
