@@ -12,6 +12,8 @@ use App\Filament\Widgets\ManagerLowStockTable;
 use App\Filament\Widgets\ManagerStaffPerformanceTable;
 use App\Filament\Widgets\ManagerStatsWidget;
 use App\Filament\Widgets\ManagerTopProductsChart;
+use App\Filament\Widgets\SubscriptionStatusWidget;
+use App\Filament\Widgets\SubscriptionUpgradeWidget;
 use App\Filament\Widgets\SuperAdminCafeSummaryTable;
 use App\Filament\Widgets\SuperAdminStatsWidget;
 use App\Filament\Widgets\SuperAdminSubscriptionChart;
@@ -101,7 +103,7 @@ test('manager dashboard lebih detail dari cashier', function (): void {
 
     $product = Product::query()->create([
         'cafe_id' => $cafe->id, 'category_id' => $category->id,
-        'name' => 'Espresso', 'price' => 18000, 'cost' => 9000,
+        'name' => 'Espresso', 'price' => 18000,
         'stock' => 4, 'sku' => 'ESP-001', 'is_active' => true,
         'has_variants' => false, 'variants' => [],
     ]);
@@ -130,7 +132,9 @@ test('manager dashboard lebih detail dari cashier', function (): void {
     expect(count($managerWidgets))->toBeGreaterThan(count($cashierWidgets));
 
     // All manager widgets present
-    expect($managerWidgets)->toContain(ManagerStatsWidget::class)
+    expect($managerWidgets)->toContain(SubscriptionUpgradeWidget::class)
+        ->toContain(SubscriptionStatusWidget::class)
+        ->toContain(ManagerStatsWidget::class)
         ->toContain(ManagerDailyRevenueChart::class)
         ->toContain(ManagerTopProductsChart::class)
         ->toContain(ManagerLowStockTable::class)

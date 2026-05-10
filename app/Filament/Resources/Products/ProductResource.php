@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Products;
 
+use App\Filament\Concerns\ResolvesSubscription;
 use App\Filament\Resources\Concerns\HasRoleNavigation;
 use App\Filament\Resources\Products\Pages\CreateProduct;
 use App\Filament\Resources\Products\Pages\EditProduct;
@@ -19,7 +20,7 @@ use Illuminate\Support\Facades\Auth;
 
 class ProductResource extends Resource
 {
-    use HasRoleNavigation;
+    use HasRoleNavigation, ResolvesSubscription;
 
     protected static ?string $model = Product::class;
 
@@ -39,6 +40,17 @@ class ProductResource extends Resource
     public static function table(Table $table): Table
     {
         return ProductsTable::configure($table);
+    }
+
+    public static function canCreate(): bool
+    {
+        $cafe = static::cafeForCurrentUser();
+
+        if (! $cafe) {
+            return false;
+        }
+
+        return static::subscriptionService()->canCreateProduct($cafe);
     }
 
     public static function getEloquentQuery(): Builder

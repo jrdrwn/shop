@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Enums\SubscriptionPlan;
 use App\Models\Cafe;
 use App\Models\Subscription;
 use Illuminate\Database\Seeder;
@@ -13,22 +14,20 @@ class AssignSubscriptionsToCafesSeeder extends Seeder
      */
     public function run(): void
     {
-        $defaults = [
-            ['name' => 'Free', 'price' => 0, 'duration_months' => 0],
-            ['name' => 'Plus', 'price' => 50000, 'duration_months' => 1],
-            ['name' => 'Pro', 'price' => 150000, 'duration_months' => 1],
-        ];
-
-        foreach ($defaults as $d) {
-            Subscription::firstOrCreate(['name' => $d['name']], [
-                'price' => $d['price'],
-                'duration_months' => $d['duration_months'],
-                'features' => [],
-                'is_active' => true,
-            ]);
+        foreach (SubscriptionPlan::cases() as $plan) {
+            Subscription::firstOrCreate(
+                ['plan' => $plan->value],
+                [
+                    'name' => $plan->getLabel(),
+                    'price' => $plan->price(),
+                    'duration_months' => $plan->durationMonths(),
+                    'features' => $plan->marketingFeatures(),
+                    'is_active' => true,
+                ]
+            );
         }
 
-        $free = Subscription::whereName('Free')->orWhere('name', 'free')->first();
+        $free = Subscription::where('plan', SubscriptionPlan::Free->value)->first();
 
         if (! $free) {
             $free = Subscription::first('id');

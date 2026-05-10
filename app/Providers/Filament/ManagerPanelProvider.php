@@ -28,6 +28,7 @@ class ManagerPanelProvider extends PanelProvider
         return $panel
             ->id('manager')
             ->path('manajer')
+            ->viteTheme('resources/css/filament/manager/theme.css')
             ->brandName('Manager Cafe')
             ->login(ManagerLogin::class)
             ->registration(ManagerRegistration::class)

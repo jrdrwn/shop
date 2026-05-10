@@ -4,8 +4,10 @@ namespace App\Filament\Pages;
 
 use App\Models\Category;
 use App\Models\Product;
+use App\Services\SubscriptionService;
 use BackedEnum;
 use Filament\Pages\Page;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 
 class Pos extends Page
@@ -47,7 +49,36 @@ class Pos extends Page
             }
         }
 
-        $this->products = $productQuery->orderBy('name', 'asc')->get()->toArray();
+        $products = $productQuery->orderBy('name', 'asc')->get();
+
+        // Apply subscription feature restrictions on the data passed to the POS view
+        if ($user?->role === 'cashier' && filled($user->cafe_id)) {
+            $cafe = $user->cafe;
+            if ($cafe) {
+                $service = app(SubscriptionService::class);
+                $canUseVariants = $service->canUseVariants($cafe);
+                $canUseDiscounts = $service->canUseDiscounts($cafe);
+
+                $products = $products->map(function ($product) use ($canUseVariants, $canUseDiscounts) {
+                    $arr = $product->toArray();
+                    // If variants are not allowed, treat all products as non-variant
+                    if (! $canUseVariants) {
+                        $arr['has_variants'] = false;
+                        $arr['variants'] = null;
+                    }
+                    // If discounts are not allowed, zero out discount
+                    if (! $canUseDiscounts) {
+                        $arr['discount_percentage'] = 0;
+                    }
+
+                    return $arr;
+                });
+            }
+        }
+
+        $this->products = $products instanceof Collection
+            ? $products->toArray()
+            : $products;
         $this->categories = $categoryQuery->orderBy('name', 'asc')->get()->toArray();
     }
 

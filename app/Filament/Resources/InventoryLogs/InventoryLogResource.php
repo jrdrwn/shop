@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\InventoryLogs;
 
+use App\Filament\Concerns\ResolvesSubscription;
 use App\Filament\Resources\Concerns\HasRoleNavigation;
 use App\Filament\Resources\InventoryLogs\Pages\CreateInventoryLog;
 use App\Filament\Resources\InventoryLogs\Pages\EditInventoryLog;
@@ -19,7 +20,7 @@ use Illuminate\Support\Facades\Auth;
 
 class InventoryLogResource extends Resource
 {
-    use HasRoleNavigation;
+    use HasRoleNavigation, ResolvesSubscription;
 
     protected static ?string $model = InventoryLog::class;
 
@@ -30,6 +31,30 @@ class InventoryLogResource extends Resource
     protected static array $allowedRoles = ['manager'];
 
     protected static ?string $recordTitleAttribute = 'action';
+
+    /**
+     * Gate access: manager must have an active subscription with can_use_inventory = true.
+     * Super admin always has access.
+     */
+    public static function canAccess(): bool
+    {
+        if (static::isSuperAdmin()) {
+            return true;
+        }
+
+        $cafe = static::cafeForCurrentUser();
+
+        if (! $cafe) {
+            return false;
+        }
+
+        return static::subscriptionService()->canUseInventory($cafe);
+    }
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        return static::canAccess();
+    }
 
     public static function form(Schema $schema): Schema
     {

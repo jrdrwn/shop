@@ -8,6 +8,8 @@ use App\Filament\Widgets\ManagerLowStockTable;
 use App\Filament\Widgets\ManagerStaffPerformanceTable;
 use App\Filament\Widgets\ManagerStatsWidget;
 use App\Filament\Widgets\ManagerTopProductsChart;
+use App\Filament\Widgets\SubscriptionStatusWidget;
+use App\Filament\Widgets\SubscriptionUpgradeWidget;
 use Filament\Pages\Dashboard as BaseDashboard;
 use Illuminate\Support\Facades\Auth;
 
@@ -30,6 +32,8 @@ class ManagerDashboard extends BaseDashboard
     public function getWidgets(): array
     {
         return [
+            SubscriptionUpgradeWidget::class,
+            SubscriptionStatusWidget::class,
             ManagerStatsWidget::class,
             ManagerDailyRevenueChart::class,
             ManagerTopProductsChart::class,

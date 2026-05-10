@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Categories;
 
+use App\Filament\Concerns\ResolvesSubscription;
 use App\Filament\Resources\Categories\Pages\CreateCategory;
 use App\Filament\Resources\Categories\Pages\EditCategory;
 use App\Filament\Resources\Categories\Pages\ListCategories;
@@ -19,7 +20,7 @@ use Illuminate\Support\Facades\Auth;
 
 class CategoryResource extends Resource
 {
-    use HasRoleNavigation;
+    use HasRoleNavigation, ResolvesSubscription;
 
     protected static ?string $model = Category::class;
 
@@ -39,6 +40,17 @@ class CategoryResource extends Resource
     public static function table(Table $table): Table
     {
         return CategoriesTable::configure($table);
+    }
+
+    public static function canCreate(): bool
+    {
+        $cafe = static::cafeForCurrentUser();
+
+        if (! $cafe) {
+            return false;
+        }
+
+        return static::subscriptionService()->canCreateCategory($cafe);
     }
 
     public static function getEloquentQuery(): Builder

@@ -12,6 +12,7 @@ use App\Filament\Resources\Transactions\Schemas\TransactionForm;
 use App\Filament\Resources\Transactions\Tables\TransactionsTable;
 use App\Models\Transaction;
 use BackedEnum;
+use Filament\Actions\Action;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
@@ -40,7 +41,20 @@ class TransactionResource extends Resource
 
     public static function table(Table $table): Table
     {
-        return TransactionsTable::configure($table);
+        return TransactionsTable::configure($table->recordActions([
+            Action::make('edit')
+                ->label('Selesaikan')
+                ->icon('heroicon-o-pencil')
+                ->color('primary')
+                // ->disabled(fn($record) => $record?->status !== 'pending')
+                ->action(fn($record) => $record->update(['status' => 'completed'])),
+            Action::make('cancel')
+                ->label('Batalkan')
+                ->color('danger')
+                ->requiresConfirmation()
+                // ->disabled(fn($record) => $record?->status !== 'pending')
+                ->action(fn($record) => $record->update(['status' => 'cancelled'])),
+        ]));
     }
 
     public static function getEloquentQuery(): Builder

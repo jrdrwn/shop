@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\PaymentMethods;
 
+use App\Filament\Concerns\ResolvesSubscription;
 use App\Filament\Resources\Concerns\HasRoleNavigation;
 use App\Filament\Resources\PaymentMethods\Pages\CreatePaymentMethod;
 use App\Filament\Resources\PaymentMethods\Pages\EditPaymentMethod;
@@ -19,7 +20,7 @@ use Illuminate\Support\Facades\Auth;
 
 class PaymentMethodResource extends Resource
 {
-    use HasRoleNavigation;
+    use HasRoleNavigation, ResolvesSubscription;
 
     protected static ?string $model = PaymentMethod::class;
 
@@ -39,6 +40,17 @@ class PaymentMethodResource extends Resource
     public static function table(Table $table): Table
     {
         return PaymentMethodsTable::configure($table);
+    }
+
+    public static function canCreate(): bool
+    {
+        $cafe = static::cafeForCurrentUser();
+
+        if (! $cafe) {
+            return false;
+        }
+
+        return static::subscriptionService()->canAddPaymentMethod($cafe);
     }
 
     public static function getEloquentQuery(): Builder

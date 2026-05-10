@@ -27,6 +27,14 @@ class Cafe extends Model
         return $this->hasOne(CafeManager::class);
     }
 
+    /**
+     * All users (managers + cashiers) belonging to this cafe.
+     */
+    public function users()
+    {
+        return $this->hasMany(User::class);
+    }
+
     public function subscription()
     {
         return $this->belongsTo(Subscription::class);
