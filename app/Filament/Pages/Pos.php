@@ -20,6 +20,8 @@ class Pos extends Page
 
     public array $categories = [];
 
+    public string $cafeName = 'CAFE';
+
     /** Tax percentage from the cafe — read-only in POS */
     public int $taxPercentage = 0;
 
@@ -46,6 +48,7 @@ class Pos extends Page
             if ($cafe) {
                 $this->taxPercentage = (int) $cafe->tax_percentage;
                 $this->serviceChargePercentage = (int) $cafe->service_charge_percentage;
+                $this->cafeName = $cafe->name;
             }
         }
 

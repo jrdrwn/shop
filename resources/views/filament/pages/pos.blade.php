@@ -10,7 +10,7 @@
                     <div class="receipt-logo">
                         <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:rgb(var(--color-success-600,22 163 74))"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
                     </div>
-                    <h2>STRUK PEMBAYARAN</h2>
+                    <h2>{{ strtoupper($cafeName) }}</h2>
                     <p id="receipt-trx-num" class="receipt-trx-num">TRX...</p>
                 </div>
 
@@ -291,31 +291,170 @@
         /* Variant Modal — same backdrop style but separate class so print CSS won't confuse them */
         .pos-modal { position:fixed; inset:0; background:rgba(0,0,0,.65); display:flex; align-items:center; justify-content:center; z-index:2000; backdrop-filter:blur(4px); }
         .pos-modal.hidden { display:none; }
-        .receipt-container { background:rgb(255 255 255); color:rgb(var(--color-gray-900,17 24 39)); border-radius:16px; box-shadow:0 24px 64px rgba(0,0,0,.35); width:min(460px,94vw); max-height:90vh; display:flex; flex-direction:column; overflow:hidden; }
-        .dark .receipt-container { background:rgb(var(--color-gray-800,31 41 55)); color:rgb(var(--color-gray-100,243 244 246)); }
-        .dark .receipt-thanks { color:rgb(var(--color-success-400,74 222 128)); }
+        /* Force receipt to always look like paper (light mode) */
+        .receipt-container {
+            background: #fff !important;
+            color: #111827 !important;
+            border-radius: 16px !important;
+            box-shadow: 0 24px 64px rgba(0,0,0,.1) !important;
+            width: min(460px, 94vw) !important;
+            max-height: 90vh !important;
+            display: flex !important;
+            flex-direction: column !important;
+            overflow: hidden !important;
+        }
 
-        .receipt-header { text-align:center; padding:1.75rem 2rem 1.25rem; border-bottom:1px solid rgb(var(--color-gray-200,229 231 235)); background:rgb(var(--color-gray-50,249 250 251)); }
-        .dark .receipt-header { background:rgb(var(--color-gray-900,17 24 39)); border-color:rgb(var(--color-gray-700,55 65 81)); }
-        .receipt-logo { font-size:2.5rem; margin-bottom:.5rem; }
-        .receipt-header h2 { margin:0; font-size:1.1rem; font-weight:700; letter-spacing:.15em; color:rgb(var(--color-gray-700,55 65 81)); }
-        .dark .receipt-header h2 { color:rgb(var(--color-gray-200,229 231 235)); }
-        .receipt-trx-num { margin:.35rem 0 0; font-size:.8rem; color:rgb(var(--color-gray-400,156 163 175)); font-family:monospace; }
+        .receipt-header {
+            text-align: center !important;
+            padding: 1.75rem 2rem 1.25rem !important;
+            border-bottom: 1px solid #e5e7eb !important;
+            background: #f9fafb !important;
+        }
 
-        .receipt-body { flex:1; overflow-y:auto; padding:1.25rem 1.75rem; display:flex; flex-direction:column; gap:.5rem; }
-        .receipt-section-label { font-size:.7rem; font-weight:700; letter-spacing:.1em; color:rgb(var(--color-gray-500,107 114 128)); text-transform:uppercase; margin:.5rem 0 .25rem; }
-        .receipt-items-list { display:flex; flex-direction:column; gap:.4rem; }
-        .receipt-item { display:flex; justify-content:space-between; font-size:.875rem; }
-        .receipt-divider { border:none; border-top:1px dashed rgb(var(--color-gray-300,209 213 219)); margin:.5rem 0; }
-        .dark .receipt-divider { border-color:rgb(var(--color-gray-600,75 85 99)); }
-        .receipt-row { display:flex; justify-content:space-between; font-size:.875rem; }
-        .text-success { color:rgb(var(--color-success-600,22 163 74)); }
-        .dark .text-success { color:rgb(var(--color-success-400,74 222 128)); }
-        .receipt-total-row { display:flex; justify-content:space-between; font-size:1.1rem; font-weight:700; padding:.75rem 0; border-top:2px solid rgb(var(--color-gray-200,229 231 235)); border-bottom:2px solid rgb(var(--color-gray-200,229 231 235)); margin:.25rem 0; }
-        .dark .receipt-total-row { border-color:rgb(var(--color-gray-700,55 65 81)); }
-        .receipt-footer { text-align:center; margin-top:.75rem; }
-        .receipt-time { font-size:.75rem; color:rgb(var(--color-gray-400,156 163 175)); margin:0 0 .25rem; }
-        .receipt-thanks { font-size:.875rem; color:rgb(var(--color-success-600,22 163 74)); font-weight:600; margin:0; }
+        .receipt-logo { font-size: 2.5rem !important; margin-bottom: .5rem !important; display: flex !important; justify-content: center !important; }
+
+        .receipt-header h2 {
+            margin: 0 !important;
+            font-size: 1.1rem !important;
+            font-weight: 700 !important;
+            letter-spacing: .15em !important;
+            color: #374151 !important;
+        }
+
+        .receipt-trx-num {
+            margin: .35rem 0 0 !important;
+            font-size: .8rem !important;
+            color: #9ca3af !important;
+            font-family: monospace !important;
+        }
+
+        .receipt-body {
+            flex: 1 !important;
+            overflow-y: auto !important;
+            padding: 1.25rem 1.75rem !important;
+            display: flex !important;
+            flex-direction: column !important;
+            gap: .5rem !important;
+            background: #fff !important;
+            color: #111827 !important;
+        }
+
+        .receipt-section-label {
+            font-size: .7rem !important;
+            font-weight: 700 !important;
+            letter-spacing: .1em !important;
+            color: #6b7280 !important;
+            text-transform: uppercase !important;
+            margin: .5rem 0 .25rem !important;
+        }
+
+        .receipt-items-list { display: flex !important; flex-direction: column !important; gap: .4rem !important; }
+
+        .receipt-item {
+            display: flex !important;
+            justify-content: space-between !important;
+            font-size: .875rem !important;
+            color: #111827 !important;
+        }
+
+        .receipt-divider {
+            border: none !important;
+            border-top: 1px dashed #d1d5db !important;
+            margin: .5rem 0 !important;
+        }
+
+        .receipt-row {
+            display: flex !important;
+            justify-content: space-between !important;
+            font-size: .875rem !important;
+            color: #111827 !important;
+        }
+
+        .receipt-container .text-success { color: #16a34a !important; }
+
+        .receipt-total-row {
+            display: flex !important;
+            justify-content: space-between !important;
+            font-size: 1.1rem !important;
+            font-weight: 700 !important;
+            padding: .75rem 0 !important;
+            border-top: 2px solid #e5e7eb !important;
+            border-bottom: 2px solid #e5e7eb !important;
+            margin: .25rem 0 !important;
+            color: #111827 !important;
+        }
+
+        .receipt-footer { text-align: center !important; margin-top: .75rem !important; }
+
+        .receipt-time {
+            font-size: .75rem !important;
+            color: #9ca3af !important;
+            margin: 0 0 .25rem !important;
+        }
+
+        .receipt-thanks {
+            font-size: .875rem !important;
+            color: #16a34a !important;
+            font-weight: 600 !important;
+            margin: 0 !important;
+        }
+
+        /* Dark mode overrides for receipt */
+        .dark .receipt-container {
+            background: rgb(var(--color-gray-800,31 41 55)) !important;
+            color: rgb(var(--color-gray-100,243 244 246)) !important;
+        }
+
+        .dark .receipt-header {
+            background: rgb(var(--color-gray-900,17 24 39)) !important;
+            border-color: rgb(var(--color-gray-700,55 65 81)) !important;
+        }
+
+        .dark .receipt-header h2 {
+            color: rgb(var(--color-gray-200,229 231 235)) !important;
+        }
+
+        .dark .receipt-trx-num {
+            color: rgb(var(--color-gray-400,156 163 175)) !important;
+        }
+
+        .dark .receipt-body {
+            background: rgb(var(--color-gray-800,31 41 55)) !important;
+            color: rgb(var(--color-gray-100,243 244 246)) !important;
+        }
+
+        .dark .receipt-section-label {
+            color: rgb(var(--color-gray-400,156 163 175)) !important;
+        }
+
+        .dark .receipt-item {
+            color: rgb(var(--color-gray-100,243 244 246)) !important;
+        }
+
+        .dark .receipt-divider {
+            border-color: rgb(var(--color-gray-600,75 85 99)) !important;
+        }
+
+        .dark .receipt-row {
+            color: rgb(var(--color-gray-100,243 244 246)) !important;
+        }
+
+        .dark .receipt-container .text-success {
+            color: rgb(var(--color-success-400,74 222 128)) !important;
+        }
+
+        .dark .receipt-total-row {
+            border-color: rgb(var(--color-gray-700,55 65 81)) !important;
+            color: rgb(var(--color-gray-100,243 244 246)) !important;
+        }
+
+        .dark .receipt-time {
+            color: rgb(var(--color-gray-400,156 163 175)) !important;
+        }
+
+        .dark .receipt-thanks {
+            color: rgb(var(--color-success-400,74 222 128)) !important;
+        }
 
         .receipt-actions { display:grid; grid-template-columns:1fr 1fr; gap:.75rem; padding:1rem 1.75rem 1.5rem; }
         .receipt-btn { padding:.7rem 1rem; border-radius:8px; font-weight:600; font-size:.9rem; cursor:pointer; transition:all .15s; }
@@ -448,6 +587,7 @@
 
 
         @media print {
+            body { background: #fff !important; padding: 0 !important; }
             /* Sembunyikan SEMUA, tampilkan HANYA struk berdasarkan ID */
             body * { visibility:hidden !important; }
             #receipt-modal,
@@ -472,7 +612,7 @@
             }
 
             /* Ukuran struk ~80mm thermal printer */
-            .receipt-container {
+            .receipt-container, .dark .receipt-container {
                 position:relative !important;
                 box-shadow:none !important;
                 border-radius:0 !important;
@@ -911,7 +1051,7 @@
                 cart.forEach(item => {
                     const itemDiv = document.createElement('div');
                     itemDiv.className = 'receipt-item';
-                    itemDiv.innerHTML = `<span>${item.name} x${item.qty}</span><span>${formatCurrency(item.price * item.qty)}</span>`;
+                    itemDiv.innerHTML = `<span>${item.name} x ${item.qty}</span><strong>${formatCurrency(item.price * item.qty)}</strong>`;
                     itemsList.appendChild(itemDiv);
                 });
 

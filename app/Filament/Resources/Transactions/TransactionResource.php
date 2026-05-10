@@ -42,18 +42,25 @@ class TransactionResource extends Resource
     public static function table(Table $table): Table
     {
         return TransactionsTable::configure($table->recordActions([
-            Action::make('edit')
-                ->label('Selesaikan')
-                ->icon('heroicon-o-pencil')
+            Action::make('completed')
+                ->icon('heroicon-o-check-circle')
                 ->color('primary')
-                // ->disabled(fn($record) => $record?->status !== 'pending')
+                ->hiddenLabel()
+                ->hidden(fn($record) => $record?->status === 'completed')
                 ->action(fn($record) => $record->update(['status' => 'completed'])),
             Action::make('cancel')
-                ->label('Batalkan')
+                ->icon('heroicon-o-x-circle')
                 ->color('danger')
+                ->hiddenLabel()
                 ->requiresConfirmation()
-                // ->disabled(fn($record) => $record?->status !== 'pending')
+                ->hidden(fn($record) => in_array($record?->status, ['completed', 'cancelled'] ?? []))
                 ->action(fn($record) => $record->update(['status' => 'cancelled'])),
+            Action::make('print')
+                ->icon('heroicon-o-printer')
+                ->color('success')
+                ->hiddenLabel()
+                ->url(fn($record) => route('transactions.receipt', $record))
+                ->openUrlInNewTab(),
         ]));
     }
 

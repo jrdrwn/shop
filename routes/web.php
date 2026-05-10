@@ -1,12 +1,18 @@
 <?php
 
 use App\Http\Controllers\PosController;
+use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\SubscriptionPaymentController;
 use Illuminate\Support\Facades\Route;
 
 // POS checkout endpoint used by the Filament Cashier POS page
 Route::post('/cashier/pos/checkout', [PosController::class, 'checkout'])
     ->name('pos.checkout')
+    ->middleware(['auth']);
+
+// Receipt printing route
+Route::get('/transactions/{transaction}/receipt', [TransactionController::class, 'receipt'])
+    ->name('transactions.receipt')
     ->middleware(['auth']);
 
 // Subscription payment routes
