@@ -4,7 +4,6 @@ namespace App\Filament\Resources\PaymentMethods\Pages;
 
 use App\Filament\Concerns\ResolvesSubscription;
 use App\Filament\Resources\PaymentMethods\PaymentMethodResource;
-use Filament\Actions\CreateAction;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ListRecords;
 
@@ -18,15 +17,15 @@ class ListPaymentMethods extends ListRecords
     {
         parent::mount();
 
-        $cafe = static::cafeForCurrentUser();
-        if (! $cafe) {
+        $toko = static::tokoForCurrentUser();
+        if (! $toko) {
             return;
         }
 
         $service = static::subscriptionService();
 
-        if (! $service->canAddPaymentMethod($cafe)) {
-            $max = $cafe->subscription?->getLimit('max_payment_methods');
+        if (! $service->canAddPaymentMethod($toko)) {
+            $max = $toko->subscription?->getLimit('max_payment_methods');
             Notification::make()
                 ->warning()
                 ->title('Batas metode pembayaran tercapai')

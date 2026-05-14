@@ -13,8 +13,8 @@ class CreateCategory extends CreateRecord
     protected function mutateFormDataBeforeCreate(array $data): array
     {
         $user = Auth::user();
-        if ($user->role === 'manager' && filled($user->cafe_id)) {
-            $data['cafe_id'] = $user->cafe_id;
+        if ($user->role === 'owner' && filled($user->toko_id)) {
+            $data['toko_id'] = $user->toko_id;
         }
 
         return $data;

@@ -27,11 +27,11 @@ class AdminPanelProvider extends PanelProvider
     {
         return $panel
             ->default()
-            ->brandName('Admin Semua Cafe')
+            ->brandName('Admin Toko')
             ->id('admin')
             ->brandLogo(asset('/default-logo/light-mode.png'))
             ->darkModeBrandLogo(asset('/default-logo/dark-mode.png'))
-            ->brandLogoHeight("2rem")
+            ->brandLogoHeight('2rem')
             ->path('admin')
             ->login(AdminLogin::class)
             ->homeUrl('/admin')
@@ -60,9 +60,9 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->renderHook(
                 PanelsRenderHook::AUTH_LOGIN_FORM_AFTER,
-                fn(): string => Blade::render('<x-admin-role-links />')
+                fn (): string => Blade::render('<x-admin-role-links />')
             )->plugins([
-                    LightSwitchPlugin::make(),
-                ]);
+                LightSwitchPlugin::make(),
+            ]);
     }
 }

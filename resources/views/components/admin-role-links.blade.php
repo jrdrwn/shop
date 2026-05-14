@@ -1,16 +1,22 @@
 @php
     $links = [
         [
-            'name' => 'Manajer',
-            'url' => '/manajer/login',
+            'name' => 'Owner',
+            'url' => '/owner/login',
             'icon' => 'heroicon-o-building-storefront',
-            'description' => 'Kelola cafe Anda',
+            'description' => 'Kelola toko Anda',
         ],
         [
             'name' => 'Kasir',
             'url' => '/cashier/login',
             'icon' => 'heroicon-o-calculator',
             'description' => 'Point of Sale',
+        ],
+        [
+            'name' => 'Gudang',
+            'url' => '/warehouse/login',
+            'icon' => 'heroicon-o-archive-box',
+            'description' => 'Manajemen Stok',
         ],
     ];
 @endphp

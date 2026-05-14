@@ -29,9 +29,9 @@ class TransactionForm
                             ->searchable()
                             ->preload()
                             ->required(),
-                        Select::make('cafe_id')
-                            ->label('Cafe')
-                            ->relationship('cafe', 'name')
+                        Select::make('toko_id')
+                            ->label('Toko')
+                            ->relationship('toko', 'name')
                             ->searchable()
                             ->preload()
                             ->required(),

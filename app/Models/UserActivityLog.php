@@ -9,11 +9,11 @@ class UserActivityLog extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['cafe_id', 'user_id', 'activity_type', 'description', 'ip_address', 'user_agent'];
+    protected $fillable = ['toko_id', 'user_id', 'activity_type', 'description', 'ip_address', 'user_agent'];
 
-    public function cafe()
+    public function toko()
     {
-        return $this->belongsTo(Cafe::class);
+        return $this->belongsTo(Toko::class, 'toko_id');
     }
 
     public function user()

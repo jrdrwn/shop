@@ -12,13 +12,13 @@ class CategoryStatsWidget extends StatsOverviewWidget
     protected function getStats(): array
     {
         $user = Auth::user();
-        $cafeId = $user?->cafe_id;
+        $tokoId = $user?->toko_id;
 
-        if (! filled($cafeId)) {
+        if (! filled($tokoId)) {
             return [];
         }
 
-        $baseQuery = Category::query()->where('cafe_id', $cafeId);
+        $baseQuery = Category::query()->where('toko_id', $tokoId);
 
         return [
             Stat::make('Total Kategori', (clone $baseQuery)->count())

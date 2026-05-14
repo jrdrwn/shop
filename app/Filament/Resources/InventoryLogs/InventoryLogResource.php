@@ -4,8 +4,6 @@ namespace App\Filament\Resources\InventoryLogs;
 
 use App\Filament\Concerns\ResolvesSubscription;
 use App\Filament\Resources\Concerns\HasRoleNavigation;
-use App\Filament\Resources\InventoryLogs\Pages\CreateInventoryLog;
-use App\Filament\Resources\InventoryLogs\Pages\EditInventoryLog;
 use App\Filament\Resources\InventoryLogs\Pages\ListInventoryLogs;
 use App\Filament\Resources\InventoryLogs\Schemas\InventoryLogForm;
 use App\Filament\Resources\InventoryLogs\Tables\InventoryLogsTable;
@@ -13,7 +11,6 @@ use App\Models\InventoryLog;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
-use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
@@ -34,23 +31,30 @@ class InventoryLogResource extends Resource
 
     protected static ?string $roleNavigationGroup = 'Laporan';
 
-    protected static array $allowedRoles = ['manager'];
+    protected static array $allowedRoles = ['owner', 'gudang'];
 
     protected static ?string $recordTitleAttribute = 'action';
 
     /**
-     * Gate access: manager must have an active subscription with can_use_inventory = true.
+     * Gate access: Owner must have an active subscription with can_use_inventory = true.
      * Super admin always has access.
      */
     public static function canAccess(): bool
     {
-        $cafe = static::cafeForCurrentUser();
+        $user = Auth::user();
+        $role = static::normalizeRole($user?->role);
 
-        if (!$cafe) {
+        if (! in_array($role, ['owner', 'gudang'], true)) {
             return false;
         }
 
-        return static::subscriptionService()->canUseInventory($cafe);
+        $toko = static::tokoForCurrentUser();
+
+        if (! $toko) {
+            return true;
+        }
+
+        return static::subscriptionService()->canUseInventory($toko);
     }
 
     public static function shouldRegisterNavigation(): bool
@@ -74,8 +78,8 @@ class InventoryLogResource extends Resource
 
         $query = parent::getEloquentQuery();
 
-        if ($user?->role === 'manager' && filled($user->cafe_id)) {
-            return $query->where('cafe_id', $user->cafe_id);
+        if (in_array($user?->role, ['owner', 'gudang']) && filled($user->toko_id)) {
+            return $query->where('toko_id', $user->toko_id);
         }
 
         return $query;

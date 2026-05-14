@@ -12,26 +12,26 @@ class UserStatsWidget extends StatsOverviewWidget
     protected function getStats(): array
     {
         $user = Auth::user();
-        $cafeId = $user?->cafe_id;
+        $tokoId = $user?->toko_id;
 
-        if (! filled($cafeId)) {
+        if (! filled($tokoId)) {
             return [];
         }
 
         $baseQuery = User::query()
-            ->where('cafe_id', $cafeId)
-            ->where('role', 'cashier');
+            ->where('toko_id', $tokoId)
+            ->whereIn('role', ['kasir', 'gudang']);
 
         return [
-            Stat::make('Total Kasir', (clone $baseQuery)->count())
-                ->description('semua kasir')
+            Stat::make('Total Pengguna', (clone $baseQuery)->count())
+                ->description('semua staf (kasir & gudang)')
                 ->color('primary'),
-            Stat::make('Kasir Aktif', (clone $baseQuery)->where('is_active', true)->count())
-                ->description('bisa login')
+            Stat::make('Total Kasir', (clone $baseQuery)->where('role', 'kasir')->count())
+                ->description('staf operasional kasir')
                 ->color('success'),
-            Stat::make('Kasir Non-aktif', (clone $baseQuery)->where('is_active', false)->count())
-                ->description('akses dicabut')
-                ->color('danger'),
+            Stat::make('Total Gudang', (clone $baseQuery)->where('role', 'gudang')->count())
+                ->description('staf manajemen gudang')
+                ->color('warning'),
         ];
     }
 }

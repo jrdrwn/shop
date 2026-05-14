@@ -2,17 +2,17 @@
 
 namespace App\Services;
 
-use App\Models\Cafe;
 use App\Models\Subscription;
+use App\Models\Toko;
 
 class SubscriptionService
 {
     /**
-     * Resolve the active subscription for a cafe, or null when none assigned.
+     * Resolve the active subscription for a toko, or null when none assigned.
      */
-    public function subscriptionFor(Cafe $cafe): ?Subscription
+    public function subscriptionFor(Toko $toko): ?Subscription
     {
-        return $cafe->subscription;
+        return $toko->subscription;
     }
 
     // -------------------------------------------------------------------------
@@ -20,101 +20,101 @@ class SubscriptionService
     // -------------------------------------------------------------------------
 
     /**
-     * Check whether the cafe can create another product.
+     * Check whether the toko can create another product.
      */
-    public function canCreateProduct(Cafe $cafe): bool
+    public function canCreateProduct(Toko $toko): bool
     {
-        $max = $this->subscriptionFor($cafe)?->getLimit('max_products');
+        $max = $this->subscriptionFor($toko)?->getLimit('max_products');
 
         if ($max === null) {
             return true; // unlimited
         }
 
-        return $cafe->products()->count() < $max;
+        return $toko->products()->count() < $max;
     }
 
     /**
      * Remaining product slots (null = unlimited).
      */
-    public function remainingProducts(Cafe $cafe): ?int
+    public function remainingProducts(Toko $toko): ?int
     {
-        $max = $this->subscriptionFor($cafe)?->getLimit('max_products');
+        $max = $this->subscriptionFor($toko)?->getLimit('max_products');
 
         if ($max === null) {
             return null;
         }
 
-        return max(0, $max - $cafe->products()->count());
+        return max(0, $max - $toko->products()->count());
     }
 
     /**
-     * Check whether the cafe can create another category.
+     * Check whether the toko can create another category.
      */
-    public function canCreateCategory(Cafe $cafe): bool
+    public function canCreateCategory(Toko $toko): bool
     {
-        $max = $this->subscriptionFor($cafe)?->getLimit('max_categories');
+        $max = $this->subscriptionFor($toko)?->getLimit('max_categories');
 
         if ($max === null) {
             return true;
         }
 
-        return $cafe->categories()->count() < $max;
+        return $toko->categories()->count() < $max;
     }
 
     /**
      * Remaining category slots (null = unlimited).
      */
-    public function remainingCategories(Cafe $cafe): ?int
+    public function remainingCategories(Toko $toko): ?int
     {
-        $max = $this->subscriptionFor($cafe)?->getLimit('max_categories');
+        $max = $this->subscriptionFor($toko)?->getLimit('max_categories');
 
         if ($max === null) {
             return null;
         }
 
-        return max(0, $max - $cafe->categories()->count());
+        return max(0, $max - $toko->categories()->count());
     }
 
     /**
-     * Check whether the cafe can add another staff member (manager/cashier).
+     * Check whether the toko can add another staff member (Owner/cashier).
      */
-    public function canAddStaff(Cafe $cafe): bool
+    public function canAddStaff(Toko $toko): bool
     {
-        $max = $this->subscriptionFor($cafe)?->getLimit('max_staff');
+        $max = $this->subscriptionFor($toko)?->getLimit('max_staff');
 
         if ($max === null) {
             return true;
         }
 
-        return $cafe->users()->where('role', 'cashier')->count() < $max;
+        return $toko->users()->whereIn('role', ['owner', 'kasir', 'gudang'])->count() < $max;
     }
 
     /**
      * How many staff slots remain (null = unlimited).
      */
-    public function remainingStaff(Cafe $cafe): ?int
+    public function remainingStaff(Toko $toko): ?int
     {
-        $max = $this->subscriptionFor($cafe)?->getLimit('max_staff');
+        $max = $this->subscriptionFor($toko)?->getLimit('max_staff');
 
         if ($max === null) {
             return null;
         }
 
-        return max(0, $max - $cafe->users()->where('role', 'cashier')->count());
+        return max(0, $max - $toko->users()->whereIn('role', ['owner', 'kasir', 'gudang'])->count());
     }
 
     /**
-     * Check whether the cafe can add another payment method.
+     * Check whether the toko can add another payment method.
      */
-    public function canAddPaymentMethod(Cafe $cafe): bool
+    public function canAddPaymentMethod(Toko $toko): bool
     {
-        $max = $this->subscriptionFor($cafe)?->getLimit('max_payment_methods');
+        $max = $this->subscriptionFor($toko)?->getLimit('max_payment_methods');
 
         if ($max === null) {
             return true;
         }
 
-        return $cafe->paymentMethods()->count() < $max;
+        return $toko->paymentMethods()->count() < $max;
     }
 
     // -------------------------------------------------------------------------
@@ -122,31 +122,31 @@ class SubscriptionService
     // -------------------------------------------------------------------------
 
     /**
-     * Check if a boolean feature is available for the cafe's subscription.
+     * Check if a boolean feature is available for the toko's subscription.
      */
-    public function hasFeature(Cafe $cafe, string $feature): bool
+    public function hasFeature(Toko $toko, string $feature): bool
     {
-        return $this->subscriptionFor($cafe)?->hasFeature($feature) ?? false;
+        return $this->subscriptionFor($toko)?->hasFeature($feature) ?? false;
     }
 
-    public function canExportReports(Cafe $cafe): bool
+    public function canExportReports(Toko $toko): bool
     {
-        return $this->hasFeature($cafe, 'can_export_reports');
+        return $this->hasFeature($toko, 'can_export_reports');
     }
 
-    public function canUseInventory(Cafe $cafe): bool
+    public function canUseInventory(Toko $toko): bool
     {
-        return $this->hasFeature($cafe, 'can_use_inventory');
+        return $this->hasFeature($toko, 'can_use_inventory');
     }
 
-    public function canUseVariants(Cafe $cafe): bool
+    public function canUseVariants(Toko $toko): bool
     {
-        return $this->hasFeature($cafe, 'can_use_variants');
+        return $this->hasFeature($toko, 'can_use_variants');
     }
 
-    public function canUseDiscounts(Cafe $cafe): bool
+    public function canUseDiscounts(Toko $toko): bool
     {
-        return $this->hasFeature($cafe, 'can_use_discounts');
+        return $this->hasFeature($toko, 'can_use_discounts');
     }
 
     // -------------------------------------------------------------------------
@@ -154,29 +154,29 @@ class SubscriptionService
     // -------------------------------------------------------------------------
 
     /**
-     * Initiate an upgrade payment for the cafe to the given subscription.
+     * Initiate an upgrade payment for the toko to the given subscription.
      *
-     * @param  Cafe  $cafe  The cafe requesting the upgrade.
+     * @param  Toko  $toko  The toko requesting the upgrade.
      * @param  Subscription  $subscription  Target subscription plan to upgrade to.
      * @return string Snap token for Midtrans payment.
      */
-    public function initiateUpgrade(Cafe $cafe, Subscription $subscription): string
+    public function initiateUpgrade(Toko $toko, Subscription $subscription): string
     {
         $midtrans = app(MidtransService::class);
 
-        return $midtrans->createSnapToken($cafe, $subscription);
+        return $midtrans->createSnapToken($toko, $subscription);
     }
 
     /**
      * Activate the subscription after successful payment.
      *
-     * @param  Cafe  $cafe  The cafe to activate the subscription for.
+     * @param  Toko  $toko  The toko to activate the subscription for.
      * @param  Subscription  $subscription  The subscription to activate.
      * @param  string  $transactionId  Payment gateway transaction ID.
      */
-    public function activateSubscription(Cafe $cafe, Subscription $subscription, string $transactionId): void
+    public function activateSubscription(Toko $toko, Subscription $subscription, string $transactionId): void
     {
-        $cafe->update([
+        $toko->update([
             'subscription_id' => $subscription->id,
         ]);
     }
@@ -184,15 +184,17 @@ class SubscriptionService
     /**
      * Enforce subscription limits by deactivating excess items.
      */
-    public function enforceLimits(Cafe $cafe): void
+    public function enforceLimits(Toko $toko): void
     {
-        $subscription = $this->subscriptionFor($cafe);
-        if (!$subscription) return;
+        $subscription = $this->subscriptionFor($toko);
+        if (! $subscription) {
+            return;
+        }
 
         // 1. Payment Methods
         $maxPaymentMethods = $subscription->getLimit('max_payment_methods');
         if ($maxPaymentMethods !== null) {
-            $paymentMethods = $cafe->paymentMethods()->orderBy('id', 'asc')->get();
+            $paymentMethods = $toko->paymentMethods()->orderBy('id', 'asc')->get();
             if ($paymentMethods->count() > $maxPaymentMethods) {
                 foreach ($paymentMethods->skip($maxPaymentMethods) as $pm) {
                     $pm->update(['is_active' => false]);
@@ -203,7 +205,7 @@ class SubscriptionService
         // 2. Categories
         $maxCategories = $subscription->getLimit('max_categories');
         if ($maxCategories !== null) {
-            $categories = $cafe->categories()->orderBy('id', 'asc')->get();
+            $categories = $toko->categories()->orderBy('id', 'asc')->get();
             if ($categories->count() > $maxCategories) {
                 foreach ($categories->skip($maxCategories) as $cat) {
                     $cat->update(['is_active' => false]);
@@ -214,7 +216,7 @@ class SubscriptionService
         // 3. Products
         $maxProducts = $subscription->getLimit('max_products');
         if ($maxProducts !== null) {
-            $products = $cafe->products()->orderBy('id', 'asc')->get();
+            $products = $toko->products()->orderBy('id', 'asc')->get();
             if ($products->count() > $maxProducts) {
                 foreach ($products->skip($maxProducts) as $prod) {
                     $prod->update(['is_active' => false]);

@@ -25,7 +25,7 @@ class SubscriptionResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedCurrencyDollar;
 
-    protected static ?string $navigationLabel = "Langganan";
+    protected static ?string $navigationLabel = 'Langganan';
 
     protected static array $allowedRoles = ['super_admin'];
 

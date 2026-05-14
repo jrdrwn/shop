@@ -2,13 +2,12 @@
 
 namespace App\Filament\Resources\Transactions\Tables;
 
-use Filament\Actions\BulkActionGroup;
-use Filament\Actions\EditAction;
+use App\Services\SubscriptionService;
+use Filament\Actions\Action;
 use Filament\Tables\Columns\BadgeColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Table;
-use Filament\Actions\Action;
 use Illuminate\Database\Eloquent\Builder;
 
 class TransactionsTable
@@ -27,7 +26,7 @@ class TransactionsTable
                 TextColumn::make('total_amount')
                     ->label('Total')
                     ->sortable()
-                    ->formatStateUsing(fn($state): string => 'Rp ' . number_format((int) $state, 0, ',', '.')),
+                    ->formatStateUsing(fn ($state): string => 'Rp '.number_format((int) $state, 0, ',', '.')),
                 BadgeColumn::make('status')
                     ->label('Status')
                     ->formatStateUsing(function ($state): string {
@@ -51,16 +50,16 @@ class TransactionsTable
             ->filters([
                 Filter::make('hari_ini')
                     ->label('Hari Ini')
-                    ->query(fn(Builder $query): Builder => $query->whereDate('created_at', today())),
+                    ->query(fn (Builder $query): Builder => $query->whereDate('created_at', today())),
                 Filter::make('minggu_ini')
                     ->label('Minggu Ini')
-                    ->query(fn(Builder $query): Builder => $query->whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()])),
+                    ->query(fn (Builder $query): Builder => $query->whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()])),
                 Filter::make('bulan_ini')
                     ->label('Bulan Ini')
-                    ->query(fn(Builder $query): Builder => $query->whereMonth('created_at', now()->month)->whereYear('created_at', now()->year)),
+                    ->query(fn (Builder $query): Builder => $query->whereMonth('created_at', now()->month)->whereYear('created_at', now()->year)),
             ])
             ->headerActions([
-                \Filament\Actions\Action::make('export_csv')
+                Action::make('export_csv')
                     ->label('Ekspor CSV')
                     ->icon('heroicon-o-arrow-down-tray')
                     ->visible(function () {
@@ -68,18 +67,18 @@ class TransactionsTable
                         if ($user?->role === 'super_admin') {
                             return true;
                         }
-                        
-                        $cafe = $user?->cafe;
-                        if (!$cafe) {
+
+                        $toko = $user?->toko;
+                        if (! $toko) {
                             return false;
                         }
-                        
-                        return app(\App\Services\SubscriptionService::class)->canExportReports($cafe);
+
+                        return app(SubscriptionService::class)->canExportReports($toko);
                     })
                     ->action(function ($livewire) {
                         $records = $livewire->getFilteredTableQuery()->get();
-                        
-                        $filename = 'transaksi-' . now()->format('Y-m-d-H-i-s') . '.csv';
+
+                        $filename = 'transaksi-'.now()->format('Y-m-d-H-i-s').'.csv';
 
                         return response()->streamDownload(function () use ($records) {
                             $file = fopen('php://output', 'w');
@@ -97,7 +96,7 @@ class TransactionsTable
 
                             fclose($file);
                         }, $filename);
-                    })
+                    }),
             ]);
     }
 }

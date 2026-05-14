@@ -2,8 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\UserRole;
+use App\Models\Subscription;
+use App\Models\SubscriptionPayment;
 use App\Services\MidtransService;
+use App\Services\SubscriptionService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -12,8 +17,7 @@ class SubscriptionPaymentController extends Controller
 {
     public function __construct(
         private readonly MidtransService $midtransService
-    ) {
-    }
+    ) {}
 
     /**
      * Get Snap token for subscription upgrade.
@@ -26,29 +30,29 @@ class SubscriptionPaymentController extends Controller
 
         $user = Auth::user();
 
-        if (! $user || $user->role !== 'manager' || ! $user->cafe_id) {
+        if (! $user || ($user->role !== UserRole::Owner->value && $user->role !== 'owner') || ! $user->toko_id) {
             return response()->json(['message' => 'Unauthorized.'], 403);
         }
 
-        $cafe = $user->cafe;
+        $toko = $user->toko;
 
-        if (! $cafe) {
-            return response()->json(['message' => 'Cafe not found.'], 404);
+        if (! $toko) {
+            return response()->json(['message' => 'Toko not found.'], 404);
         }
 
-        $subscription = \App\Models\Subscription::findOrFail($request->input('subscription_id'));
+        $subscription = Subscription::findOrFail($request->input('subscription_id'));
 
         if ($subscription->price <= 0) {
             // Free plan — activate directly without payment
-            app(\App\Services\SubscriptionService::class)->activateSubscription($cafe, $subscription, 'free-plan');
+            app(SubscriptionService::class)->activateSubscription($toko, $subscription, 'free-plan');
 
             return response()->json([
                 'message' => 'Langganan Free berhasil diaktifkan.',
-                'redirect' => route('filament.manager.pages.manager-panel-dashboard'),
+                'redirect' => route('filament.owner.pages.owner-panel-dashboard'),
             ]);
         }
 
-        $token = $this->midtransService->createSnapToken($cafe, $subscription);
+        $token = $this->midtransService->createSnapToken($toko, $subscription);
 
         return response()->json([
             'token' => $token,
@@ -80,7 +84,7 @@ class SubscriptionPaymentController extends Controller
     /**
      * Payment finish callback (redirect after payment).
      */
-    public function finish(Request $request): \Illuminate\Http\RedirectResponse
+    public function finish(Request $request): RedirectResponse
     {
         $orderId = $request->input('order_id');
         $statusCode = $request->input('status_code');
@@ -93,27 +97,27 @@ class SubscriptionPaymentController extends Controller
                 $status = $this->midtransService->checkStatus($orderId);
                 Log::info('Midtrans status response', $status);
                 $transactionStatus = $status['transaction_status'] ?? '';
-                
+
                 if (in_array($transactionStatus, ['settlement', 'capture'])) {
-                    $payment = \App\Models\SubscriptionPayment::where('order_id', $orderId)->first();
-                    
+                    $payment = SubscriptionPayment::where('order_id', $orderId)->first();
+
                     if ($payment) {
                         Log::info('Payment record found in fallback', ['current_status' => $payment->status]);
-                        
+
                         $payment->update([
                             'status' => 'success',
                             'transaction_id' => $status['transaction_id'] ?? null,
                             'settlement_time' => $status['settlement_time'] ?? now(),
                         ]);
-                        
+
                         Log::info('Activating subscription in fallback');
-                        app(\App\Services\SubscriptionService::class)->activateSubscription(
-                            $payment->cafe,
+                        app(SubscriptionService::class)->activateSubscription(
+                            $payment->toko,
                             $payment->subscription,
                             $status['transaction_id'] ?? $orderId
                         );
-                        
-                        return redirect()->route('filament.manager.pages.manager-panel-dashboard')
+
+                        return redirect()->route('filament.owner.pages.owner-panel-dashboard')
                             ->with('success', 'Pembayaran berhasil diverifikasi (Local Fallback). Paket Anda telah diperbarui.');
                     } else {
                         Log::warning('Payment record not found in fallback', ['order_id' => $orderId]);
@@ -124,20 +128,20 @@ class SubscriptionPaymentController extends Controller
             }
         }
 
-        return redirect()->route('filament.manager.pages.manager-panel-dashboard')
+        return redirect()->route('filament.owner.pages.owner-panel-dashboard')
             ->with('success', 'Pembayaran sedang diproses. Status langganan akan diperbarui setelah verifikasi.');
     }
 
     /**
      * Payment error callback.
      */
-    public function error(Request $request): \Illuminate\Http\RedirectResponse
+    public function error(Request $request): RedirectResponse
     {
         $orderId = $request->input('order_id');
 
         Log::warning('Midtrans error callback', ['order_id' => $orderId]);
 
-        return redirect()->route('filament.manager.pages.manager-panel-dashboard')
+        return redirect()->route('filament.owner.pages.owner-panel-dashboard')
             ->with('error', 'Pembayaran gagal atau dibatalkan. Silakan coba lagi.');
     }
 }

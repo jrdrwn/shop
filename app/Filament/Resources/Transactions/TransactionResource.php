@@ -15,7 +15,6 @@ use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
-use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
@@ -36,14 +35,14 @@ class TransactionResource extends Resource
 
     protected static ?string $roleNavigationGroup = 'Laporan';
 
-    protected static array $allowedRoles = ['manager', 'cashier'];
+    protected static array $allowedRoles = ['owner', 'cashier'];
 
     protected static ?string $recordTitleAttribute = 'transaction_number';
 
     public static function getNavigationGroup(): ?string
     {
 
-        if (Auth::user()?->role === 'manager') {
+        if (Auth::user()?->role === 'owner') {
             return static::$roleNavigationGroup;
         }
 
@@ -62,20 +61,20 @@ class TransactionResource extends Resource
                 ->icon('heroicon-o-check-circle')
                 ->color('primary')
                 ->hiddenLabel()
-                ->hidden(fn($record) => $record?->status === 'completed')
-                ->action(fn($record) => $record->update(['status' => 'completed'])),
+                ->hidden(fn ($record) => $record?->status === 'completed')
+                ->action(fn ($record) => $record->update(['status' => 'completed'])),
             Action::make('cancel')
                 ->icon('heroicon-o-x-circle')
                 ->color('danger')
                 ->hiddenLabel()
                 ->requiresConfirmation()
-                ->hidden(fn($record) => in_array($record?->status, ['completed', 'cancelled'] ?? []))
-                ->action(fn($record) => $record->update(['status' => 'cancelled'])),
+                ->hidden(fn ($record) => in_array($record?->status, ['completed', 'cancelled'] ?? []))
+                ->action(fn ($record) => $record->update(['status' => 'cancelled'])),
             Action::make('print')
                 ->icon('heroicon-o-printer')
                 ->color('success')
                 ->hiddenLabel()
-                ->url(fn($record) => route('transactions.receipt', $record))
+                ->url(fn ($record) => route('transactions.receipt', $record))
                 ->openUrlInNewTab(),
         ]));
     }
@@ -86,8 +85,8 @@ class TransactionResource extends Resource
 
         $query = parent::getEloquentQuery();
 
-        if ($user?->role === 'manager' && filled($user->cafe_id)) {
-            return $query->where('cafe_id', $user->cafe_id);
+        if ($user?->role === 'owner' && filled($user->toko_id)) {
+            return $query->where('toko_id', $user->toko_id);
         }
 
         if ($user?->role === 'cashier') {

@@ -2,9 +2,9 @@
 
 namespace App\Filament\Pages;
 
-use App\Filament\Widgets\SuperAdminCafeSummaryTable;
 use App\Filament\Widgets\SuperAdminStatsWidget;
 use App\Filament\Widgets\SuperAdminSubscriptionChart;
+use App\Filament\Widgets\SuperAdminTokoSummaryTable;
 use Filament\Pages\Dashboard as BaseDashboard;
 use Illuminate\Support\Facades\Auth;
 
@@ -25,7 +25,7 @@ class Dashboard extends BaseDashboard
     public function mount(): void
     {
         match (Auth::user()?->role) {
-            'manager' => $this->redirect('/admin/manager', navigate: true),
+            'owner' => $this->redirect('/admin/owner', navigate: true),
             'cashier' => $this->redirect('/admin/cashier', navigate: true),
             default => null,
         };
@@ -36,7 +36,7 @@ class Dashboard extends BaseDashboard
         return [
             SuperAdminStatsWidget::class,
             SuperAdminSubscriptionChart::class,
-            SuperAdminCafeSummaryTable::class,
+            SuperAdminTokoSummaryTable::class,
         ];
     }
 

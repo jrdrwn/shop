@@ -4,13 +4,19 @@
             'name' => 'Admin',
             'url' => '/admin/login',
             'icon' => 'heroicon-o-shield-check',
-            'description' => 'Kelola semua cafe',
+            'description' => 'Kelola semua toko',
         ],
         [
-            'name' => 'Manajer',
-            'url' => '/manajer/login',
+            'name' => 'Owner',
+            'url' => '/owner/login',
             'icon' => 'heroicon-o-building-storefront',
-            'description' => 'Kelola cafe Anda',
+            'description' => 'Kelola toko Anda',
+        ],
+        [
+            'name' => 'Gudang',
+            'url' => '/warehouse/login',
+            'icon' => 'heroicon-o-archive-box',
+            'description' => 'Manajemen Stok',
         ],
     ];
 @endphp

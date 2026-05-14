@@ -19,7 +19,7 @@ class CashierTodayTransactionsTable extends TableWidget
 
     public static function canView(): bool
     {
-        return Auth::user()?->role === 'cashier';
+        return Auth::user()?->role === 'kasir';
     }
 
     public function table(Table $table): Table

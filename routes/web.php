@@ -1,9 +1,32 @@
 <?php
 
 use App\Http\Controllers\PosController;
-use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\SubscriptionPaymentController;
+use App\Http\Controllers\TransactionController;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
+
+Route::get('/', function () {
+    return Auth::check()
+        ? redirect()->route('dashboard')
+        : redirect()->route('login');
+})->name('home');
+
+Route::get('/dashboard', function () {
+    $user = Auth::user();
+
+    if (! $user) {
+        return redirect()->route('login');
+    }
+
+    return match ($user->role) {
+        'super_admin', 'admin' => redirect('/admin'),
+        'owner', 'manager' => redirect('/owner'),
+        'kasir', 'cashier' => redirect('/cashier'),
+        'gudang', 'warehouse' => redirect('/warehouse'),
+        default => redirect('/login'),
+    };
+})->middleware(['auth'])->name('dashboard');
 
 // POS checkout endpoint used by the Filament Cashier POS page
 Route::post('/cashier/pos/checkout', [PosController::class, 'checkout'])

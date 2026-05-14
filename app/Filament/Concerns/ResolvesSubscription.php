@@ -2,7 +2,7 @@
 
 namespace App\Filament\Concerns;
 
-use App\Models\Cafe;
+use App\Models\Toko;
 use App\Services\SubscriptionService;
 use Illuminate\Support\Facades\Auth;
 
@@ -12,22 +12,22 @@ use Illuminate\Support\Facades\Auth;
 trait ResolvesSubscription
 {
     /**
-     * Resolve the cafe for the currently logged-in manager.
+     * Resolve the toko for the currently logged-in owner.
      * Returns null for super_admin (not gated) and cashier (read-only role).
      */
-    protected static function cafeForCurrentUser(): ?Cafe
+    protected static function tokoForCurrentUser(): ?Toko
     {
         $user = Auth::user();
 
-        if ($user?->role !== 'manager') {
+        if ($user?->role !== 'owner') {
             return null;
         }
 
-        if (! filled($user->cafe_id)) {
+        if (! filled($user->toko_id)) {
             return null;
         }
 
-        return Cafe::find($user->cafe_id);
+        return Toko::find($user->toko_id);
     }
 
     protected static function subscriptionService(): SubscriptionService

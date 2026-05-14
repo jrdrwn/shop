@@ -2,9 +2,8 @@
 
 namespace App\Filament\Resources\InventoryLogs\Tables;
 
-use Filament\Actions\BulkActionGroup;
-use Filament\Actions\DeleteBulkAction;
-use Filament\Actions\EditAction;
+use App\Services\SubscriptionService;
+use Filament\Actions\Action;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 
@@ -14,12 +13,17 @@ class InventoryLogsTable
     {
         return $table
             ->columns([
-                TextColumn::make('cafe.name')
-                    ->label('Cafe')
+                TextColumn::make('toko.name')
+                    ->label('Toko')
                     ->searchable()
                     ->sortable()
-                    ->hidden(fn() => auth()->user()?->role === 'manager'),
+                    ->hidden(fn () => auth()->user()?->role === 'owner'),
                 TextColumn::make('product.name')->label('Product')->searchable()->sortable(),
+                TextColumn::make('product.sku')
+                    ->label('SKU')
+                    ->searchable()
+                    ->sortable()
+                    ->placeholder('-'),
                 TextColumn::make('action')->badge(),
                 TextColumn::make('quantity_change')->sortable(),
                 TextColumn::make('quantity_after')->sortable(),
@@ -28,7 +32,7 @@ class InventoryLogsTable
             ])
             ->filters([])
             ->headerActions([
-                \Filament\Actions\Action::make('export_csv')
+                Action::make('export_csv')
                     ->label('Ekspor CSV')
                     ->icon('heroicon-o-arrow-down-tray')
                     ->visible(function () {
@@ -36,26 +40,26 @@ class InventoryLogsTable
                         if ($user?->role === 'super_admin') {
                             return true;
                         }
-                        
-                        $cafe = $user?->cafe;
-                        if (!$cafe) {
+
+                        $toko = $user?->toko;
+                        if (! $toko) {
                             return false;
                         }
-                        
-                        return app(\App\Services\SubscriptionService::class)->canExportReports($cafe);
+
+                        return app(SubscriptionService::class)->canExportReports($toko);
                     })
                     ->action(function ($livewire) {
                         $records = $livewire->getFilteredTableQuery()->get();
-                        
-                        $filename = 'inventory-logs-' . now()->format('Y-m-d-H-i-s') . '.csv';
+
+                        $filename = 'inventory-logs-'.now()->format('Y-m-d-H-i-s').'.csv';
 
                         return response()->streamDownload(function () use ($records) {
                             $file = fopen('php://output', 'w');
-                            fputcsv($file, ['Cafe', 'Product', 'Action', 'Change', 'After', 'Created By', 'Date']);
+                            fputcsv($file, ['Toko', 'Product', 'Action', 'Change', 'After', 'Created By', 'Date']);
 
                             foreach ($records as $row) {
                                 fputcsv($file, [
-                                    $row->cafe?->name,
+                                    $row->toko?->name,
                                     $row->product?->name,
                                     $row->action,
                                     $row->quantity_change,
@@ -67,7 +71,7 @@ class InventoryLogsTable
 
                             fclose($file);
                         }, $filename);
-                    })
+                    }),
             ]);
     }
 }

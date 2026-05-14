@@ -13,7 +13,7 @@ class CategoryFactory extends Factory
     public function definition(): array
     {
         return [
-            'cafe_id' => null,
+            'toko_id' => null,
             'name' => fake()->word(),
             'description' => null,
             'image_url' => null,

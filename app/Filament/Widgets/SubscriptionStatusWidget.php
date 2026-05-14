@@ -2,7 +2,7 @@
 
 namespace App\Filament\Widgets;
 
-use App\Models\Cafe;
+use App\Models\Toko;
 use App\Services\SubscriptionService;
 use Filament\Widgets\Widget;
 use Illuminate\Support\Facades\Auth;
@@ -27,17 +27,17 @@ class SubscriptionStatusWidget extends Widget
     {
         $user = Auth::user();
 
-        if (! $user || ! filled($user->cafe_id)) {
+        if (! $user || ! filled($user->toko_id)) {
             return [];
         }
 
-        $cafe = Cafe::with('subscription')->find($user->cafe_id);
+        $toko = Toko::with('subscription')->find($user->toko_id);
 
-        if (! $cafe) {
+        if (! $toko) {
             return [];
         }
 
-        $subscription = $cafe->subscription;
+        $subscription = $toko->subscription;
         $service = app(SubscriptionService::class);
 
         $planLabel = $subscription
@@ -58,15 +58,15 @@ class SubscriptionStatusWidget extends Widget
             ],
         ];
 
-        $stats[] = $this->usageStat('Produk', $cafe->products()->count(), $subscription?->getLimit('max_products'), 'heroicon-m-cube');
-        $stats[] = $this->usageStat('Kategori', $cafe->categories()->count(), $subscription?->getLimit('max_categories'), 'heroicon-m-tag');
-        $stats[] = $this->usageStat('Staff', $cafe->users()->where('role', 'cashier')->count(), $subscription?->getLimit('max_staff'), 'heroicon-m-users');
-        $stats[] = $this->usageStat('Metode Pembayaran', $cafe->paymentMethods()->count(), $subscription?->getLimit('max_payment_methods'), 'heroicon-m-banknotes');
+        $stats[] = $this->usageStat('Produk', $toko->products()->count(), $subscription?->getLimit('max_products'), 'heroicon-m-cube');
+        $stats[] = $this->usageStat('Kategori', $toko->categories()->count(), $subscription?->getLimit('max_categories'), 'heroicon-m-tag');
+        $stats[] = $this->usageStat('Staff', $toko->users()->whereIn('role', ['kasir', 'gudang'])->count(), $subscription?->getLimit('max_staff'), 'heroicon-m-users');
+        $stats[] = $this->usageStat('Metode Pembayaran', $toko->paymentMethods()->count(), $subscription?->getLimit('max_payment_methods'), 'heroicon-m-banknotes');
 
-        $stats[] = $this->featureStat('Inventori', $service->canUseInventory($cafe), 'heroicon-m-archive-box', 'Pro');
-        $stats[] = $this->featureStat('Varian Produk', $service->canUseVariants($cafe), 'heroicon-m-adjustments-horizontal', 'Pro');
-        $stats[] = $this->featureStat('Diskon Produk', $service->canUseDiscounts($cafe), 'heroicon-m-receipt-percent', 'Pro');
-        $stats[] = $this->featureStat('Ekspor Laporan', $service->canExportReports($cafe), 'heroicon-m-document-arrow-down', 'Pro');
+        $stats[] = $this->featureStat('Inventori', $service->canUseInventory($toko), 'heroicon-m-archive-box', 'Pro');
+        $stats[] = $this->featureStat('Varian Produk', $service->canUseVariants($toko), 'heroicon-m-adjustments-horizontal', 'Pro');
+        $stats[] = $this->featureStat('Diskon Produk', $service->canUseDiscounts($toko), 'heroicon-m-receipt-percent', 'Pro');
+        $stats[] = $this->featureStat('Ekspor Laporan', $service->canExportReports($toko), 'heroicon-m-document-arrow-down', 'Pro');
 
         return $stats;
     }

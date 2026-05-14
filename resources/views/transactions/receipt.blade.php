@@ -105,14 +105,14 @@
     <div class="receipt-container">
         <div class="receipt-header">
             <div class="receipt-logo">
-                @if($transaction->cafe && $transaction->cafe->logo_url)
-                    <img src="{{ asset('storage/' . $transaction->cafe->logo_url) }}" alt="Logo Cafe" style="max-height: 48px; max-width: 100%;">
+                @if($transaction->toko && $transaction->toko->logo_url)
+                    <img src="{{ asset('storage/' . $transaction->toko->logo_url) }}" alt="Logo Toko" style="max-height: 48px; max-width: 100%;">
                 @else
                     <img src="{{ asset('/default-logo/light-mode.png') }}" class="logo-light" alt="Logo Default" style="max-height: 48px; max-width: 100%;">
                     <img src="{{ asset('/default-logo/dark-mode.png') }}" class="logo-dark" alt="Logo Default" style="max-height: 48px; max-width: 100%;">
                 @endif
             </div>
-            <h2>{{ strtoupper($transaction->cafe->name ?? 'CAFE') }}</h2>
+            <h2>{{ strtoupper($transaction->toko->name ?? 'TOKO') }}</h2>
             <p class="receipt-trx-num">{{ $transaction->transaction_number }}</p>
         </div>
 

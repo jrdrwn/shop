@@ -24,14 +24,14 @@ class Pos extends Page
 
     public array $categories = [];
 
-    public string $cafeName = 'CAFE';
+    public string $tokoName = 'TOKO';
 
-    public ?string $cafeLogo = null;
+    public ?string $tokoLogo = null;
 
-    /** Tax percentage from the cafe — read-only in POS */
+    /** Tax percentage from the toko — read-only in POS */
     public int $taxPercentage = 0;
 
-    /** Service charge percentage from the cafe — read-only in POS */
+    /** Service charge percentage from the toko — read-only in POS */
     public int $serviceChargePercentage = 0;
 
     public function mount(): void
@@ -40,44 +40,44 @@ class Pos extends Page
 
         $productQuery = Product::query()
             ->where('is_active', true)
-            ->select(['id', 'cafe_id', 'category_id', 'name', 'sku', 'price', 'discount_percentage', 'stock', 'image_url', 'has_variants', 'variants']);
+            ->select(['id', 'toko_id', 'category_id', 'name', 'sku', 'price', 'discount_percentage', 'stock', 'image_url', 'has_variants', 'variants']);
 
         $categoryQuery = Category::query()
             ->select(['id', 'name']);
 
-        if ($user?->role === 'cashier' && filled($user->cafe_id)) {
-            $productQuery->where('cafe_id', $user->cafe_id);
-            $categoryQuery->where('cafe_id', $user->cafe_id);
+        if ($user?->role === 'kasir' && filled($user->toko_id)) {
+            $productQuery->where('toko_id', $user->toko_id);
+            $categoryQuery->where('toko_id', $user->toko_id);
 
-            // Sync tax & service from the cafe record
-            $cafe = $user->cafe;
-            if ($cafe) {
-                $this->taxPercentage = (int) $cafe->tax_percentage;
-                $this->serviceChargePercentage = (int) $cafe->service_charge_percentage;
-                $this->cafeName = $cafe->name;
-                $this->cafeLogo = $cafe->logo_url;
+            // Sync tax & service from the toko record
+            $toko = $user->toko;
+            if ($toko) {
+                $this->taxPercentage = (int) $toko->tax_percentage;
+                $this->serviceChargePercentage = (int) $toko->service_charge_percentage;
+                $this->tokoName = $toko->name;
+                $this->tokoLogo = $toko->logo_url;
             }
         }
 
         $products = $productQuery->orderBy('name', 'asc')->get();
 
         // Apply subscription feature restrictions on the data passed to the POS view
-        if ($user?->role === 'cashier' && filled($user->cafe_id)) {
-            $cafe = $user->cafe;
-            if ($cafe) {
+        if ($user?->role === 'kasir' && filled($user->toko_id)) {
+            $toko = $user->toko;
+            if ($toko) {
                 $service = app(SubscriptionService::class);
-                $canUseVariants = $service->canUseVariants($cafe);
-                $canUseDiscounts = $service->canUseDiscounts($cafe);
+                $canUseVariants = $service->canUseVariants($toko);
+                $canUseDiscounts = $service->canUseDiscounts($toko);
 
                 $products = $products->map(function ($product) use ($canUseVariants, $canUseDiscounts) {
                     $arr = $product->toArray();
                     // If variants are not allowed, treat all products as non-variant
-                    if (!$canUseVariants) {
+                    if (! $canUseVariants) {
                         $arr['has_variants'] = false;
                         $arr['variants'] = null;
                     }
                     // If discounts are not allowed, zero out discount
-                    if (!$canUseDiscounts) {
+                    if (! $canUseDiscounts) {
                         $arr['discount_percentage'] = 0;
                     }
 
@@ -94,7 +94,7 @@ class Pos extends Page
 
     public static function canAccess(): bool
     {
-        return Auth::user()?->role === 'cashier';
+        return Auth::user()?->role === 'kasir';
     }
 
     // public static function getNavigationGroup(): ?string

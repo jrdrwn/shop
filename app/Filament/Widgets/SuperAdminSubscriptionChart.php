@@ -23,14 +23,14 @@ class SuperAdminSubscriptionChart extends ChartWidget
     {
         $subscriptions = Subscription::query()
             ->where('is_active', true)
-            ->withCount('cafes')
+            ->withCount('tokos')
             ->get();
 
         return [
             'datasets' => [
                 [
-                    'label' => 'Cafe Count',
-                    'data' => $subscriptions->pluck('cafes_count')->toArray(),
+                    'label' => 'Jumlah Toko',
+                    'data' => $subscriptions->pluck('tokos_count')->toArray(),
                     'backgroundColor' => ['#f59e0b', '#10b981', '#3b82f6', '#8b5cf6', '#ec4899'],
                 ],
             ],

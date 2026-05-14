@@ -1,11 +1,10 @@
 <?php
 
 use App\Enums\SubscriptionPlan;
-use App\Models\Cafe;
+use App\Models\Toko;
 use App\Models\Subscription;
 use App\Models\SubscriptionPayment;
 use App\Models\User;
-use App\Services\MidtransService;
 use App\Services\SubscriptionService;
 
 // ---------------------------------------------------------------------------
@@ -13,11 +12,11 @@ use App\Services\SubscriptionService;
 // ---------------------------------------------------------------------------
 
 test('subscription payment can be created', function () {
-    $cafe = Cafe::factory()->create();
+    $toko = Toko::factory()->create();
     $subscription = Subscription::factory()->pro()->create();
 
     $payment = SubscriptionPayment::create([
-        'cafe_id' => $cafe->id,
+        'toko_id' => $toko->id,
         'subscription_id' => $subscription->id,
         'order_id' => 'SUB-TEST-123',
         'amount' => 150000,
@@ -31,11 +30,11 @@ test('subscription payment can be created', function () {
 });
 
 test('subscription payment status helpers work correctly', function () {
-    $cafe = Cafe::factory()->create();
+    $toko = Toko::factory()->create();
     $subscription = Subscription::factory()->pro()->create();
 
     $pending = SubscriptionPayment::create([
-        'cafe_id' => $cafe->id,
+        'toko_id' => $toko->id,
         'subscription_id' => $subscription->id,
         'order_id' => 'SUB-PENDING-1',
         'amount' => 150000,
@@ -43,7 +42,7 @@ test('subscription payment status helpers work correctly', function () {
     ]);
 
     $success = SubscriptionPayment::create([
-        'cafe_id' => $cafe->id,
+        'toko_id' => $toko->id,
         'subscription_id' => $subscription->id,
         'order_id' => 'SUB-SUCCESS-1',
         'amount' => 150000,
@@ -51,7 +50,7 @@ test('subscription payment status helpers work correctly', function () {
     ]);
 
     $failed = SubscriptionPayment::create([
-        'cafe_id' => $cafe->id,
+        'toko_id' => $toko->id,
         'subscription_id' => $subscription->id,
         'order_id' => 'SUB-FAILED-1',
         'amount' => 150000,
@@ -67,16 +66,16 @@ test('subscription payment status helpers work correctly', function () {
 // SubscriptionService – activate subscription
 // ---------------------------------------------------------------------------
 
-test('activate subscription updates cafe subscription_id', function () {
-    $cafe = Cafe::factory()->create();
+test('activate subscription updates toko subscription_id', function () {
+    $toko = Toko::factory()->create();
     $proSubscription = Subscription::factory()->pro()->create();
 
     $service = app(SubscriptionService::class);
-    $service->activateSubscription($cafe, $proSubscription, 'trx-123');
+    $service->activateSubscription($toko, $proSubscription, 'trx-123');
 
-    $cafe->refresh();
+    $toko->refresh();
 
-    expect($cafe->subscription_id)->toBe($proSubscription->id);
+    expect($toko->subscription_id)->toBe($proSubscription->id);
 });
 
 // ---------------------------------------------------------------------------
@@ -143,11 +142,12 @@ test('snap token endpoint requires authentication', function () {
     $response->assertUnauthorized();
 });
 
-test('snap token endpoint requires manager role', function () {
-    $user = User::factory()->create(['role' => 'cashier']);
+test('snap token endpoint requires Owner role', function () {
+    $user = User::factory()->create(['role' => 'kasir']);
+    $subscription = Subscription::factory()->pro()->create();
 
     $response = $this->actingAs($user)->postJson(route('subscription.snap-token'), [
-        'subscription_id' => 1,
+        'subscription_id' => $subscription->id,
     ]);
 
     $response->assertForbidden();

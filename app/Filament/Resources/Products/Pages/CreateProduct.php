@@ -12,7 +12,7 @@ class CreateProduct extends CreateRecord
 
     protected function mutateFormDataBeforeCreate(array $data): array
     {
-        $data['cafe_id'] = Auth::user()?->cafe_id;
+        $data['toko_id'] = Auth::user()?->toko_id;
 
         if (! ($data['has_variants'] ?? false)) {
             $data['variants'] = null;

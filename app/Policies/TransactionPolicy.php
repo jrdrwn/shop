@@ -2,6 +2,7 @@
 
 namespace App\Policies;
 
+use App\Enums\UserRole;
 use App\Models\Transaction;
 use App\Models\User;
 
@@ -16,8 +17,8 @@ class TransactionPolicy
 
     public function view(User $user, Transaction $transaction): bool
     {
-        if ($user->role === 'manager') {
-            return $user->cafe_id === $transaction->cafe_id;
+        if ($user->role === UserRole::Owner->value || $user->role === 'owner') {
+            return $user->toko_id === $transaction->toko_id;
         }
         if ($user->role === 'cashier') {
             return $user->id === $transaction->cashier_id;
@@ -28,7 +29,7 @@ class TransactionPolicy
 
     public function create(User $user): bool
     {
-        return in_array($user->role, ['super_admin', 'manager', 'cashier']);
+        return in_array($user->role, ['super_admin', UserRole::Owner->value, 'owner', 'cashier']);
     }
 
     public function update(User $user, Transaction $transaction): bool

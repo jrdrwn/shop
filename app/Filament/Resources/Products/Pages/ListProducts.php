@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Products\Pages;
 
 use App\Filament\Concerns\ResolvesSubscription;
 use App\Filament\Resources\Products\ProductResource;
+use App\Filament\Widgets\ResourceStats\ProductStatsWidget;
 use Filament\Actions\CreateAction;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ListRecords;
@@ -18,17 +19,17 @@ class ListProducts extends ListRecords
     {
         parent::mount();
 
-        $cafe = static::cafeForCurrentUser();
-        if (! $cafe) {
+        $toko = static::tokoForCurrentUser();
+        if (! $toko) {
             return;
         }
 
         $service = static::subscriptionService();
-        $remaining = $service->remainingProducts($cafe);
+        $remaining = $service->remainingProducts($toko);
 
         // Limit reached
         if ($remaining !== null && $remaining === 0) {
-            $max = $cafe->subscription?->getLimit('max_products');
+            $max = $toko->subscription?->getLimit('max_products');
             Notification::make()
                 ->warning()
                 ->title('Batas produk tercapai')
@@ -57,7 +58,7 @@ class ListProducts extends ListRecords
     protected function getHeaderWidgets(): array
     {
         return [
-            \App\Filament\Widgets\ResourceStats\ProductStatsWidget::class,
+            ProductStatsWidget::class,
         ];
     }
 }

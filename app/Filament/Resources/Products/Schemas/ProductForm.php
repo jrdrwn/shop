@@ -2,7 +2,8 @@
 
 namespace App\Filament\Resources\Products\Schemas;
 
-use App\Models\Cafe;
+use App\Models\Toko;
+use App\Services\BarcodeService;
 use App\Services\SubscriptionService;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Placeholder;
@@ -15,6 +16,7 @@ use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\HtmlString;
 
 class ProductForm
 {
@@ -24,12 +26,12 @@ class ProductForm
         $canUseDiscounts = false;
 
         $user = Auth::user();
-        if ($user?->role === 'manager' && filled($user->cafe_id)) {
-            $cafe = Cafe::find($user->cafe_id);
-            if ($cafe) {
+        if ($user?->role === 'owner' && filled($user->toko_id)) {
+            $toko = Toko::find($user->toko_id);
+            if ($toko) {
                 $service = app(SubscriptionService::class);
-                $canUseVariants = $service->canUseVariants($cafe);
-                $canUseDiscounts = $service->canUseDiscounts($cafe);
+                $canUseVariants = $service->canUseVariants($toko);
+                $canUseDiscounts = $service->canUseDiscounts($toko);
             }
         }
 
@@ -59,7 +61,23 @@ class ProductForm
                         TextInput::make('sku')
                             ->label('SKU')
                             ->placeholder('SKU-001')
-                            ->maxLength(100),
+                            ->maxLength(100)
+                            ->live(),
+                        Placeholder::make('barcode_preview')
+                            ->label('Preview Barcode')
+                            ->content(function ($get) {
+                                $sku = $get('sku');
+                                if (! $sku) {
+                                    return 'Isi SKU untuk melihat barcode';
+                                }
+                                try {
+                                    $barcode = app(BarcodeService::class)->generateBarcode($sku);
+
+                                    return new HtmlString('<img src="data:image/png;base64,'.$barcode.'" alt="Barcode" style="max-height: 40px;" />');
+                                } catch (\Exception $e) {
+                                    return 'Gagal generate barcode';
+                                }
+                            }),
                         Select::make('category_id')
                             ->label('Kategori')
                             ->relationship('category', 'name')

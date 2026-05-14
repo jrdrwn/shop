@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\UserRole;
+use App\Services\SubscriptionService;
 use Database\Factories\UserFactory;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Panel;
@@ -13,7 +14,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 
-#[Fillable(['name', 'email', 'password', 'role', 'phone', 'cafe_id', 'is_active'])]
+#[Fillable(['name', 'email', 'password', 'role', 'phone', 'toko_id', 'is_active'])]
 #[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
 class User extends Authenticatable implements FilamentUser
 {
@@ -38,20 +39,20 @@ class User extends Authenticatable implements FilamentUser
     {
         static::creating(function ($user) {
             if ($user->role === 'cashier' && $user->is_active) {
-                $cafe = $user->cafe;
-                if ($cafe) {
-                    $subscription = app(\App\Services\SubscriptionService::class)->subscriptionFor($cafe);
+                $toko = $user->toko;
+                if ($toko) {
+                    $subscription = app(SubscriptionService::class)->subscriptionFor($toko);
                     if ($subscription) {
                         $max = $subscription->getLimit('max_staff');
                         if ($max !== null) {
-                            $activeCount = $cafe->users()->where('role', 'cashier')->where('is_active', true)->count();
+                            $activeCount = $toko->users()->where('role', 'cashier')->where('is_active', true)->count();
                             if ($activeCount >= $max) {
-                                $oldest = $cafe->users()
+                                $oldest = $toko->users()
                                     ->where('role', 'cashier')
                                     ->where('is_active', true)
                                     ->orderBy('id', 'asc')
                                     ->first();
-                                    
+
                                 if ($oldest) {
                                     $oldest->update(['is_active' => false]);
                                 }
@@ -64,21 +65,21 @@ class User extends Authenticatable implements FilamentUser
 
         static::updating(function ($user) {
             if ($user->role === 'cashier' && $user->isDirty('is_active') && $user->is_active) {
-                $cafe = $user->cafe;
-                if ($cafe) {
-                    $subscription = app(\App\Services\SubscriptionService::class)->subscriptionFor($cafe);
+                $toko = $user->toko;
+                if ($toko) {
+                    $subscription = app(SubscriptionService::class)->subscriptionFor($toko);
                     if ($subscription) {
                         $max = $subscription->getLimit('max_staff');
                         if ($max !== null) {
-                            $activeCount = $cafe->users()->where('role', 'cashier')->where('is_active', true)->where('id', '!=', $user->id)->count();
+                            $activeCount = $toko->users()->where('role', 'cashier')->where('is_active', true)->where('id', '!=', $user->id)->count();
                             if ($activeCount >= $max) {
-                                $oldest = $cafe->users()
+                                $oldest = $toko->users()
                                     ->where('role', 'cashier')
                                     ->where('is_active', true)
                                     ->where('id', '!=', $user->id)
                                     ->orderBy('id', 'asc')
                                     ->first();
-                                    
+
                                 if ($oldest) {
                                     $oldest->update(['is_active' => false]);
                                 }
@@ -90,9 +91,9 @@ class User extends Authenticatable implements FilamentUser
         });
     }
 
-    public function cafe()
+    public function toko()
     {
-        return $this->belongsTo(Cafe::class);
+        return $this->belongsTo(Toko::class, 'toko_id');
     }
 
     public function transactions()
@@ -108,9 +109,10 @@ class User extends Authenticatable implements FilamentUser
     public function canAccessPanel(Panel $panel): bool
     {
         return match ($panel->getId()) {
-            'admin' => $this->role === UserRole::SuperAdmin->value,
-            'cashier' => $this->role === UserRole::Cashier->value,
-            'manager' => $this->role === UserRole::Manager->value,
+            'admin' => in_array($this->role, [UserRole::SuperAdmin->value, 'admin'], true),
+            'cashier' => in_array($this->role, [UserRole::Cashier->value, 'cashier'], true),
+            'owner' => in_array($this->role, [UserRole::Owner->value, 'owner'], true),
+            'warehouse' => in_array($this->role, [UserRole::Warehouse->value, 'gudang'], true),
             default => false,
         };
     }

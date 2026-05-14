@@ -8,14 +8,14 @@
             <div class="receipt-container">
                 <div class="receipt-header">
                     <div class="receipt-logo">
-                        @if($cafeLogo)
-                            <img src="{{ asset('storage/' . $cafeLogo) }}" alt="Logo Cafe" style="max-height: 48px; max-width: 100%;">
+                        @if($tokoLogo)
+                            <img src="{{ asset('storage/' . $tokoLogo) }}" alt="Logo Toko" style="max-height: 48px; max-width: 100%;">
 @else
                             <img src="{{ asset('/default-logo/light-mode.png') }}" class="logo-light" alt="Logo Default" style="max-height: 48px; max-width: 100%;">
                             <img src="{{ asset('/default-logo/dark-mode.png') }}" class="logo-dark" alt="Logo Default" style="max-height: 48px; max-width: 100%;">
                         @endif
                     </div>
-                    <h2>{{ strtoupper($cafeName) }}</h2>
+                    <h2>{{ strtoupper($tokoName) }}</h2>
                     <p id="receipt-trx-num" class="receipt-trx-num">TRX...</p>
                 </div>
 
@@ -100,6 +100,16 @@
                     </div>
                 </div>
 
+                <div class="pos-barcode-scanner-wrapper" style="margin: 15px 0; display: flex; gap: 10px;">
+                    <input type="text" id="barcode-input" placeholder="Scan barcode atau masukkan SKU..." 
+                        style="flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 1rem;">
+                    <button type="button" id="toggle-camera-btn" 
+                        style="padding: 10px 15px; background: #4f46e5; color: white; border: none; border-radius: 6px; cursor: pointer;">
+                        📷 Scan Kamera
+                    </button>
+                </div>
+                <div id="interactive" class="viewport" style="display: none; width: 100%; max-width: 400px; margin: 10px auto; position: relative;"></div>
+
                 @if(count($categories) > 0)
                     <div class="pos-category-tabs">
                         <button class="pos-cat-btn active" data-cat="all">Semua</button>
@@ -114,7 +124,8 @@
                         @php $isOutOfStock = (int) ($product['stock'] ?? 0) <= 0; @endphp
                         <article class="pos-card {{ $isOutOfStock ? 'is-out' : '' }}" data-product-id="{{ $product['id'] }}"
                             data-category-id="{{ $product['category_id'] ?? '' }}"
-                            data-stock="{{ (int) ($product['stock'] ?? 0) }}">
+                            data-stock="{{ (int) ($product['stock'] ?? 0) }}"
+                            data-sku="{{ $product['sku'] ?? '' }}">
                             <div class="pos-image-wrapper">
                                 @if(!empty($product['image_url']))
                                     <img src="{{ Storage::disk('public')->url($product['image_url']) }}"
@@ -1507,11 +1518,12 @@
             }
         }
     </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
     <script>
         (() => {
-            // ── Cafe settings (read-only, from server) ───────────────────────────
-            const CAFE_TAX_RATE = {{ $taxPercentage }};
-            const CAFE_SERVICE_RATE = {{ $serviceChargePercentage }};
+            // ── Toko settings (read-only, from server) ───────────────────────────
+            const TOKO_TAX_RATE = {{ $taxPercentage }};
+            const TOKO_SERVICE_RATE = {{ $serviceChargePercentage }};
 
             const cart = [];
             const cartList = document.getElementById('cart-list');
@@ -1526,6 +1538,98 @@
             const cancelBtn = document.getElementById('cancel-btn');
             const closeReceiptBtn = document.getElementById('close-receipt-btn');
             const printBtn = document.getElementById('print-btn');
+
+            // ── Barcode Scanner Logic ──────────────────────────────────────────
+            const barcodeInput = document.getElementById('barcode-input');
+            const toggleCameraBtn = document.getElementById('toggle-camera-btn');
+            const interactive = document.getElementById('interactive');
+            let scannerIsRunning = false;
+
+            if (barcodeInput) {
+                barcodeInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        const sku = barcodeInput.value.trim();
+                        if (sku) {
+                            findAndAddProductBySku(sku);
+                            barcodeInput.value = '';
+                        }
+                    }
+                });
+            }
+
+            if (toggleCameraBtn) {
+                toggleCameraBtn.addEventListener('click', () => {
+                    if (scannerIsRunning) {
+                        Quagga.stop();
+                        interactive.style.display = 'none';
+                        toggleCameraBtn.textContent = '📷 Scan Kamera';
+                        scannerIsRunning = false;
+                    } else {
+                        interactive.style.display = 'block';
+                        toggleCameraBtn.textContent = '⏹️ Berhenti';
+                        
+                        Quagga.init({
+                            inputStream: {
+                                name: "Live",
+                                type: "LiveStream",
+                                target: document.querySelector('#interactive'),
+                                constraints: {
+                                    facingMode: "environment"
+                                }
+                            },
+                            decoder: {
+                                readers: ["code_128_reader", "ean_reader", "ean_8_reader", "code_39_reader"]
+                            }
+                        }, function (err) {
+                            if (err) {
+                                console.error(err);
+                                if (err.message && err.message.includes('getUserMedia')) {
+                                    alert('Akses kamera diblokir oleh browser. Kamera HANYA dapat digunakan jika website diakses melalui HTTPS (aman) atau localhost (127.0.0.1).');
+                                } else {
+                                    alert('Gagal membuka kamera: ' + err.message);
+                                }
+                                interactive.style.display = 'none';
+                                toggleCameraBtn.textContent = '📷 Scan Kamera';
+                                return;
+                            }
+                            Quagga.start();
+                            scannerIsRunning = true;
+                        });
+                    }
+                });
+
+                Quagga.onDetected(function (data) {
+                    const code = data.codeResult.code;
+                    if (code) {
+                        findAndAddProductBySku(code);
+                        
+                        // Stop scanner after detection to avoid multiple scans
+                        Quagga.stop();
+                        interactive.style.display = 'none';
+                        toggleCameraBtn.textContent = '📷 Scan Kamera';
+                        scannerIsRunning = false;
+                    }
+                });
+            }
+
+            function findAndAddProductBySku(sku) {
+                const card = document.querySelector(`.pos-card[data-sku="${sku}"]`);
+                if (card) {
+                    const btn = card.querySelector('.add-to-cart');
+                    if (btn) {
+                        btn.click();
+                        // Show a brief success message
+                        const toast = document.getElementById('pos-toast');
+                        if (toast) {
+                            toast.textContent = 'Produk ditambahkan: ' + sku;
+                            toast.style.display = 'block';
+                            setTimeout(() => { toast.style.display = 'none'; }, 2000);
+                        }
+                    }
+                } else {
+                    alert('Produk dengan SKU ' + sku + ' tidak ditemukan');
+                }
+            }
             const toastEl = document.getElementById('pos-toast');
 
             let selectedPaymentMethod = 'cash';
@@ -1551,8 +1655,8 @@
                     return sum + disc;
                 }, 0);
                 const subtotal = grossSubtotal - discountAmt;
-                const taxAmt = Math.round(subtotal * CAFE_TAX_RATE / 100);
-                const serviceAmt = Math.round(subtotal * CAFE_SERVICE_RATE / 100);
+                const taxAmt = Math.round(subtotal * TOKO_TAX_RATE / 100);
+                const serviceAmt = Math.round(subtotal * TOKO_SERVICE_RATE / 100);
                 const total = subtotal + taxAmt + serviceAmt;
 
                 return { grossSubtotal, discountAmt, subtotal, taxAmt, serviceAmt, total };
@@ -1896,9 +2000,9 @@
                     // Show receipt
                     document.getElementById('receipt-trx-num').textContent = data.transaction_number;
                     document.getElementById('receipt-subtotal').textContent = formatCurrency(subtotal);
-                    document.getElementById('receipt-tax-rate').textContent = CAFE_TAX_RATE;
+                    document.getElementById('receipt-tax-rate').textContent = TOKO_TAX_RATE;
                     document.getElementById('receipt-tax-amt').textContent = formatCurrency(taxAmt);
-                    document.getElementById('receipt-service-rate').textContent = CAFE_SERVICE_RATE;
+                    document.getElementById('receipt-service-rate').textContent = TOKO_SERVICE_RATE;
                     document.getElementById('receipt-service-amt').textContent = formatCurrency(serviceAmt);
                     document.getElementById('receipt-discount-amt').textContent = discountAmt > 0 ? '-' + formatCurrency(discountAmt) : formatCurrency(0);
                     document.getElementById('receipt-total').textContent = formatCurrency(total);

@@ -16,7 +16,7 @@ class CashierDashboard extends BaseDashboard
 
     public static function canAccess(): bool
     {
-        return Auth::user()?->role === 'cashier';
+        return Auth::user()?->role === 'kasir';
     }
 
     public static function shouldRegisterNavigation(): bool

@@ -46,8 +46,8 @@ enum SubscriptionPlan: string implements HasColor, HasLabel
         return match ($this) {
             self::Free => [
                 'max_products' => 10,
-                'max_categories' => 1,
-                'max_staff' => 1,
+                'max_categories' => 3,
+                'max_staff' => 4,
                 'max_payment_methods' => 2,
                 'can_export_reports' => false,
                 'can_use_inventory' => false,
@@ -73,8 +73,8 @@ enum SubscriptionPlan: string implements HasColor, HasLabel
     public function description(): string
     {
         return match ($this) {
-            self::Free => 'Gratis selamanya, cocok untuk cafe baru.',
-            self::Pro => 'Semua fitur tanpa batas untuk bisnis cafe Anda.',
+            self::Free => 'Gratis selamanya, cocok untuk bisnis baru.',
+            self::Pro => 'Semua fitur tanpa batas untuk bisnis Anda.',
         };
     }
 
@@ -89,7 +89,7 @@ enum SubscriptionPlan: string implements HasColor, HasLabel
             self::Free => [
                 '10 Produk',
                 '3 Kategori',
-                '1 Staff',
+                '4 Staff',
                 '2 Metode Pembayaran',
                 'Laporan Dasar',
             ],

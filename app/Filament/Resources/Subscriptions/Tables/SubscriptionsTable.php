@@ -19,7 +19,7 @@ class SubscriptionsTable
     public static function configure(Table $table): Table
     {
         $role = Auth::user()?->role;
-        $isManager = is_string($role) && in_array($role, ['manager'], true);
+        $isOwner = is_string($role) && in_array($role, ['owner'], true);
 
         return $table
             ->columns([
@@ -78,12 +78,12 @@ class SubscriptionsTable
                     ]),
             ])
             ->recordActions(
-                $isManager
+                $isOwner
                     ? [ViewAction::make()]
                     : [ViewAction::make(), EditAction::make()]
             )
             ->toolbarActions(
-                $isManager
+                $isOwner
                     ? []
                     : [
                         BulkActionGroup::make([

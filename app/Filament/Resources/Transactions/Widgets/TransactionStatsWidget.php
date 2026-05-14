@@ -14,8 +14,8 @@ class TransactionStatsWidget extends StatsOverviewWidget
         $user = Auth::user();
         $query = Transaction::query();
 
-        if ($user?->role === 'manager' && filled($user->cafe_id)) {
-            $query->where('cafe_id', $user->cafe_id);
+        if ($user?->role === 'owner' && filled($user->toko_id)) {
+            $query->where('toko_id', $user->toko_id);
         }
 
         if ($user?->role === 'cashier') {

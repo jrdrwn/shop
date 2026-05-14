@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\SubscriptionService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -9,7 +10,7 @@ class Product extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['cafe_id', 'category_id', 'name', 'description', 'price', 'discount_percentage', 'stock', 'sku', 'image_url', 'is_active', 'has_variants', 'variants'];
+    protected $fillable = ['toko_id', 'category_id', 'name', 'description', 'price', 'discount_percentage', 'stock', 'sku', 'image_url', 'is_active', 'has_variants', 'variants'];
 
     protected $casts = [
         'has_variants' => 'boolean',
@@ -21,19 +22,19 @@ class Product extends Model
     {
         static::creating(function ($product) {
             if ($product->is_active) {
-                $cafe = \App\Models\Cafe::find($product->cafe_id);
-                if ($cafe) {
-                    $subscription = app(\App\Services\SubscriptionService::class)->subscriptionFor($cafe);
+                $toko = Toko::find($product->toko_id);
+                if ($toko) {
+                    $subscription = app(SubscriptionService::class)->subscriptionFor($toko);
                     if ($subscription) {
                         $max = $subscription->getLimit('max_products');
                         if ($max !== null) {
-                            $activeCount = $cafe->products()->where('is_active', true)->count();
+                            $activeCount = $toko->products()->where('is_active', true)->count();
                             if ($activeCount >= $max) {
-                                $oldest = $cafe->products()
+                                $oldest = $toko->products()
                                     ->where('is_active', true)
                                     ->orderBy('id', 'asc')
                                     ->first();
-                                    
+
                                 if ($oldest) {
                                     $oldest->update(['is_active' => false]);
                                 }
@@ -46,20 +47,20 @@ class Product extends Model
 
         static::updating(function ($product) {
             if ($product->isDirty('is_active') && $product->is_active) {
-                $cafe = \App\Models\Cafe::find($product->cafe_id);
-                if ($cafe) {
-                    $subscription = app(\App\Services\SubscriptionService::class)->subscriptionFor($cafe);
+                $toko = Toko::find($product->toko_id);
+                if ($toko) {
+                    $subscription = app(SubscriptionService::class)->subscriptionFor($toko);
                     if ($subscription) {
                         $max = $subscription->getLimit('max_products');
                         if ($max !== null) {
-                            $activeCount = $cafe->products()->where('is_active', true)->where('id', '!=', $product->id)->count();
+                            $activeCount = $toko->products()->where('is_active', true)->where('id', '!=', $product->id)->count();
                             if ($activeCount >= $max) {
-                                $oldest = $cafe->products()
+                                $oldest = $toko->products()
                                     ->where('is_active', true)
                                     ->where('id', '!=', $product->id)
                                     ->orderBy('id', 'asc')
                                     ->first();
-                                    
+
                                 if ($oldest) {
                                     $oldest->update(['is_active' => false]);
                                 }
@@ -71,9 +72,9 @@ class Product extends Model
         });
     }
 
-    public function cafe()
+    public function toko()
     {
-        return $this->belongsTo(Cafe::class);
+        return $this->belongsTo(Toko::class, 'toko_id');
     }
 
     public function category()

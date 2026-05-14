@@ -12,14 +12,14 @@ class InventoryLogStatsWidget extends StatsOverviewWidget
     protected function getStats(): array
     {
         $user = Auth::user();
-        $cafeId = $user?->cafe_id;
+        $tokoId = $user?->toko_id;
 
-        if (! filled($cafeId)) {
+        if (! filled($tokoId)) {
             return [];
         }
 
         $baseQuery = InventoryLog::query()
-            ->where('cafe_id', $cafeId)
+            ->where('toko_id', $tokoId)
             ->whereDate('created_at', today());
 
         return [

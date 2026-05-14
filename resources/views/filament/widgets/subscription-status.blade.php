@@ -1,7 +1,7 @@
 <x-filament-widgets::widget>
     <x-filament::section
         heading="Status Langganan"
-        description="Penggunaan paket dan ketersediaan fitur untuk cafe Anda."
+        description="Penggunaan paket dan ketersediaan fitur untuk toko Anda."
         icon="heroicon-o-credit-card"
         collapsible
         collapsed

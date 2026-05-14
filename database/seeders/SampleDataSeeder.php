@@ -2,8 +2,8 @@
 
 namespace Database\Seeders;
 
-use App\Models\Cafe;
-use App\Models\CafeManager;
+use App\Models\Toko;
+use App\Models\TokoOwner;
 use App\Models\Category;
 use App\Models\PaymentMethod;
 use App\Models\Product;
@@ -39,34 +39,34 @@ class SampleDataSeeder extends Seeder
                 'is_active' => true,
             ]);
 
-            // Cafe
-            $cafe = Cafe::create([
-                'name' => 'Cafe Sample',
+            // Toko
+            $toko = Toko::create([
+                'name' => 'Toko Sample',
                 'address' => 'Jl. Contoh No.1',
                 'phone' => '021888999',
-                'email' => 'cafe@example.com',
+                'email' => 'toko@example.com',
                 'city' => 'Jakarta',
                 'province' => 'DKI Jakarta',
-                'description' => 'Sample cafe for testing',
+                'description' => 'Sample toko for testing',
                 'owner_name' => 'Owner Name',
                 'is_active' => true,
                 'created_by' => $admin->id,
             ]);
 
-            // Manager
-            $manager = User::create([
-                'name' => 'Cafe Manager',
-                'email' => 'manager@example.com',
+            // Owner
+            $Owner = User::create([
+                'name' => 'Toko Owner',
+                'email' => 'Owner@example.com',
                 'password' => Hash::make('password'),
-                'role' => 'manager',
+                'role' => 'owner',
                 'phone' => '08112223344',
-                'cafe_id' => $cafe->id,
+                'store_id' => $toko->id,
                 'is_active' => true,
             ]);
 
-            CafeManager::create([
-                'cafe_id' => $cafe->id,
-                'manager_id' => $manager->id,
+            TokoOwner::create([
+                'store_id' => $toko->id,
+                'owner_id' => $Owner->id,
                 'assigned_at' => now(),
                 'assigned_by' => $admin->id,
             ]);
@@ -74,7 +74,7 @@ class SampleDataSeeder extends Seeder
             // Products
             // Create default category
             $category = Category::create([
-                'cafe_id' => $cafe->id,
+                'store_id' => $toko->id,
                 'name' => 'Uncategorized',
                 'description' => 'Default category',
             ]);
@@ -87,7 +87,7 @@ class SampleDataSeeder extends Seeder
 
             foreach ($products as $p) {
                 Product::create(array_merge($p, [
-                    'cafe_id' => $cafe->id,
+                    'store_id' => $toko->id,
                     'category_id' => $category->id,
                     'is_active' => true,
                 ]));
@@ -97,7 +97,7 @@ class SampleDataSeeder extends Seeder
             $methods = ['Cash' => 'cash', 'Debit' => 'debit', 'QRIS' => 'qris'];
             foreach ($methods as $name => $type) {
                 PaymentMethod::create([
-                    'cafe_id' => $cafe->id,
+                    'store_id' => $toko->id,
                     'name' => $name,
                     'type' => $type,
                     'is_active' => true,

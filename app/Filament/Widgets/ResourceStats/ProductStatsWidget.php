@@ -12,13 +12,13 @@ class ProductStatsWidget extends StatsOverviewWidget
     protected function getStats(): array
     {
         $user = Auth::user();
-        $cafeId = $user?->cafe_id;
+        $tokoId = $user?->toko_id;
 
-        if (! filled($cafeId)) {
+        if (! filled($tokoId)) {
             return [];
         }
 
-        $baseQuery = Product::query()->where('cafe_id', $cafeId);
+        $baseQuery = Product::query()->where('toko_id', $tokoId);
 
         return [
             Stat::make('Total Produk', (clone $baseQuery)->count())

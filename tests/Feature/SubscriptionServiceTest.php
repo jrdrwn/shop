@@ -1,7 +1,7 @@
 <?php
 
 use App\Enums\SubscriptionPlan;
-use App\Models\Cafe;
+use App\Models\Toko;
 use App\Models\Category;
 use App\Models\PaymentMethod;
 use App\Models\Product;
@@ -60,67 +60,67 @@ test('hasFeature returns false for free plan restricted features', function () {
 // SubscriptionService – product limits
 // ---------------------------------------------------------------------------
 
-test('canCreateProduct returns true when cafe has no subscription', function () {
-    $cafe = Cafe::factory()->create();
+test('canCreateProduct returns true when toko has no subscription', function () {
+    $toko = Toko::factory()->create();
 
     $service = app(SubscriptionService::class);
 
-    expect($service->canCreateProduct($cafe))->toBeTrue();
+    expect($service->canCreateProduct($toko))->toBeTrue();
 });
 
-test('canCreateProduct returns true when cafe is under the product limit', function () {
+test('canCreateProduct returns true when toko is under the product limit', function () {
     $subscription = Subscription::factory()->free()->create(); // max 10 products
-    $cafe = Cafe::factory()->create(['subscription_id' => $subscription->id]);
+    $toko = Toko::factory()->create(['subscription_id' => $subscription->id]);
 
-    $category = Category::factory()->create(['cafe_id' => $cafe->id]);
+    $category = Category::factory()->create(['toko_id' => $toko->id]);
     // Add 9 products (under the limit)
-    Product::factory()->count(9)->create(['cafe_id' => $cafe->id, 'category_id' => $category->id]);
+    Product::factory()->count(9)->create(['toko_id' => $toko->id, 'category_id' => $category->id]);
 
     $service = app(SubscriptionService::class);
 
-    expect($service->canCreateProduct($cafe))->toBeTrue();
+    expect($service->canCreateProduct($toko))->toBeTrue();
 });
 
-test('canCreateProduct returns false when cafe has reached the product limit', function () {
+test('canCreateProduct returns false when toko has reached the product limit', function () {
     $subscription = Subscription::factory()->free()->create(); // max 10 products
-    $cafe = Cafe::factory()->create(['subscription_id' => $subscription->id]);
+    $toko = Toko::factory()->create(['subscription_id' => $subscription->id]);
 
-    $category = Category::factory()->create(['cafe_id' => $cafe->id]);
+    $category = Category::factory()->create(['toko_id' => $toko->id]);
     // Fill up the limit
-    Product::factory()->count(10)->create(['cafe_id' => $cafe->id, 'category_id' => $category->id]);
+    Product::factory()->count(10)->create(['toko_id' => $toko->id, 'category_id' => $category->id]);
 
     $service = app(SubscriptionService::class);
 
-    expect($service->canCreateProduct($cafe))->toBeFalse();
+    expect($service->canCreateProduct($toko))->toBeFalse();
 });
 
 test('canCreateProduct returns true for unlimited pro plan regardless of product count', function () {
     $subscription = Subscription::factory()->pro()->create(); // unlimited
-    $cafe = Cafe::factory()->create(['subscription_id' => $subscription->id]);
+    $toko = Toko::factory()->create(['subscription_id' => $subscription->id]);
 
-    $category = Category::factory()->create(['cafe_id' => $cafe->id]);
-    Product::factory()->count(200)->create(['cafe_id' => $cafe->id, 'category_id' => $category->id]);
+    $category = Category::factory()->create(['toko_id' => $toko->id]);
+    Product::factory()->count(200)->create(['toko_id' => $toko->id, 'category_id' => $category->id]);
 
     $service = app(SubscriptionService::class);
 
-    expect($service->canCreateProduct($cafe))->toBeTrue();
+    expect($service->canCreateProduct($toko))->toBeTrue();
 });
 
 test('remainingProducts returns null for unlimited plans', function () {
     $subscription = Subscription::factory()->pro()->create();
-    $cafe = Cafe::factory()->create(['subscription_id' => $subscription->id]);
+    $toko = Toko::factory()->create(['subscription_id' => $subscription->id]);
 
-    expect(app(SubscriptionService::class)->remainingProducts($cafe))->toBeNull();
+    expect(app(SubscriptionService::class)->remainingProducts($toko))->toBeNull();
 });
 
 test('remainingProducts returns correct count for limited plan', function () {
     $subscription = Subscription::factory()->free()->create(); // max 10
-    $cafe = Cafe::factory()->create(['subscription_id' => $subscription->id]);
+    $toko = Toko::factory()->create(['subscription_id' => $subscription->id]);
 
-    $category = Category::factory()->create(['cafe_id' => $cafe->id]);
-    Product::factory()->count(3)->create(['cafe_id' => $cafe->id, 'category_id' => $category->id]);
+    $category = Category::factory()->create(['toko_id' => $toko->id]);
+    Product::factory()->count(3)->create(['toko_id' => $toko->id, 'category_id' => $category->id]);
 
-    expect(app(SubscriptionService::class)->remainingProducts($cafe))->toBe(7);
+    expect(app(SubscriptionService::class)->remainingProducts($toko))->toBe(7);
 });
 
 // ---------------------------------------------------------------------------
@@ -129,30 +129,30 @@ test('remainingProducts returns correct count for limited plan', function () {
 
 test('canUseInventory returns false for free plan', function () {
     $subscription = Subscription::factory()->free()->create();
-    $cafe = Cafe::factory()->create(['subscription_id' => $subscription->id]);
+    $toko = Toko::factory()->create(['subscription_id' => $subscription->id]);
 
-    expect(app(SubscriptionService::class)->canUseInventory($cafe))->toBeFalse();
+    expect(app(SubscriptionService::class)->canUseInventory($toko))->toBeFalse();
 });
 
 test('canUseInventory returns true for pro plan', function () {
     $subscription = Subscription::factory()->pro()->create();
-    $cafe = Cafe::factory()->create(['subscription_id' => $subscription->id]);
+    $toko = Toko::factory()->create(['subscription_id' => $subscription->id]);
 
-    expect(app(SubscriptionService::class)->canUseInventory($cafe))->toBeTrue();
+    expect(app(SubscriptionService::class)->canUseInventory($toko))->toBeTrue();
 });
 
 test('canUseDiscounts returns false for free plan', function () {
     $subscription = Subscription::factory()->free()->create();
-    $cafe = Cafe::factory()->create(['subscription_id' => $subscription->id]);
+    $toko = Toko::factory()->create(['subscription_id' => $subscription->id]);
 
-    expect(app(SubscriptionService::class)->canUseDiscounts($cafe))->toBeFalse();
+    expect(app(SubscriptionService::class)->canUseDiscounts($toko))->toBeFalse();
 });
 
 test('canUseDiscounts returns true for pro plan', function () {
     $subscription = Subscription::factory()->pro()->create();
-    $cafe = Cafe::factory()->create(['subscription_id' => $subscription->id]);
+    $toko = Toko::factory()->create(['subscription_id' => $subscription->id]);
 
-    expect(app(SubscriptionService::class)->canUseDiscounts($cafe))->toBeTrue();
+    expect(app(SubscriptionService::class)->canUseDiscounts($toko))->toBeTrue();
 });
 
 // ---------------------------------------------------------------------------
@@ -205,20 +205,20 @@ test('effectiveLimits preserves plan boolean false when not overridden', functio
 
 test('canCreateCategory returns false when limit reached', function () {
     $subscription = Subscription::factory()->free()->create(); // max 3 categories
-    $cafe = Cafe::factory()->create(['subscription_id' => $subscription->id]);
+    $toko = Toko::factory()->create(['subscription_id' => $subscription->id]);
 
-    Category::factory()->count(3)->create(['cafe_id' => $cafe->id]);
+    Category::factory()->count(3)->create(['toko_id' => $toko->id]);
 
-    expect(app(SubscriptionService::class)->canCreateCategory($cafe))->toBeFalse();
+    expect(app(SubscriptionService::class)->canCreateCategory($toko))->toBeFalse();
 });
 
 test('canCreateCategory returns true when under limit', function () {
     $subscription = Subscription::factory()->free()->create(); // max 3 categories
-    $cafe = Cafe::factory()->create(['subscription_id' => $subscription->id]);
+    $toko = Toko::factory()->create(['subscription_id' => $subscription->id]);
 
-    Category::factory()->count(2)->create(['cafe_id' => $cafe->id]);
+    Category::factory()->count(2)->create(['toko_id' => $toko->id]);
 
-    expect(app(SubscriptionService::class)->canCreateCategory($cafe))->toBeTrue();
+    expect(app(SubscriptionService::class)->canCreateCategory($toko))->toBeTrue();
 });
 
 // ---------------------------------------------------------------------------
@@ -227,41 +227,41 @@ test('canCreateCategory returns true when under limit', function () {
 
 test('canAddPaymentMethod returns false when limit reached', function () {
     $subscription = Subscription::factory()->free()->create(); // max 2
-    $cafe = Cafe::factory()->create(['subscription_id' => $subscription->id]);
+    $toko = Toko::factory()->create(['subscription_id' => $subscription->id]);
 
-    PaymentMethod::factory()->count(2)->create(['cafe_id' => $cafe->id]);
+    PaymentMethod::factory()->count(2)->create(['toko_id' => $toko->id]);
 
-    expect(app(SubscriptionService::class)->canAddPaymentMethod($cafe))->toBeFalse();
+    expect(app(SubscriptionService::class)->canAddPaymentMethod($toko))->toBeFalse();
 });
 
 test('canAddPaymentMethod returns true when unlimited on pro plan', function () {
     $subscription = Subscription::factory()->pro()->create();
-    $cafe = Cafe::factory()->create(['subscription_id' => $subscription->id]);
+    $toko = Toko::factory()->create(['subscription_id' => $subscription->id]);
 
-    PaymentMethod::factory()->count(50)->create(['cafe_id' => $cafe->id]);
+    PaymentMethod::factory()->count(50)->create(['toko_id' => $toko->id]);
 
-    expect(app(SubscriptionService::class)->canAddPaymentMethod($cafe))->toBeTrue();
+    expect(app(SubscriptionService::class)->canAddPaymentMethod($toko))->toBeTrue();
 });
 
 // ---------------------------------------------------------------------------
 // SubscriptionService — staff
 // ---------------------------------------------------------------------------
 
-test('canAddStaff counts cafe users with manager or cashier role', function () {
+test('canAddStaff counts toko users with Owner or kasir role', function () {
     $subscription = Subscription::factory()->free()->create(); // max_staff: 1
-    $cafe = Cafe::factory()->create(['subscription_id' => $subscription->id]);
+    $toko = Toko::factory()->create(['subscription_id' => $subscription->id]);
 
-    // Add 1 manager (hitting the limit)
-    User::factory()->create(['cafe_id' => $cafe->id, 'role' => 'manager']);
+    // Add 1 Owner (hitting the limit)
+    User::factory()->create(['toko_id' => $toko->id, 'role' => 'owner']);
 
-    expect(app(SubscriptionService::class)->canAddStaff($cafe))->toBeFalse();
+    expect(app(SubscriptionService::class)->canAddStaff($toko))->toBeFalse();
 });
 
 test('canAddStaff returns true when under the staff limit on pro plan', function () {
     $subscription = Subscription::factory()->pro()->create(); // unlimited staff
-    $cafe = Cafe::factory()->create(['subscription_id' => $subscription->id]);
+    $toko = Toko::factory()->create(['subscription_id' => $subscription->id]);
 
-    User::factory()->count(10)->create(['cafe_id' => $cafe->id, 'role' => 'manager']);
+    User::factory()->count(10)->create(['toko_id' => $toko->id, 'role' => 'owner']);
 
-    expect(app(SubscriptionService::class)->canAddStaff($cafe))->toBeTrue();
+    expect(app(SubscriptionService::class)->canAddStaff($toko))->toBeTrue();
 });

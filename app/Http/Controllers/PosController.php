@@ -28,12 +28,12 @@ class PosController extends Controller
         ]);
 
         $user = Auth::user();
-        if (! $user || $user->role !== 'cashier') {
+        if (! $user || $user->role !== 'kasir') {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
-        if (! $user->cafe_id) {
-            return response()->json(['message' => 'Akun kasir belum terhubung ke cafe.'], 400);
+        if (! $user->toko_id) {
+            return response()->json(['message' => 'Akun kasir belum terhubung ke toko.'], 400);
         }
 
         $cart = $request->input('cart');
@@ -42,10 +42,10 @@ class PosController extends Controller
         $paidAmount = (int) $request->input('paid_amount');
         $changeAmount = (int) $request->input('change_amount');
 
-        // Tax & service are authoritative from the cafe — never trust the client
-        $cafe = $user->cafe;
-        $taxRate = (int) ($cafe?->tax_percentage ?? 0);
-        $serviceRate = (int) ($cafe?->service_charge_percentage ?? 0);
+        // Tax & service are authoritative from the toko — never trust the client
+        $toko = $user->toko;
+        $taxRate = (int) ($toko?->tax_percentage ?? 0);
+        $serviceRate = (int) ($toko?->service_charge_percentage ?? 0);
 
         try {
             return DB::transaction(function () use ($user, $cart, $paymentMethod, $taxRate, $serviceRate, $paidAmount, $changeAmount) {
@@ -54,11 +54,11 @@ class PosController extends Controller
 
                 foreach ($cart as $item) {
                     $product = Product::whereId($item['id'])
-                        ->where('cafe_id', $user->cafe_id)
+                        ->where('toko_id', $user->toko_id)
                         ->first();
 
                     if (! $product) {
-                        throw new \Exception("Produk #{$item['id']} tidak ditemukan untuk cafe ini.");
+                        throw new \Exception("Produk #{$item['id']} tidak ditemukan untuk toko ini.");
                     }
 
                     $qty = (int) $item['qty'];
@@ -101,7 +101,7 @@ class PosController extends Controller
                 $transactionStatus = $paymentMethod === 'cash' ? 'completed' : 'pending';
 
                 $transaction = Transaction::create([
-                    'cafe_id' => $user->cafe_id,
+                    'toko_id' => $user->toko_id,
                     'cashier_id' => $user->id,
                     'transaction_number' => 'TRX'.time().rand(1000, 9999),
                     'total_amount' => $totalAmount,
@@ -131,7 +131,7 @@ class PosController extends Controller
                     $after = $product->stock;
 
                     InventoryLog::create([
-                        'cafe_id' => $user->cafe_id,
+                        'toko_id' => $user->toko_id,
                         'product_id' => $product->id,
                         'action' => 'sale',
                         'quantity_change' => -$qty,
@@ -151,9 +151,9 @@ class PosController extends Controller
                     default => 'pending'
                 };
 
-                // Resolve or auto-create the payment method record for this cafe
+                // Resolve or auto-create the payment method record for this toko
                 $paymentMethodRecord = PaymentMethod::firstOrCreate(
-                    ['cafe_id' => $user->cafe_id, 'type' => $paymentMethod],
+                    ['toko_id' => $user->toko_id, 'type' => $paymentMethod],
                     ['name' => strtoupper($paymentMethod), 'is_active' => true]
                 );
 
@@ -164,6 +164,20 @@ class PosController extends Controller
                     'reference_number' => "{$paymentMethod}-{$transaction->transaction_number}",
                     'status' => $paymentStatus,
                 ]);
+
+                // Auto-record to Cash Flow for verified successful payments (e.g. Cash)
+                if ($paymentStatus === 'success') {
+                    \App\Models\CashFlow::create([
+                        'toko_id' => $user->toko_id,
+                        'type' => 'income',
+                        'category' => 'sales',
+                        'amount' => $totalAmount,
+                        'description' => "Penjualan POS #{$transaction->transaction_number} (Tunai)",
+                        'reference_id' => $transaction->id,
+                        'reference_type' => 'transaction',
+                        'created_by' => $user->id,
+                    ]);
+                }
 
                 return response()->json([
                     'success' => true,

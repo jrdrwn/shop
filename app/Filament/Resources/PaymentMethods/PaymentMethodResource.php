@@ -13,7 +13,6 @@ use App\Models\PaymentMethod;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
-use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
@@ -34,7 +33,7 @@ class PaymentMethodResource extends Resource
 
     protected static ?string $roleNavigationGroup = 'Master Data';
 
-    protected static array $allowedRoles = ['manager'];
+    protected static array $allowedRoles = ['owner'];
 
     protected static ?string $recordTitleAttribute = 'name';
 
@@ -59,8 +58,8 @@ class PaymentMethodResource extends Resource
 
         $query = parent::getEloquentQuery();
 
-        if ($user?->role === 'manager' && filled($user->cafe_id)) {
-            return $query->where('cafe_id', $user->cafe_id);
+        if ($user?->role === 'owner' && filled($user->toko_id)) {
+            return $query->where('toko_id', $user->toko_id);
         }
 
         return $query;

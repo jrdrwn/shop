@@ -1,7 +1,7 @@
 <?php
 
 use App\Filament\Pages\Pos;
-use App\Filament\Resources\Cafes\CafeResource;
+use App\Filament\Resources\Tokos\TokoResource;
 use App\Filament\Resources\Categories\CategoryResource;
 use App\Filament\Resources\InventoryLogs\InventoryLogResource;
 use App\Filament\Resources\PaymentMethods\PaymentMethodResource;
@@ -18,24 +18,24 @@ uses(RefreshDatabase::class);
 
 /**
  * Role matrix:
- * - super_admin : platform management only (Cafe, CafeManager, Subscription)
- * - manager     : all operational resources, scoped to their own cafe
+ * - super_admin : platform management only (Toko, TokoOwner, Subscription)
+ * - Owner     : all operational resources, scoped to their own toko
  * - cashier     : transactions only (for POS)
  */
 $resourceRoleMatrix = [
     // ── Super Admin Only ────────────────────────────────────────────────────
-    CafeResource::class => ['super_admin' => true,  'manager' => true,  'cashier' => false],
-    SubscriptionResource::class => ['super_admin' => true,  'manager' => false, 'cashier' => false],
+    TokoResource::class => ['super_admin' => true,  'owner' => true,  'kasir' => false],
+    SubscriptionResource::class => ['super_admin' => true,  'owner' => false, 'kasir' => false],
 
-    // ── Manager Only (full ops, cafe-scoped) ────────────────────────────────
-    UserResource::class => ['super_admin' => false, 'manager' => true, 'cashier' => false],
-    CategoryResource::class => ['super_admin' => false, 'manager' => true, 'cashier' => false],
-    ProductResource::class => ['super_admin' => false, 'manager' => true, 'cashier' => false],
-    PaymentMethodResource::class => ['super_admin' => false, 'manager' => true, 'cashier' => false],
-    InventoryLogResource::class => ['super_admin' => false, 'manager' => true, 'cashier' => false],
+    // ── Owner Only (full ops, toko-scoped) ────────────────────────────────
+    UserResource::class => ['super_admin' => false, 'owner' => true, 'kasir' => false],
+    CategoryResource::class => ['super_admin' => false, 'owner' => true, 'kasir' => false],
+    ProductResource::class => ['super_admin' => false, 'owner' => true, 'kasir' => false],
+    PaymentMethodResource::class => ['super_admin' => false, 'owner' => true, 'kasir' => false],
+    InventoryLogResource::class => ['super_admin' => false, 'owner' => true, 'kasir' => false],
 
-    // ── Manager + Cashier ───────────────────────────────────────────────────
-    TransactionResource::class => ['super_admin' => false, 'manager' => true, 'cashier' => true],
+    // ── Owner + Cashier ───────────────────────────────────────────────────
+    TransactionResource::class => ['super_admin' => false, 'owner' => true, 'kasir' => true],
 ];
 
 foreach ($resourceRoleMatrix as $resourceClass => $accessMap) {
@@ -58,20 +58,20 @@ test('guest tidak bisa akses resource', function () use ($resourceRoleMatrix): v
     }
 });
 
-test('hanya cashier yang dapat mengakses halaman POS', function (): void {
+test('hanya kasir yang dapat mengakses halaman POS', function (): void {
     /** @var User $admin */
     $admin = User::factory()->createOne(['role' => 'super_admin']);
     actingAs($admin);
     expect(Pos::canAccess())->toBeFalse();
 
-    /** @var User $manager */
-    $manager = User::factory()->createOne(['role' => 'manager']);
-    actingAs($manager);
+    /** @var User $Owner */
+    $Owner = User::factory()->createOne(['role' => 'owner']);
+    actingAs($Owner);
     expect(Pos::canAccess())->toBeFalse();
 
-    /** @var User $cashier */
-    $cashier = User::factory()->createOne(['role' => 'cashier']);
-    actingAs($cashier);
+    /** @var User $kasir */
+    $kasir = User::factory()->createOne(['role' => 'kasir']);
+    actingAs($kasir);
     expect(Pos::canAccess())->toBeTrue()
         ->and(Pos::shouldRegisterNavigation())->toBeTrue();
 });

@@ -2,7 +2,7 @@
 
 namespace Database\Factories;
 
-use App\Models\Cafe;
+use App\Models\Toko;
 use App\Models\Category;
 use App\Models\Product;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -15,7 +15,7 @@ class ProductFactory extends Factory
     public function definition(): array
     {
         return [
-            'cafe_id' => Cafe::factory(),
+            'toko_id' => Toko::factory(),
             'category_id' => Category::factory(),
             'name' => fake()->words(3, true),
             'description' => fake()->sentence(),

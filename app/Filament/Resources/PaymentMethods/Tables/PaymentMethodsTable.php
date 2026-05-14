@@ -2,9 +2,8 @@
 
 namespace App\Filament\Resources\PaymentMethods\Tables;
 
-use Filament\Actions\BulkActionGroup;
-use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Tables\Columns\Layout\Stack;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 
@@ -17,7 +16,7 @@ class PaymentMethodsTable
                 'md' => 3,
             ])
             ->columns([
-                \Filament\Tables\Columns\Layout\Stack::make([
+                Stack::make([
                     TextColumn::make('name')
                         ->label('Metode')
                         ->searchable()
@@ -37,7 +36,7 @@ class PaymentMethodsTable
                         ->badge()
                         ->formatStateUsing(fn (bool $state): string => $state ? 'Aktif' : 'Nonaktif')
                         ->color(fn (bool $state): string => $state ? 'success' : 'gray'),
-                ])
+                ]),
             ])
             ->filters([])
             ->recordActions([

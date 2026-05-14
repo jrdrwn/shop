@@ -19,9 +19,9 @@ class Subscription extends Model
         'is_active' => 'boolean',
     ];
 
-    public function cafes()
+    public function tokos()
     {
-        return $this->hasMany(Cafe::class);
+        return $this->hasMany(Toko::class);
     }
 
     /**

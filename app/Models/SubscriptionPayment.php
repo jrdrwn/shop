@@ -12,7 +12,7 @@ class SubscriptionPayment extends Model
     protected $table = 'subscription_payments';
 
     protected $fillable = [
-        'cafe_id',
+        'toko_id',
         'subscription_id',
         'order_id',
         'amount',
@@ -31,9 +31,9 @@ class SubscriptionPayment extends Model
         'settlement_time' => 'datetime',
     ];
 
-    public function cafe()
+    public function toko()
     {
-        return $this->belongsTo(Cafe::class);
+        return $this->belongsTo(Toko::class, 'toko_id');
     }
 
     public function subscription()

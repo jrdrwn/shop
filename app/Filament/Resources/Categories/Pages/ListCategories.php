@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Categories\Pages;
 
 use App\Filament\Concerns\ResolvesSubscription;
 use App\Filament\Resources\Categories\CategoryResource;
+use App\Filament\Widgets\ResourceStats\CategoryStatsWidget;
 use Filament\Actions\CreateAction;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ListRecords;
@@ -18,16 +19,16 @@ class ListCategories extends ListRecords
     {
         parent::mount();
 
-        $cafe = static::cafeForCurrentUser();
-        if (! $cafe) {
+        $toko = static::tokoForCurrentUser();
+        if (! $toko) {
             return;
         }
 
         $service = static::subscriptionService();
-        $remaining = $service->remainingCategories($cafe);
+        $remaining = $service->remainingCategories($toko);
 
         if ($remaining !== null && $remaining === 0) {
-            $max = $cafe->subscription?->getLimit('max_categories');
+            $max = $toko->subscription?->getLimit('max_categories');
             Notification::make()
                 ->warning()
                 ->title('Batas kategori tercapai')
@@ -53,7 +54,7 @@ class ListCategories extends ListRecords
     protected function getHeaderWidgets(): array
     {
         return [
-            \App\Filament\Widgets\ResourceStats\CategoryStatsWidget::class,
+            CategoryStatsWidget::class,
         ];
     }
 }

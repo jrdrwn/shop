@@ -12,7 +12,6 @@ use App\Models\User;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
-use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
@@ -33,7 +32,7 @@ class UserResource extends Resource
 
     protected static ?string $roleNavigationGroup = 'Manajemen Pengguna';
 
-    protected static array $allowedRoles = ['manager'];
+    protected static array $allowedRoles = ['owner'];
 
     protected static ?string $recordTitleAttribute = 'name';
 
@@ -52,10 +51,10 @@ class UserResource extends Resource
         $user = Auth::user();
         $query = parent::getEloquentQuery();
 
-        if ($user?->role === 'manager' && filled($user->cafe_id)) {
-            // Only show cashiers in this cafe — manager themselves is managed separately
-            $query->where('cafe_id', $user->cafe_id)
-                ->where('role', 'cashier');
+        if ($user?->role === 'owner' && filled($user->toko_id)) {
+            // Only show kasir and gudang in this store — Owner themselves is managed separately
+            $query->where('toko_id', $user->toko_id)
+                ->whereIn('role', ['kasir', 'gudang']);
         }
 
         return $query;

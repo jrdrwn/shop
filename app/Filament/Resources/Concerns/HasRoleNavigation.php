@@ -11,6 +11,16 @@ use UnitEnum;
  */
 trait HasRoleNavigation
 {
+    protected static function normalizeRole(?string $role): ?string
+    {
+        return match ($role) {
+            'admin' => 'super_admin',
+            'kasir' => 'cashier',
+            'gudang' => 'warehouse',
+            default => $role,
+        };
+    }
+
     public static function getNavigationGroup(): string|UnitEnum|null
     {
         if (! property_exists(static::class, 'roleNavigationGroup')) {
@@ -22,10 +32,10 @@ trait HasRoleNavigation
 
     public static function canAccess(): bool
     {
-        $role = Auth::user()?->role;
+        $role = static::normalizeRole(Auth::user()?->role);
 
         $allowedRoles = property_exists(static::class, 'allowedRoles')
-            ? static::$allowedRoles
+            ? array_map(static fn (string $allowedRole): string => static::normalizeRole($allowedRole) ?? $allowedRole, static::$allowedRoles)
             : ['super_admin'];
 
         return is_string($role) && in_array($role, $allowedRoles, true);

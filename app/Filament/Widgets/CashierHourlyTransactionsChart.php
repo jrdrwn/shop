@@ -16,7 +16,7 @@ class CashierHourlyTransactionsChart extends ChartWidget
 
     public static function canView(): bool
     {
-        return Auth::user()?->role === 'cashier';
+        return Auth::user()?->role === 'kasir';
     }
 
     protected function getData(): array

@@ -14,11 +14,11 @@ class CategoriesTable
     {
         return $table
             ->columns([
-                TextColumn::make('cafe.name')
-                    ->label('Cafe')
+                TextColumn::make('toko.name')
+                    ->label('Toko')
                     ->sortable()
                     ->searchable()
-                    ->hidden(fn() => auth()->user()?->role === 'manager'),
+                    ->hidden(fn () => auth()->user()?->role === 'owner'),
                 TextColumn::make('name')
                     ->label('Kategori')
                     ->searchable()
@@ -33,8 +33,8 @@ class CategoriesTable
                 TextColumn::make('is_active')
                     ->label('Status')
                     ->badge()
-                    ->formatStateUsing(fn(bool $state): string => $state ? 'Aktif' : 'Nonaktif')
-                    ->color(fn(bool $state): string => $state ? 'success' : 'gray'),
+                    ->formatStateUsing(fn (bool $state): string => $state ? 'Aktif' : 'Nonaktif')
+                    ->color(fn (bool $state): string => $state ? 'success' : 'gray'),
             ])
             ->filters([])
             ->recordActions([

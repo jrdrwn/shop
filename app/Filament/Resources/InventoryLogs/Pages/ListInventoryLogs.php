@@ -3,7 +3,7 @@
 namespace App\Filament\Resources\InventoryLogs\Pages;
 
 use App\Filament\Resources\InventoryLogs\InventoryLogResource;
-use Filament\Actions\CreateAction;
+use App\Filament\Widgets\ResourceStats\InventoryLogStatsWidget;
 use Filament\Resources\Pages\ListRecords;
 
 class ListInventoryLogs extends ListRecords
@@ -18,7 +18,7 @@ class ListInventoryLogs extends ListRecords
     protected function getHeaderWidgets(): array
     {
         return [
-            \App\Filament\Widgets\ResourceStats\InventoryLogStatsWidget::class,
+            InventoryLogStatsWidget::class,
         ];
     }
 }

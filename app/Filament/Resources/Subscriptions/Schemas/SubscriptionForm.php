@@ -89,7 +89,7 @@ class SubscriptionForm
                             ->numeric()
                             ->minValue(1)
                             ->placeholder('Tidak terbatas')
-                            ->helperText('Jumlah produk maksimum yang bisa dibuat oleh cafe.'),
+                            ->helperText('Jumlah produk maksimum yang bisa dibuat oleh toko.'),
                         TextInput::make('limits.max_categories')
                             ->label('Maks. Kategori')
                             ->numeric()
@@ -101,7 +101,7 @@ class SubscriptionForm
                             ->numeric()
                             ->minValue(1)
                             ->placeholder('Tidak terbatas')
-                            ->helperText('Jumlah manager/kasir yang bisa terdaftar.'),
+                            ->helperText('Jumlah Owner/kasir yang bisa terdaftar.'),
                         TextInput::make('limits.max_payment_methods')
                             ->label('Maks. Metode Pembayaran')
                             ->numeric()

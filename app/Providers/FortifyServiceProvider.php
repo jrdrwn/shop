@@ -51,6 +51,11 @@ class FortifyServiceProvider extends ServiceProvider
             'canResetPassword' => Features::enabled(Features::resetPasswords()),
             'canRegister' => Features::enabled(Features::registration()),
             'status' => $request->session()->get('status'),
+            'loginRoles' => [
+                ['label' => 'Owner', 'value' => 'owner'],
+                ['label' => 'Kasir', 'value' => 'kasir'],
+                ['label' => 'Gudang', 'value' => 'gudang'],
+            ],
         ]));
 
         Fortify::resetPasswordView(fn (Request $request) => Inertia::render('auth/reset-password', [

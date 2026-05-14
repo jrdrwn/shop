@@ -11,11 +11,11 @@ class TransactionHistory extends Model
 
     protected $table = 'transaction_history';
 
-    protected $fillable = ['cafe_id', 'transaction_id', 'action', 'performed_by', 'description'];
+    protected $fillable = ['toko_id', 'transaction_id', 'action', 'performed_by', 'description'];
 
-    public function cafe()
+    public function toko()
     {
-        return $this->belongsTo(Cafe::class);
+        return $this->belongsTo(Toko::class, 'toko_id');
     }
 
     public function transaction()

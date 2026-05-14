@@ -15,7 +15,7 @@ class UserForm
 {
     public static function configure(Schema $schema): Schema
     {
-        $isManager = Auth::user()?->role === 'manager';
+        $isOwner = Auth::user()?->role === 'owner';
 
         return $schema
             ->components([
@@ -45,31 +45,39 @@ class UserForm
                     ]),
 
                 Section::make('Hak Akses & Keamanan')
-                    ->description('Atur role, cakupan cafe, dan kata sandi akun.')
+                    ->description('Atur role, cakupan toko, dan kata sandi akun.')
                     ->columns(2)
                     ->schema([
-                        // Manager: role fixed to cashier, hidden from UI
-                        $isManager
-                            ? Hidden::make('role')->default('cashier')
+                        // Owner: can only select kasir or gudang
+                        $isOwner
+                            ? Select::make('role')
+                                ->label('Role')
+                                ->options([
+                                    'kasir' => 'Kasir',
+                                    'gudang' => 'Gudang',
+                                ])
+                                ->required()
+                                ->default('kasir')
                             : Select::make('role')
                                 ->label('Role')
                                 ->options([
                                     'super_admin' => 'Super Admin',
-                                    'manager' => 'Manager',
-                                    'cashier' => 'Cashier',
+                                    'owner' => 'Owner',
+                                    'kasir' => 'Kasir',
+                                    'gudang' => 'Gudang',
                                 ])
                                 ->required()
                                 ->helperText('Role menentukan menu dan data yang dapat diakses.'),
 
-                        // Manager: cafe auto-filled from their own cafe, hidden from UI
-                        $isManager
-                            ? Hidden::make('cafe_id')->default(fn () => Auth::user()?->cafe_id)
-                            : Select::make('cafe_id')
-                                ->label('Cafe')
-                                ->relationship('cafe', 'name')
+                        // Owner: toko auto-filled from their own toko, hidden from UI
+                        $isOwner
+                            ? Hidden::make('toko_id')->default(fn () => Auth::user()?->toko_id)
+                            : Select::make('toko_id')
+                                ->label('Toko')
+                                ->relationship('toko', 'name')
                                 ->searchable()
                                 ->preload()
-                                ->helperText('Wajib untuk manager dan cashier yang terikat pada cafe tertentu.'),
+                                ->helperText('Wajib untuk Owner dan cashier yang terikat pada toko tertentu.'),
 
                         TextInput::make('password')
                             ->label('Password')

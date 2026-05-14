@@ -2,7 +2,7 @@
 
 namespace Database\Factories;
 
-use App\Models\Cafe;
+use App\Models\Toko;
 use App\Models\Subscription;
 use App\Models\SubscriptionPayment;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -17,7 +17,7 @@ class SubscriptionPaymentFactory extends Factory
     public function definition(): array
     {
         return [
-            'cafe_id' => Cafe::factory(),
+            'toko_id' => Toko::factory(),
             'subscription_id' => Subscription::factory(),
             'order_id' => 'SUB-'.strtoupper(fake()->bothify('??###')),
             'amount' => fake()->randomElement([0, 150000]),

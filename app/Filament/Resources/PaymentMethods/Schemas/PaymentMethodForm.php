@@ -16,16 +16,16 @@ class PaymentMethodForm
         return $schema
             ->components([
                 Section::make('Konteks Pembayaran')
-                    ->description('Hubungkan metode pembayaran ke cafe yang tepat agar transaksi tetap tertata.')
+                    ->description('Hubungkan metode pembayaran ke toko yang tepat agar transaksi tetap tertata.')
                     ->columns(2)
                     ->schema([
-                        Select::make('cafe_id')
-                            ->label('Cafe')
-                            ->relationship('cafe', 'name')
+                        Select::make('toko_id')
+                            ->label('Toko')
+                            ->relationship('toko', 'name')
                             ->searchable()
                             ->preload()
-                            ->default(fn (): ?int => Auth::user()?->cafe_id)
-                            ->disabled(fn (): bool => Auth::user()?->role === 'manager')
+                            ->default(fn (): ?int => Auth::user()?->toko_id)
+                            ->disabled(fn (): bool => Auth::user()?->role === 'owner')
                             ->required(),
                         TextInput::make('name')
                             ->label('Nama Metode')

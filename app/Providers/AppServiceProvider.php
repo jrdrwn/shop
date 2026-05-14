@@ -27,8 +27,8 @@ class AppServiceProvider extends ServiceProvider
                 {
                     $panel = Filament::getCurrentPanel();
 
-                    // Jika dari panel manager, redirect ke manager
-                    if ($panel && $panel->getId() === 'manager') {
+                    // Jika dari panel owner, redirect ke owner
+                    if ($panel && $panel->getId() === 'owner') {
                         return redirect()->intended($panel->getUrl());
                     }
 

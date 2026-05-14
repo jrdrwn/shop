@@ -28,12 +28,13 @@ class UsersTable
                     ->badge()
                     ->formatStateUsing(fn (string $state): string => match ($state) {
                         'super_admin' => 'Super Admin',
-                        'manager' => 'Manager',
-                        'cashier' => 'Cashier',
-                        default => 'Super Admin',
+                        'owner' => 'Owner',
+                        'kasir' => 'Kasir',
+                        'gudang' => 'Gudang',
+                        default => ucfirst($state),
                     }),
-                TextColumn::make('cafe.name')
-                    ->label('Cafe')
+                TextColumn::make('toko.name')
+                    ->label('Toko')
                     ->toggleable(),
                 TextColumn::make('is_active')
                     ->label('Status')

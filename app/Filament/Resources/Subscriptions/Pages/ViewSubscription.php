@@ -15,9 +15,9 @@ class ViewSubscription extends ViewRecord
     protected function getHeaderActions(): array
     {
         $role = Auth::user()?->role;
-        $isManager = is_string($role) && in_array($role, ['manager'], true);
+        $isOwner = is_string($role) && in_array($role, ['owner'], true);
 
-        if ($isManager) {
+        if ($isOwner) {
             return [];
         }
 

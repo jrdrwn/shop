@@ -9,11 +9,11 @@ class DailyReport extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['cafe_id', 'report_date', 'total_transactions', 'total_sales', 'total_discount', 'total_tax', 'total_cash', 'total_debit', 'total_qris', 'opening_balance', 'closing_balance', 'created_by'];
+    protected $fillable = ['toko_id', 'report_date', 'total_transactions', 'total_sales', 'total_discount', 'total_tax', 'total_cash', 'total_debit', 'total_qris', 'opening_balance', 'closing_balance', 'created_by'];
 
-    public function cafe()
+    public function toko()
     {
-        return $this->belongsTo(Cafe::class);
+        return $this->belongsTo(Toko::class, 'toko_id');
     }
 
     public function creator()

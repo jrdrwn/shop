@@ -4,7 +4,8 @@ use App\Providers\AppServiceProvider;
 use App\Providers\AuthServiceProvider;
 use App\Providers\Filament\AdminPanelProvider;
 use App\Providers\Filament\CashierPanelProvider;
-use App\Providers\Filament\ManagerPanelProvider;
+use App\Providers\Filament\OwnerPanelProvider;
+use App\Providers\Filament\WarehousePanelProvider;
 use App\Providers\FortifyServiceProvider;
 
 return [
@@ -12,6 +13,7 @@ return [
     AuthServiceProvider::class,
     AdminPanelProvider::class,
     CashierPanelProvider::class,
-    ManagerPanelProvider::class,
+    OwnerPanelProvider::class,
+    WarehousePanelProvider::class,
     FortifyServiceProvider::class,
 ];

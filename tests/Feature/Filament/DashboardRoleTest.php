@@ -2,23 +2,23 @@
 
 use App\Filament\Pages\CashierDashboard;
 use App\Filament\Pages\Dashboard;
-use App\Filament\Pages\ManagerDashboard;
+use App\Filament\Pages\OwnerDashboard;
 use App\Filament\Widgets\CashierHourlyTransactionsChart;
 use App\Filament\Widgets\CashierStatsWidget;
 use App\Filament\Widgets\CashierTodayTransactionsTable;
-use App\Filament\Widgets\ManagerCafeTransactionsTable;
-use App\Filament\Widgets\ManagerDailyRevenueChart;
-use App\Filament\Widgets\ManagerLowStockTable;
-use App\Filament\Widgets\ManagerStaffPerformanceTable;
-use App\Filament\Widgets\ManagerStatsWidget;
-use App\Filament\Widgets\ManagerTopProductsChart;
+use App\Filament\Widgets\OwnerTokoTransactionsTable;
+use App\Filament\Widgets\OwnerDailyRevenueChart;
+use App\Filament\Widgets\OwnerLowStockTable;
+use App\Filament\Widgets\OwnerStaffPerformanceTable;
+use App\Filament\Widgets\OwnerStatsWidget;
+use App\Filament\Widgets\OwnerTopProductsChart;
 use App\Filament\Widgets\SubscriptionStatusWidget;
 use App\Filament\Widgets\SubscriptionUpgradeWidget;
-use App\Filament\Widgets\SuperAdminCafeSummaryTable;
+use App\Filament\Widgets\SuperAdminTokoSummaryTable;
 use App\Filament\Widgets\SuperAdminStatsWidget;
 use App\Filament\Widgets\SuperAdminSubscriptionChart;
-use App\Models\Cafe;
-use App\Models\CafeManager;
+use App\Models\Toko;
+use App\Models\TokoOwner;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\Subscription;
@@ -32,23 +32,23 @@ uses(RefreshDatabase::class);
 
 // ─── Super Admin ────────────────────────────────────────────────────────────
 
-test('super admin dashboard memantau cafe, manager, dan subscription', function (): void {
+test('super admin dashboard memantau toko, Owner, dan subscription', function (): void {
     $superAdmin = User::factory()->createOne(['role' => 'super_admin', 'is_active' => true]);
-    $manager = User::factory()->createOne(['role' => 'manager', 'is_active' => true]);
+    $Owner = User::factory()->createOne(['role' => 'owner', 'is_active' => true]);
 
     $subscription = Subscription::query()->create([
         'name' => 'Pro Plan', 'price' => 250000, 'duration_months' => 1,
         'features' => ['reports'], 'is_active' => true,
     ]);
 
-    $cafe = Cafe::query()->create([
-        'name' => 'Cafe Alpha', 'address' => 'Jl. Merdeka 1',
+    $toko = Toko::query()->create([
+        'name' => 'Toko Alpha', 'address' => 'Jl. Merdeka 1',
         'city' => 'Bandung', 'province' => 'Jawa Barat',
         'created_by' => $superAdmin->id, 'subscription_id' => $subscription->id, 'is_active' => true,
     ]);
 
-    CafeManager::query()->create([
-        'cafe_id' => $cafe->id, 'manager_id' => $manager->id,
+    TokoOwner::query()->create([
+        'toko_id' => $toko->id, 'owner_id' => $Owner->id,
         'assigned_at' => now(), 'assigned_by' => $superAdmin->id,
     ]);
 
@@ -63,53 +63,52 @@ test('super admin dashboard memantau cafe, manager, dan subscription', function 
     $widgets = (new Dashboard)->getWidgets();
     expect($widgets)->toContain(SuperAdminStatsWidget::class)
         ->toContain(SuperAdminSubscriptionChart::class)
-        ->toContain(SuperAdminCafeSummaryTable::class);
+        ->toContain(SuperAdminTokoSummaryTable::class);
 
     // Stats widget visible to super admin
     expect(SuperAdminStatsWidget::canView())->toBeTrue();
 
-    // Cafe summary table widget renders
-    $cafeTable = Livewire::test(SuperAdminCafeSummaryTable::class);
-    expect(SuperAdminCafeSummaryTable::canView())->toBeTrue();
+    // Toko summary table widget renders
+    $tokoTable = Livewire::test(SuperAdminTokoSummaryTable::class);
+    expect(SuperAdminTokoSummaryTable::canView())->toBeTrue();
 });
 
-test('manager e cashier tidak bisa akses super admin dashboard', function (): void {
-    $manager = User::factory()->createOne(['role' => 'manager']);
-    Livewire::actingAs($manager);
+test('Owner e kasir tidak bisa akses super admin dashboard', function (): void {
+    $Owner = User::factory()->createOne(['role' => 'owner']);
+    Livewire::actingAs($Owner);
     expect(Dashboard::shouldRegisterNavigation())->toBeFalse();
 
-    $cashier = User::factory()->createOne(['role' => 'cashier']);
-    Livewire::actingAs($cashier);
+    $kasir = User::factory()->createOne(['role' => 'kasir']);
+    Livewire::actingAs($kasir);
     expect(Dashboard::shouldRegisterNavigation())->toBeFalse();
 });
 
-// ─── Manager ────────────────────────────────────────────────────────────────
+// ─── Owner ────────────────────────────────────────────────────────────────
 
-test('manager dashboard lebih detail dari cashier', function (): void {
+test('Owner dashboard lebih detail dari kasir', function (): void {
     $superAdmin = User::factory()->createOne(['role' => 'super_admin', 'is_active' => true]);
-    $manager = User::factory()->createOne(['role' => 'manager', 'is_active' => true]);
-    $cashier = User::factory()->createOne(['role' => 'cashier', 'is_active' => true]);
-
-    $cafe = Cafe::query()->create([
-        'name' => 'Cafe Beta', 'address' => 'Jl. Sudirman 2',
+    $Owner = User::factory()->createOne(['role' => 'owner', 'is_active' => true]);
+    $kasir = User::factory()->createOne(['role' => 'kasir', 'is_active' => true]);
+    $toko = Toko::query()->create([
+        'name' => 'Toko Beta', 'address' => 'Jl. Sudirman 2',
         'city' => 'Jakarta', 'province' => 'DKI Jakarta',
         'created_by' => $superAdmin->id, 'is_active' => true,
     ]);
 
-    $manager->update(['cafe_id' => $cafe->id]);
-    $cashier->update(['cafe_id' => $cafe->id]);
+    $Owner->update(['toko_id' => $toko->id]);
+    $kasir->update(['toko_id' => $toko->id]);
 
-    $category = Category::query()->create(['cafe_id' => $cafe->id, 'name' => 'Minuman', 'is_active' => true]);
+    $category = Category::query()->create(['toko_id' => $toko->id, 'name' => 'Minuman', 'is_active' => true]);
 
     $product = Product::query()->create([
-        'cafe_id' => $cafe->id, 'category_id' => $category->id,
+        'toko_id' => $toko->id, 'category_id' => $category->id,
         'name' => 'Espresso', 'price' => 18000,
         'stock' => 4, 'sku' => 'ESP-001', 'is_active' => true,
         'has_variants' => false, 'variants' => [],
     ]);
 
     $transaction = Transaction::query()->create([
-        'cafe_id' => $cafe->id, 'cashier_id' => $cashier->id,
+        'toko_id' => $toko->id, 'cashier_id' => $kasir->id,
         'transaction_number' => 'TRX-0101', 'total_amount' => 54000,
         'discount_amount' => 0, 'tax_amount' => 0,
         'paid_amount' => 54000, 'change_amount' => 0,
@@ -121,69 +120,69 @@ test('manager dashboard lebih detail dari cashier', function (): void {
         'quantity' => 3, 'unit_price' => 18000, 'subtotal' => 54000, 'notes' => null,
     ]);
 
-    Livewire::actingAs($manager);
+    Livewire::actingAs($Owner);
 
-    expect(ManagerDashboard::canAccess())->toBeTrue()
-        ->and(ManagerDashboard::shouldRegisterNavigation())->toBeTrue();
+    expect(OwnerDashboard::canAccess())->toBeTrue()
+        ->and(OwnerDashboard::shouldRegisterNavigation())->toBeTrue();
 
-    // Manager dashboard has MORE widgets than cashier
-    $managerWidgets = (new ManagerDashboard)->getWidgets();
+    // Owner dashboard has MORE widgets than cashier
+    $ownerWidgets = (new OwnerDashboard)->getWidgets();
     $cashierWidgets = (new CashierDashboard)->getWidgets();
-    expect(count($managerWidgets))->toBeGreaterThan(count($cashierWidgets));
+    expect(count($ownerWidgets))->toBeGreaterThan(count($cashierWidgets));
 
-    // All manager widgets present
-    expect($managerWidgets)->toContain(SubscriptionUpgradeWidget::class)
+    // All Owner widgets present
+    expect($ownerWidgets)->toContain(SubscriptionUpgradeWidget::class)
         ->toContain(SubscriptionStatusWidget::class)
-        ->toContain(ManagerStatsWidget::class)
-        ->toContain(ManagerDailyRevenueChart::class)
-        ->toContain(ManagerTopProductsChart::class)
-        ->toContain(ManagerLowStockTable::class)
-        ->toContain(ManagerStaffPerformanceTable::class)
-        ->toContain(ManagerCafeTransactionsTable::class);
+        ->toContain(OwnerStatsWidget::class)
+        ->toContain(OwnerDailyRevenueChart::class)
+        ->toContain(OwnerTopProductsChart::class)
+        ->toContain(OwnerLowStockTable::class)
+        ->toContain(OwnerStaffPerformanceTable::class)
+        ->toContain(OwnerTokoTransactionsTable::class);
 
-    // Stats widget visible to manager
-    expect(ManagerStatsWidget::canView())->toBeTrue();
+    // Stats widget visible to Owner
+    expect(OwnerStatsWidget::canView())->toBeTrue();
 
     // Low stock table visible (product has stock=4 ≤ 10)
-    expect(ManagerLowStockTable::canView())->toBeTrue();
+    expect(OwnerLowStockTable::canView())->toBeTrue();
 });
 
-test('super admin dan cashier tidak bisa akses manager dashboard', function (): void {
+test('super admin dan kasir tidak bisa akses Owner dashboard', function (): void {
     $admin = User::factory()->createOne(['role' => 'super_admin']);
     Livewire::actingAs($admin);
-    expect(ManagerDashboard::canAccess())->toBeFalse();
+    expect(OwnerDashboard::canAccess())->toBeFalse();
 
-    $cashier = User::factory()->createOne(['role' => 'cashier']);
-    Livewire::actingAs($cashier);
-    expect(ManagerDashboard::canAccess())->toBeFalse();
+    $kasir = User::factory()->createOne(['role' => 'kasir']);
+    Livewire::actingAs($kasir);
+    expect(OwnerDashboard::canAccess())->toBeFalse();
 });
 
 // ─── Cashier ─────────────────────────────────────────────────────────────────
 
-test('cashier dashboard fokus pada shift harian', function (): void {
-    $cashier = User::factory()->createOne(['role' => 'cashier', 'is_active' => true]);
-    $cafe = Cafe::query()->create([
-        'name' => 'Cafe Gamma', 'address' => 'Jl. Asia Afrika 3',
+test('kasir dashboard fokus pada shift harian', function (): void {
+    $kasir = User::factory()->createOne(['role' => 'kasir', 'is_active' => true]);
+    $toko = Toko::query()->create([
+        'name' => 'Toko Gamma', 'address' => 'Jl. Asia Afrika 3',
         'city' => 'Bandung', 'province' => 'Jawa Barat',
-        'created_by' => $cashier->id, 'is_active' => true,
+        'created_by' => $kasir->id, 'is_active' => true,
     ]);
-    $cashier->update(['cafe_id' => $cafe->id]);
+    $kasir->update(['toko_id' => $toko->id]);
 
     Transaction::query()->create([
-        'cafe_id' => $cafe->id, 'cashier_id' => $cashier->id,
+        'toko_id' => $toko->id, 'cashier_id' => $kasir->id,
         'transaction_number' => 'TRX-0201', 'total_amount' => 45000,
         'discount_amount' => 0, 'tax_amount' => 0, 'paid_amount' => 45000,
         'change_amount' => 0, 'status' => 'completed', 'notes' => null,
     ]);
 
     Transaction::query()->create([
-        'cafe_id' => $cafe->id, 'cashier_id' => $cashier->id,
+        'toko_id' => $toko->id, 'cashier_id' => $kasir->id,
         'transaction_number' => 'TRX-0202', 'total_amount' => 27000,
         'discount_amount' => 0, 'tax_amount' => 0, 'paid_amount' => 27000,
         'change_amount' => 0, 'status' => 'pending', 'notes' => null,
     ]);
 
-    Livewire::actingAs($cashier);
+    Livewire::actingAs($kasir);
 
     expect(CashierDashboard::canAccess())->toBeTrue()
         ->and(CashierDashboard::shouldRegisterNavigation())->toBeTrue();
@@ -201,12 +200,12 @@ test('cashier dashboard fokus pada shift harian', function (): void {
     expect(CashierTodayTransactionsTable::canView())->toBeTrue();
 });
 
-test('super admin dan manager tidak bisa akses cashier dashboard', function (): void {
+test('super admin dan Owner tidak bisa akses cashier dashboard', function (): void {
     $admin = User::factory()->createOne(['role' => 'super_admin']);
     Livewire::actingAs($admin);
     expect(CashierDashboard::canAccess())->toBeFalse();
 
-    $manager = User::factory()->createOne(['role' => 'manager']);
-    Livewire::actingAs($manager);
+    $Owner = User::factory()->createOne(['role' => 'owner']);
+    Livewire::actingAs($Owner);
     expect(CashierDashboard::canAccess())->toBeFalse();
 });

@@ -2,9 +2,10 @@
 
 namespace App\Filament\Widgets;
 
-use App\Models\Cafe;
-use App\Models\CafeManager;
 use App\Models\Subscription;
+use App\Models\Toko;
+use App\Models\Transaction;
+use App\Models\User;
 use Filament\Widgets\StatsOverviewWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 use Illuminate\Support\Facades\Auth;
@@ -22,18 +23,18 @@ class SuperAdminStatsWidget extends StatsOverviewWidget
 
     protected function getStats(): array
     {
-        $totalCafes = Cafe::query()->count();
-        $activeCafes = Cafe::query()->where('is_active', true)->count();
-        $inactiveCafes = $totalCafes - $activeCafes;
+        $totalTokos = Toko::query()->count();
+        $activeTokos = Toko::query()->where('is_active', true)->count();
+        $inactiveTokos = $totalTokos - $activeTokos;
 
         $activePlans = Subscription::query()->where('is_active', true)->count();
 
-        $totalTransactions = \App\Models\Transaction::count();
-        $totalStaff = \App\Models\User::whereIn('role', ['manager', 'cashier'])->count();
+        $totalTransactions = Transaction::count();
+        $totalStaff = User::whereIn('role', ['owner', 'kasir', 'gudang'])->count();
 
         return [
-            Stat::make('Total Klien Cafe', $totalCafes)
-                ->description($activeCafes . ' aktif · ' . $inactiveCafes . ' nonaktif')
+            Stat::make('Total Klien Toko', $totalTokos)
+                ->description($activeTokos.' aktif · '.$inactiveTokos.' nonaktif')
                 ->descriptionIcon('heroicon-m-building-storefront')
                 ->color('amber'),
 
@@ -43,7 +44,7 @@ class SuperAdminStatsWidget extends StatsOverviewWidget
                 ->color('success'),
 
             Stat::make('Total Staff', $totalStaff)
-                ->description('Manager & Kasir terdaftar')
+                ->description('Owner & Kasir terdaftar')
                 ->descriptionIcon('heroicon-m-users')
                 ->color('info'),
 

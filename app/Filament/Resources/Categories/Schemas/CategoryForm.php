@@ -21,13 +21,13 @@ class CategoryForm
                     ->description('Atur kategori agar mudah dipilih di produk dan POS.')
                     ->columns(2)
                     ->schema([
-                        Select::make('cafe_id')
-                            ->label('Cafe')
-                            ->relationship('cafe', 'name')
+                        Select::make('toko_id')
+                            ->label('Toko')
+                            ->relationship('toko', 'name')
                             ->searchable()
                             ->preload()
-                            ->required(fn () => Auth::user()->role !== 'manager')
-                            ->hidden(fn () => Auth::user()->role === 'manager'),
+                            ->required(fn () => Auth::user()->role !== 'owner')
+                            ->hidden(fn () => Auth::user()->role === 'owner'),
                         TextInput::make('name')
                             ->label('Nama Kategori')
                             ->required()

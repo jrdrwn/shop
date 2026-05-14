@@ -15,7 +15,7 @@ class InventoryLogForm
         return $schema
             ->components([
                 Grid::make(2)->schema([
-                    Select::make('cafe_id')->relationship('cafe', 'name')->required()->label('Cafe'),
+                    Select::make('toko_id')->relationship('toko', 'name')->required()->label('Toko'),
                     Select::make('product_id')->relationship('product', 'name')->required()->label('Product'),
                     Select::make('action')->options([
                         'sale' => 'Sale',

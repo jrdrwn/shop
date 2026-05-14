@@ -3,9 +3,8 @@
 namespace App\Providers\Filament;
 
 use App\Filament\Pages\Cashier\CashierPanelDashboard;
-use App\Filament\Pages\Pos;
 use App\Filament\Pages\CashierLogin;
-use Awcodes\LightSwitch\LightSwitchPlugin;
+use App\Filament\Pages\Pos;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -28,11 +27,11 @@ class CashierPanelProvider extends PanelProvider
     {
         return $panel
             ->id('cashier')
-            ->brandName('Cashier Cafe')
+            ->brandName('Kasir Toko')
             ->path('cashier')
             ->brandLogo(asset('/default-logo/light-mode.png'))
             ->darkModeBrandLogo(asset('/default-logo/dark-mode.png'))
-            ->brandLogoHeight("2rem")
+            ->brandLogoHeight('2rem')
             ->login(CashierLogin::class)
             ->homeUrl('/cashier')
             ->colors([
@@ -61,7 +60,7 @@ class CashierPanelProvider extends PanelProvider
             ])
             ->renderHook(
                 PanelsRenderHook::AUTH_LOGIN_FORM_AFTER,
-                fn(): string => Blade::render('<x-cashier-role-links />')
+                fn (): string => Blade::render('<x-cashier-role-links />')
             );
     }
 }

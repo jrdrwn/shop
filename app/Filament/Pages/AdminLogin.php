@@ -13,6 +13,6 @@ class AdminLogin extends Login
 
     public function getSubheading(): ?string
     {
-        return 'Panel Admin - Kelola Semua Cafe';
+        return 'Panel Admin - Kelola Semua Toko';
     }
 }

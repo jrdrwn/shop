@@ -2,11 +2,11 @@
 
 namespace App\Providers;
 
-use App\Models\Cafe;
 use App\Models\Product;
+use App\Models\Toko;
 use App\Models\Transaction;
-use App\Policies\CafePolicy;
 use App\Policies\ProductPolicy;
+use App\Policies\TokoPolicy;
 use App\Policies\TransactionPolicy;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 
@@ -18,7 +18,7 @@ class AuthServiceProvider extends ServiceProvider
      * @var array
      */
     protected $policies = [
-        Cafe::class => CafePolicy::class,
+        Toko::class => TokoPolicy::class,
         Product::class => ProductPolicy::class,
         Transaction::class => TransactionPolicy::class,
     ];

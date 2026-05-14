@@ -9,11 +9,11 @@ class Transaction extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['cafe_id', 'cashier_id', 'transaction_number', 'total_amount', 'discount_amount', 'tax_amount', 'paid_amount', 'change_amount', 'status', 'notes'];
+    protected $fillable = ['toko_id', 'cashier_id', 'transaction_number', 'total_amount', 'discount_amount', 'tax_amount', 'paid_amount', 'change_amount', 'status', 'notes'];
 
-    public function cafe()
+    public function toko()
     {
-        return $this->belongsTo(Cafe::class);
+        return $this->belongsTo(Toko::class, 'toko_id');
     }
 
     public function cashier()

@@ -13,10 +13,10 @@
                         Super Admin Console
                     </div>
                     <h1 class="text-2xl font-bold leading-snug md:text-3xl">
-                        Pantau Seluruh Ekosistem Cafe
+                        Pantau Seluruh Ekosistem Toko
                     </h1>
                     <p class="max-w-xl text-sm leading-relaxed text-slate-300">
-                        Visibilitas penuh atas seluruh cafe, penugasan manager, status subscription, dan arus transaksi lintas cabang — semuanya dari satu layar.
+                        Visibilitas penuh atas seluruh toko, penugasan owner, status subscription, dan arus transaksi lintas cabang — semuanya dari satu layar.
                     </p>
                 </div>
 
@@ -41,36 +41,36 @@
             @endforeach
         </div>
 
-        {{-- ─── Cafe Overview Table + Subscription Plans ───────────── --}}
+        {{-- ─── Toko Overview Table + Subscription Plans ───────────── --}}
         <div class="grid gap-6 xl:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
 
-            {{-- Cafe Table --}}
+            {{-- Toko Table --}}
             <x-filament::section>
-                <x-slot name="heading">Daftar Cafe & Manager</x-slot>
-                <x-slot name="description">Semua cafe yang terdaftar beserta manager dan status subscription-nya.</x-slot>
+                <x-slot name="heading">Daftar Toko & Owner</x-slot>
+                <x-slot name="description">Semua toko yang terdaftar beserta owner dan status subscription-nya.</x-slot>
 
-                @if (count($this->cafeSummaries) > 0)
+                @if (count($this->tokoSummaries) > 0)
                     <div class="overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700">
                         <table class="w-full text-sm">
                             <thead class="bg-gray-50 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:bg-gray-800 dark:text-gray-400">
                                 <tr>
-                                    <th class="px-4 py-3">Cafe</th>
+                                    <th class="px-4 py-3">Toko</th>
                                     <th class="px-4 py-3">Kota</th>
-                                    <th class="px-4 py-3">Manager</th>
+                                    <th class="px-4 py-3">Owner</th>
                                     <th class="px-4 py-3">Subscription</th>
                                     <th class="px-4 py-3">Status</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
-                                @foreach ($this->cafeSummaries as $row)
+                                @foreach ($this->tokoSummaries as $row)
                                     <tr class="transition hover:bg-gray-50 dark:hover:bg-gray-800/50">
                                         <td class="px-4 py-3 font-semibold text-gray-950 dark:text-white">{{ $row['name'] }}</td>
                                         <td class="px-4 py-3 text-gray-500 dark:text-gray-400">{{ $row['city'] }}</td>
                                         <td class="px-4 py-3">
-                                            @if ($row['manager'] === 'Belum ditetapkan')
+                                            @if ($row['owner'] === 'Belum ditetapkan')
                                                 <span class="text-xs italic text-gray-400">Belum ditetapkan</span>
                                             @else
-                                                <span class="font-medium text-gray-800 dark:text-gray-200">{{ $row['manager'] }}</span>
+                                                <span class="font-medium text-gray-800 dark:text-gray-200">{{ $row['owner'] }}</span>
                                             @endif
                                         </td>
                                         <td class="px-4 py-3">
@@ -93,7 +93,7 @@
                     </div>
                 @else
                     <div class="rounded-xl border border-dashed border-gray-300 px-6 py-12 text-center text-sm text-gray-500 dark:border-gray-700 dark:text-gray-400">
-                        Belum ada cafe yang terdaftar di sistem.
+                        Belum ada toko yang terdaftar di sistem.
                     </div>
                 @endif
             </x-filament::section>
@@ -104,7 +104,7 @@
                 {{-- Subscription Plans --}}
                 <x-filament::section>
                     <x-slot name="heading">Subscription Plans</x-slot>
-                    <x-slot name="description">Plan yang tersedia dan jumlah cafe pemakai.</x-slot>
+                    <x-slot name="description">Plan yang tersedia dan jumlah toko pemakai.</x-slot>
 
                     @if (count($this->subscriptionSummaries) > 0)
                         <div class="space-y-3">
@@ -115,8 +115,8 @@
                                         <p class="text-xs text-gray-500 dark:text-gray-400">{{ $plan['price'] }} / {{ $plan['duration'] }}</p>
                                     </div>
                                     <div class="text-right">
-                                        <span class="text-2xl font-bold text-amber-600 dark:text-amber-400">{{ $plan['cafes'] }}</span>
-                                        <p class="text-xs text-gray-400">cafe</p>
+                                        <span class="text-2xl font-bold text-amber-600 dark:text-amber-400">{{ $plan['tokos'] }}</span>
+                                        <p class="text-xs text-gray-400">toko</p>
                                     </div>
                                 </div>
                             @endforeach
@@ -131,7 +131,7 @@
                 {{-- Recent Transactions --}}
                 <x-filament::section>
                     <x-slot name="heading">Transaksi Terbaru</x-slot>
-                    <x-slot name="description">Aktivitas terakhir lintas semua cafe.</x-slot>
+                    <x-slot name="description">Aktivitas terakhir lintas semua toko.</x-slot>
 
                     @if (count($this->recentTransactions) > 0)
                         <div class="space-y-2">
@@ -139,7 +139,7 @@
                                 <div class="flex items-center justify-between rounded-xl border border-gray-100 px-4 py-3 dark:border-gray-800">
                                     <div class="min-w-0">
                                         <p class="truncate text-xs font-mono text-gray-500 dark:text-gray-400">{{ $row['number'] }}</p>
-                                        <p class="mt-0.5 truncate font-medium text-gray-900 dark:text-white">{{ $row['cafe'] }}</p>
+                                        <p class="mt-0.5 truncate font-medium text-gray-900 dark:text-white">{{ $row['toko'] }}</p>
                                         <p class="text-xs text-gray-400">{{ $row['cashier'] }} · {{ $row['time'] }}</p>
                                     </div>
                                     <div class="ml-4 shrink-0 text-right">
@@ -161,3 +161,4 @@
 
     </div>
 </x-filament-panels::page>
+

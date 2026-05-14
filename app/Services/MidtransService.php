@@ -2,9 +2,9 @@
 
 namespace App\Services;
 
-use App\Models\Cafe;
 use App\Models\Subscription;
 use App\Models\SubscriptionPayment;
+use App\Models\Toko;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 
@@ -28,12 +28,12 @@ class MidtransService
     /**
      * Create a Snap token for subscription upgrade.
      */
-    public function createSnapToken(Cafe $cafe, Subscription $subscription): string
+    public function createSnapToken(Toko $toko, Subscription $subscription): string
     {
-        $orderId = 'SUB-'.Str::upper(Str::random(8)).'-'.$cafe->id;
+        $orderId = 'SUB-'.Str::upper(Str::random(8)).'-'.$toko->id;
 
         $payment = SubscriptionPayment::create([
-            'cafe_id' => $cafe->id,
+            'toko_id' => $toko->id,
             'subscription_id' => $subscription->id,
             'order_id' => $orderId,
             'amount' => $subscription->price,
@@ -46,9 +46,9 @@ class MidtransService
                 'gross_amount' => (int) $subscription->price,
             ],
             'customer_details' => [
-                'first_name' => $cafe->name,
-                'email' => $cafe->email,
-                'phone' => $cafe->phone,
+                'first_name' => $toko->name,
+                'email' => $toko->email,
+                'phone' => $toko->phone,
             ],
             'item_details' => [
                 [
@@ -128,7 +128,7 @@ class MidtransService
 
         if ($status === 'success') {
             app(SubscriptionService::class)->activateSubscription(
-                $payment->cafe,
+                $payment->toko,
                 $payment->subscription,
                 $transactionId ?? $orderId
             );
@@ -136,7 +136,7 @@ class MidtransService
 
         return $payment;
     }
-    
+
     /**
      * Check transaction status from Midtrans API.
      */

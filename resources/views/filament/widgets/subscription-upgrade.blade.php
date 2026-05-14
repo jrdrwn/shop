@@ -1,7 +1,7 @@
 <x-filament-widgets::widget>
     <x-filament::section
         heading="Pilih Paket Langganan"
-        description="Tingkatkan cafe Anda dengan paket yang sesuai."
+        description="Tingkatkan toko Anda dengan paket yang sesuai."
         icon="heroicon-o-rocket-launch"
         collapsible
         collapsed

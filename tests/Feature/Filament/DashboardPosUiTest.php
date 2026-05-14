@@ -1,7 +1,7 @@
 <?php
 
 use App\Filament\Pages\Pos;
-use App\Models\Cafe;
+use App\Models\Toko;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\User;
@@ -10,34 +10,34 @@ use Livewire\Livewire;
 
 uses(RefreshDatabase::class);
 
-test('halaman POS cashier hanya memuat produk cafe miliknya', function (): void {
+test('halaman POS cashier hanya memuat produk toko miliknya', function (): void {
     $admin = User::factory()->createOne([
         'role' => 'super_admin',
         'is_active' => true,
     ]);
 
-    $cafeA = Cafe::query()->create([
-        'name' => 'Cafe A',
+    $tokoA = Toko::query()->create([
+        'name' => 'Toko A',
         'created_by' => $admin->id,
     ]);
 
-    $cafeB = Cafe::query()->create([
-        'name' => 'Cafe B',
+    $tokoB = Toko::query()->create([
+        'name' => 'Toko B',
         'created_by' => $admin->id,
     ]);
 
     $categoryA = Category::query()->create([
-        'cafe_id' => $cafeA->id,
+        'toko_id' => $tokoA->id,
         'name' => 'Coffee',
     ]);
 
     $categoryB = Category::query()->create([
-        'cafe_id' => $cafeB->id,
+        'toko_id' => $tokoB->id,
         'name' => 'Tea',
     ]);
 
     Product::query()->create([
-        'cafe_id' => $cafeA->id,
+        'toko_id' => $tokoA->id,
         'category_id' => $categoryA->id,
         'name' => 'Espresso A',
         'price' => 15000,
@@ -46,7 +46,7 @@ test('halaman POS cashier hanya memuat produk cafe miliknya', function (): void 
     ]);
 
     Product::query()->create([
-        'cafe_id' => $cafeB->id,
+        'toko_id' => $tokoB->id,
         'category_id' => $categoryB->id,
         'name' => 'Tea B',
         'price' => 12000,
@@ -54,19 +54,19 @@ test('halaman POS cashier hanya memuat produk cafe miliknya', function (): void 
         'is_active' => true,
     ]);
 
-    $cashier = User::factory()->createOne([
-        'role' => 'cashier',
-        'cafe_id' => $cafeA->id,
+    $kasir = User::factory()->createOne([
+        'role' => 'kasir',
+        'toko_id' => $tokoA->id,
         'is_active' => true,
     ]);
 
-    $component = Livewire::actingAs($cashier)->test(Pos::class);
+    $component = Livewire::actingAs($kasir)->test(Pos::class);
 
     /** @var array<int, array<string, mixed>> $products */
     $products = $component->instance()->products;
 
     expect($products)->toHaveCount(1)
         ->and($products[0]['name'])->toBe('Espresso A')
-        ->and($products[0]['cafe_id'])->toBe($cafeA->id);
+        ->and($products[0]['toko_id'])->toBe($tokoA->id);
 }
 );

@@ -15,7 +15,7 @@
                     <p class="mt-1 text-sm text-white/80">{{ now()->translatedFormat('l, d F Y') }}</p>
                     <div class="mt-2 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/15 px-3 py-1.5 text-xs font-medium">
                         <span class="h-2 w-2 rounded-full bg-sky-300"></span>
-                        {{ $this->cafeName ?? 'Cafe belum ditetapkan' }}
+                        {{ $this->tokoName ?? 'Toko belum ditetapkan' }}
                     </div>
                 </div>
                 <div class="rounded-2xl border border-white/20 bg-white/10 px-5 py-3 text-center backdrop-blur">

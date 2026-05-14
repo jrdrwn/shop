@@ -1,7 +1,7 @@
 <?php
 
 use App\Filament\Resources\Products\Pages\CreateProduct;
-use App\Models\Cafe;
+use App\Models\Toko;
 use App\Models\Category;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -10,25 +10,25 @@ use function Pest\Laravel\actingAs;
 
 uses(RefreshDatabase::class);
 
-test('product create page fills cafe_id from the authenticated manager', function (): void {
-    $manager = User::factory()->createOne([
-        'role' => 'manager',
+test('product create page fills toko_id from the authenticated Owner', function (): void {
+    $Owner = User::factory()->createOne([
+        'role' => 'owner',
         'is_active' => true,
     ]);
 
-    $cafe = Cafe::query()->create([
-        'name' => 'Cafe Test',
-        'created_by' => $manager->id,
+    $toko = Toko::query()->create([
+        'name' => 'Toko Test',
+        'created_by' => $Owner->id,
     ]);
 
-    $manager->update(['cafe_id' => $cafe->id]);
+    $Owner->update(['toko_id' => $toko->id]);
 
     $category = Category::query()->create([
-        'cafe_id' => $cafe->id,
+        'toko_id' => $toko->id,
         'name' => 'Main',
     ]);
 
-    actingAs($manager);
+    actingAs($Owner);
 
     $page = new class extends CreateProduct
     {
@@ -47,6 +47,6 @@ test('product create page fills cafe_id from the authenticated manager', functio
         'variants' => ['size' => ['Large']],
     ]);
 
-    expect($data['cafe_id'])->toBe($cafe->id)
+    expect($data['toko_id'])->toBe($toko->id)
         ->and($data['variants'])->toBeNull();
 });

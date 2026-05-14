@@ -9,11 +9,11 @@ class InventoryLog extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['cafe_id', 'product_id', 'action', 'quantity_change', 'quantity_before', 'quantity_after', 'reference_id', 'reference_type', 'notes', 'created_by'];
+    protected $fillable = ['toko_id', 'product_id', 'action', 'quantity_change', 'quantity_before', 'quantity_after', 'reference_id', 'reference_type', 'notes', 'created_by'];
 
-    public function cafe()
+    public function toko()
     {
-        return $this->belongsTo(Cafe::class);
+        return $this->belongsTo(Toko::class, 'toko_id');
     }
 
     public function product()
