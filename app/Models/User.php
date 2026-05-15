@@ -101,11 +101,6 @@ class User extends Authenticatable implements FilamentUser
         return $this->hasMany(Transaction::class, 'cashier_id');
     }
 
-    public function activityLogs()
-    {
-        return $this->hasMany(UserActivityLog::class);
-    }
-
     public function canAccessPanel(Panel $panel): bool
     {
         return match ($panel->getId()) {

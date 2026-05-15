@@ -90,8 +90,5 @@ class Toko extends Model
         return $this->hasMany(CashFlow::class, 'toko_id');
     }
 
-    public function activityLogs()
-    {
-        return $this->hasMany(ActivityLog::class, 'toko_id');
-    }
+
 }

@@ -30,9 +30,4 @@ class Transaction extends Model
     {
         return $this->hasMany(Payment::class);
     }
-
-    public function history()
-    {
-        return $this->hasMany(TransactionHistory::class);
-    }
 }
