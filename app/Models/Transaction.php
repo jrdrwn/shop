@@ -9,7 +9,7 @@ class Transaction extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['toko_id', 'cashier_id', 'transaction_number', 'total_amount', 'discount_amount', 'tax_amount', 'paid_amount', 'change_amount', 'status', 'notes'];
+    protected $fillable = ['toko_id', 'cashier_id', 'transaction_number', 'total_amount', 'discount_amount', 'tax_amount', 'service_charge_amount', 'paid_amount', 'change_amount', 'status', 'notes'];
 
     public function toko()
     {

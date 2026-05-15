@@ -1,7 +1,32 @@
 <x-filament-panels::page>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <script src="{{ app(\App\Services\MidtransService::class)->snapUrl() }}" data-client-key="{{ $midtransClientKey ?? app(\App\Services\MidtransService::class)->clientKey() }}"></script>
+
     <div id="pos-app" class="pos-app">
         <!-- Toast -->
         <div id="pos-toast" class="pos-toast pos-toast-hidden"></div>
+        
+        <!-- Loading Overlay -->
+        <div id="loading-overlay" class="loading-overlay hidden">
+            <div class="spinner"></div>
+            <p>Memproses Transaksi...</p>
+        </div>
+
+        <!-- Custom Confirmation Modal -->
+        <div id="cancel-confirm-modal" class="confirm-modal">
+            <div class="confirm-container">
+                <div class="confirm-icon">⚠️</div>
+                <div class="confirm-title">Batalkan Pesanan?</div>
+                <div class="confirm-text">
+                    Apakah Anda yakin ingin membatalkan pesanan ini?<br>
+                    <strong>Stok barang akan otomatis dikembalikan.</strong>
+                </div>
+                <div class="confirm-actions">
+                    <button id="confirm-no" class="confirm-btn confirm-btn-no">Tidak, Kembali</button>
+                    <button id="confirm-yes" class="confirm-btn confirm-btn-yes">Ya, Batalkan</button>
+                </div>
+            </div>
+        </div>
 
         <!-- Receipt Modal -->
         <div id="receipt-modal" class="receipt-modal hidden" role="dialog" aria-modal="true">
@@ -63,6 +88,15 @@
                         <strong id="receipt-change" class="text-success">Rp 0</strong>
                     </div>
 
+                    <div id="receipt-qris-section" style="display:none">
+                        <div class="receipt-divider"></div>
+                        <div class="receipt-section-label" style="text-align: center;">Scan QRIS untuk Bayar</div>
+                        <div style="text-align: center; margin: 1rem 0;">
+                            <img id="receipt-qris-img" src="" alt="QRIS" style="width: 200px; height: 200px; border: 4px solid #fff; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+                            <p style="font-size: 0.75rem; color: #6b7280; margin-top: 0.5rem;">Silakan scan QRIS di atas untuk menyelesaikan pembayaran.</p>
+                        </div>
+                    </div>
+
                     <div class="receipt-footer">
                         <p id="receipt-time" class="receipt-time"></p>
                         <p class="receipt-thanks">Terima kasih atas kunjungan Anda</p>
@@ -77,8 +111,7 @@
         </div>
 
 
-        <!-- Main POS Layout -->
-        <div class="pos-layout">
+        <section class="pos-layout">
             <!-- Products Section -->
             <section class="pos-products">
                 <div class="pos-products-header">
@@ -267,9 +300,27 @@
                     </div>
                     <div class="pos-payment-body">
                         <div class="pos-method-group">
-                            <button type="button" class="pos-method-btn active" data-method="cash">Cash</button>
-                            <button type="button" class="pos-method-btn" data-method="debit">Debit</button>
-                            <button type="button" class="pos-method-btn" data-method="qris">QRIS</button>
+                            @php
+                                $firstActive = null;
+                                foreach (['cash', 'debit', 'qris'] as $m) {
+                                    if (in_array($m, $activePaymentMethods)) {
+                                        $firstActive = $m;
+                                        break;
+                                    }
+                                }
+                            @endphp
+
+                            @if(in_array('cash', $activePaymentMethods))
+                                <button type="button" class="pos-method-btn {{ $firstActive === 'cash' ? 'active' : '' }}" data-method="cash">Cash</button>
+                            @endif
+                            @if(in_array('debit', $activePaymentMethods))
+                                <button type="button" class="pos-method-btn {{ $firstActive === 'debit' ? 'active' : '' }}" data-method="debit">Debit</button>
+                            @endif
+                            @if(in_array('qris', $activePaymentMethods))
+                                <button type="button" class="pos-method-btn {{ $firstActive === 'qris' ? 'active' : '' }}" data-method="qris">
+                                    QRIS {{ $qrisType === 'midtrans' ? '(Midtrans)' : '' }}
+                                </button>
+                            @endif
                         </div>
 
                         <div class="pos-field-row">
@@ -287,9 +338,25 @@
                         <button id="cancel-btn" class="pos-btn-cancel">Batal Transaksi</button>
                     </div>
                 </div>
+
+                <!-- System Logs for Debugging -->
+                <div class="pos-panel" id="debug-panel">
+                    <div class="pos-panel-header">
+                        <div class="pos-panel-title">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="4 7 4 4 20 4 20 7"></polyline>
+                                <line x1="9" y1="20" x2="15" y2="20"></line>
+                                <line x1="12" y1="4" x2="12" y2="20"></line>
+                            </svg>
+                            Log Sistem
+                        </div>
+                    </div>
+                    <div class="pos-debug-body" id="pos-debug-log" style="font-size: 0.7rem; color: #6b7280; padding: 10px; max-height: 100px; overflow-y: auto; font-family: monospace;">
+                        <div>[Sistem] POS Siap. Mode QRIS: {{ strtoupper($qrisType) }}</div>
+                    </div>
+                </div>
             </aside>
-        </div>
-    </div>
+        </section>
 
     <!-- Variant Modal -->
     <div id="variant-modal" class="pos-modal hidden" role="dialog" aria-modal="true">
@@ -304,6 +371,8 @@
                     ke Keranjang</button>
             </div>
         </div>
+    </div>
+
     </div>
 
     <style>
@@ -325,6 +394,103 @@
             background: rgb(var(--color-gray-800, 31 41 55));
             color: rgb(var(--color-gray-100, 243 244 246));
         }
+
+        /*  Cancel Confirmation Modal  */
+        .confirm-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .75);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 3000;
+            backdrop-filter: blur(8px);
+            opacity: 0;
+            pointer-events: none;
+            transition: all .25s ease;
+        }
+
+        .confirm-modal.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .confirm-container {
+            background: #fff;
+            border-radius: 16px;
+            width: min(380px, 90vw);
+            padding: 2rem;
+            text-align: center;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            transform: scale(0.9);
+            transition: all .25s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .confirm-modal.active .confirm-container {
+            transform: scale(1);
+        }
+
+        .confirm-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: #ef4444;
+        }
+
+        .confirm-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: .5rem;
+        }
+
+        .confirm-text {
+            font-size: .95rem;
+            color: #6b7280;
+            margin-bottom: 2rem;
+            line-height: 1.5;
+        }
+
+        .confirm-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .confirm-btn {
+            padding: .75rem;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: .9rem;
+            cursor: pointer;
+            transition: all .15s;
+        }
+
+        .confirm-btn-no {
+            background: #f3f4f6;
+            color: #374151;
+            border: none;
+        }
+
+        .confirm-btn-no:hover {
+            background: #e5e7eb;
+        }
+
+        .confirm-btn-yes {
+            background: #ef4444;
+            color: #fff;
+            border: none;
+        }
+
+        .confirm-btn-yes:hover {
+            background: #dc2626;
+        }
+
+        .dark .confirm-container {
+            background: #1f2937;
+        }
+        .dark .confirm-title { color: #f3f4f6; }
+        .dark .confirm-text { color: #9ca3af; }
+        .dark .confirm-btn-no { background: #374151; color: #f3f4f6; }
 
         .variant-header {
             display: flex;
@@ -428,6 +594,37 @@
 
         .pos-toast-hidden {
             display: none;
+        }
+        
+        /* Loading Overlay */
+        .loading-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 3000;
+            color: #fff;
+            gap: 1rem;
+        }
+        
+        .loading-overlay.hidden {
+            display: none;
+        }
+        
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
         }
 
         .pos-toast-error {
@@ -1512,7 +1709,8 @@
                 font-size: 9pt !important;
             }
 
-            .receipt-actions {
+            .receipt-actions,
+            #receipt-qris-section {
                 display: none !important;
                 visibility: hidden !important;
             }
@@ -1598,16 +1796,37 @@
                     }
                 });
 
+                let isProcessingScan = false;
                 Quagga.onDetected(function (data) {
                     const code = data.codeResult.code;
-                    if (code) {
+                    if (code && !isProcessingScan) {
+                        isProcessingScan = true;
+                        
+                        // Show visual feedback with countdown on button
+                        toggleCameraBtn.style.background = '#059669';
+                        toggleCameraBtn.style.pointerEvents = 'none';
+
                         findAndAddProductBySku(code);
                         
-                        // Stop scanner after detection to avoid multiple scans
-                        Quagga.stop();
-                        interactive.style.display = 'none';
-                        toggleCameraBtn.textContent = '📷 Scan Kamera';
-                        scannerIsRunning = false;
+                        // Show "Next scan in..." countdown
+                        let countdown = 1.5;
+                        const timerInterval = setInterval(() => {
+                            countdown -= 0.5;
+                            if (countdown > 0) {
+                                toggleCameraBtn.textContent = `⌛ Siap dalam ${countdown}s`;
+                            } else {
+                                clearInterval(timerInterval);
+                            }
+                        }, 500);
+
+                        setTimeout(() => {
+                            isProcessingScan = false;
+                            if (scannerIsRunning) {
+                                toggleCameraBtn.textContent = '⏹️ Berhenti';
+                                toggleCameraBtn.style.background = '';
+                                toggleCameraBtn.style.pointerEvents = 'auto';
+                            }
+                        }, 1500);
                     }
                 });
             }
@@ -1618,21 +1837,25 @@
                     const btn = card.querySelector('.add-to-cart');
                     if (btn) {
                         btn.click();
-                        // Show a brief success message
-                        const toast = document.getElementById('pos-toast');
-                        if (toast) {
-                            toast.textContent = 'Produk ditambahkan: ' + sku;
-                            toast.style.display = 'block';
-                            setTimeout(() => { toast.style.display = 'none'; }, 2000);
-                        }
+                        showToast(`Produk masuk: ${sku}`, 'success');
                     }
                 } else {
-                    alert('Produk dengan SKU ' + sku + ' tidak ditemukan');
+                    showToast(`SKU tidak ditemukan: ${sku}`, 'error');
+                    addLog(`WARN: Scan SKU ${sku} gagal - Tidak ada di database.`);
                 }
             }
             const toastEl = document.getElementById('pos-toast');
 
-            let selectedPaymentMethod = 'cash';
+            @php
+                $firstActive = 'cash';
+                foreach (['cash', 'debit', 'qris'] as $m) {
+                    if (in_array($m, $activePaymentMethods)) {
+                        $firstActive = $m;
+                        break;
+                    }
+                }
+            @endphp
+            let selectedPaymentMethod = '{{ $firstActive }}';
             let toastTimer = null;
 
             function showToast(msg, type = 'error') {
@@ -1640,6 +1863,17 @@
                 toastEl.className = 'pos-toast pos-toast-' + type;
                 if (toastTimer) clearTimeout(toastTimer);
                 toastTimer = setTimeout(() => { toastEl.className = 'pos-toast pos-toast-hidden'; }, 3500);
+                addLog(`[Toast] ${msg}`);
+            }
+
+            function addLog(msg) {
+                const logEl = document.getElementById('pos-debug-log');
+                if (!logEl) return;
+                const time = new Date().toLocaleTimeString('id-ID', { hour12: false });
+                const entry = document.createElement('div');
+                entry.textContent = `[${time}] ${msg}`;
+                logEl.prepend(entry);
+                if (logEl.children.length > 50) logEl.removeChild(logEl.lastChild);
             }
 
             function formatCurrency(value) {
@@ -1911,6 +2145,11 @@
                             paidAmountInput.value = Math.ceil(total);
                             paidAmountInput.readOnly = true;
                             paidAmountInput.style.opacity = '0.6';
+                            
+                            const qrisMode = '{{ $qrisType }}';
+                            if (selectedPaymentMethod === 'qris') {
+                                addLog(`Mode QRIS: ${qrisMode.toUpperCase()}`);
+                            }
                         }
                     } else {
                         // Cash: let cashier type the amount
@@ -1958,8 +2197,12 @@
                     return;
                 }
 
+                const loadingOverlay = document.getElementById('loading-overlay');
+                loadingOverlay.classList.remove('hidden');
+
                 checkoutBtn.disabled = true;
                 checkoutBtn.textContent = 'Memproses...';
+                addLog(`Memulai checkout (${selectedPaymentMethod.toUpperCase()})...`);
 
                 try {
                     const res = await fetch('{{ route('pos.checkout') }}', {
@@ -1977,13 +2220,23 @@
                         }),
                     });
 
+                    loadingOverlay.classList.add('hidden');
+                    addLog(`Respons diterima (${res.status} ${res.statusText})`);
+
                     let data;
                     const contentType = res.headers.get('content-type') || '';
                     if (contentType.includes('application/json')) {
                         data = await res.json();
+                        addLog('DEBUG: Data JSON diterima dari server.');
+                        if (data.qris_data) {
+                            addLog('DEBUG: qris_data ditemukan. Snap Token: ' + (data.qris_data.snap_token || 'KOSONG'));
+                        } else {
+                            addLog('DEBUG: qris_data TIDAK ditemukan dalam respons.');
+                        }
                     } else {
                         const text = await res.text();
                         console.error('Non-JSON response:', text);
+                        addLog('ERROR: Server memberikan respons non-JSON.');
                         showToast('Server error. Cek console untuk detail.');
                         checkoutBtn.disabled = false;
                         checkoutBtn.textContent = 'Proses Pembayaran';
@@ -1991,54 +2244,204 @@
                     }
 
                     if (!res.ok) {
+                        addLog(`ERROR: Checkout gagal - ${data.message || 'Unknown'}`);
                         showToast('Checkout gagal: ' + (data.message || 'Terjadi kesalahan.'));
                         checkoutBtn.disabled = false;
                         checkoutBtn.textContent = 'Proses Pembayaran';
                         return;
                     }
 
-                    // Show receipt
-                    document.getElementById('receipt-trx-num').textContent = data.transaction_number;
-                    document.getElementById('receipt-subtotal').textContent = formatCurrency(subtotal);
-                    document.getElementById('receipt-tax-rate').textContent = TOKO_TAX_RATE;
-                    document.getElementById('receipt-tax-amt').textContent = formatCurrency(taxAmt);
-                    document.getElementById('receipt-service-rate').textContent = TOKO_SERVICE_RATE;
-                    document.getElementById('receipt-service-amt').textContent = formatCurrency(serviceAmt);
-                    document.getElementById('receipt-discount-amt').textContent = discountAmt > 0 ? '-' + formatCurrency(discountAmt) : formatCurrency(0);
-                    document.getElementById('receipt-total').textContent = formatCurrency(total);
-                    document.getElementById('receipt-payment-method').textContent = selectedPaymentMethod.toUpperCase();
-                    document.getElementById('receipt-paid').textContent = formatCurrency(paidAmt);
-                    document.getElementById('receipt-change').textContent = formatCurrency(change);
-                    document.getElementById('receipt-time').textContent = new Date().toLocaleString('id-ID');
+                    addLog(`Sukses! No Transaksi: ${data.transaction_number}`);
 
-                    const itemsList = document.getElementById('receipt-items-list');
-                    itemsList.innerHTML = '';
-                    cart.forEach(item => {
-                        const itemDiv = document.createElement('div');
-                        itemDiv.className = 'receipt-item';
-                        itemDiv.innerHTML = `<span>${item.name} x ${item.qty}</span><strong>${formatCurrency(item.price * item.qty)}</strong>`;
-                        itemsList.appendChild(itemDiv);
-                    });
+                    let pollingInterval = null;
 
-                    receiptModal.classList.remove('hidden');
+                    const renderReceipt = () => {
+                        // Clear any previous polling
+                        if (pollingInterval) clearInterval(pollingInterval);
 
-                    // Patch data-stock attributes before resetting cache,
-                    // so initStockCache() reads the correct post-sale values.
-                    const soldItems = cart.map(item => ({ id: item.id, qty: item.qty }));
-                    cart.length = 0;
+                        // Show receipt
+                        document.getElementById('receipt-trx-num').textContent = data.transaction_number;
+                        document.getElementById('receipt-subtotal').textContent = formatCurrency(subtotal);
+                        document.getElementById('receipt-tax-rate').textContent = TOKO_TAX_RATE;
+                        document.getElementById('receipt-tax-amt').textContent = formatCurrency(taxAmt);
+                        document.getElementById('receipt-service-rate').textContent = TOKO_SERVICE_RATE;
+                        document.getElementById('receipt-service-amt').textContent = formatCurrency(serviceAmt);
+                        document.getElementById('receipt-discount-amt').textContent = discountAmt > 0 ? '-' + formatCurrency(discountAmt) : formatCurrency(0);
+                        document.getElementById('receipt-total').textContent = formatCurrency(total);
+                        
+                        // Dynamic label: QRIS (Midtrans) or QRIS (Manual)
+                        let methodLabel = selectedPaymentMethod.toUpperCase();
+                        if (selectedPaymentMethod === 'qris') {
+                            methodLabel += ' (' + ('{{ $qrisType }}' === 'midtrans' ? 'MIDTRANS' : 'MANUAL') + ')';
+                        }
+                        document.getElementById('receipt-payment-method').textContent = methodLabel;
+                        
+                        document.getElementById('receipt-paid').textContent = formatCurrency(paidAmt);
+                        document.getElementById('receipt-change').textContent = formatCurrency(change);
+                        document.getElementById('receipt-time').textContent = new Date().toLocaleString('id-ID');
+    
+                        const receiptActions = document.querySelector('.receipt-actions');
+                        const qrisSection = document.getElementById('receipt-qris-section');
+                        const qrisImg = document.getElementById('receipt-qris-img');
+                        
+                        // Default: Show actions
+                        receiptActions.style.display = 'grid';
 
-                    soldItems.forEach(({ id, qty }) => {
-                        const card = document.querySelector(`[data-product-id="${id}"]`);
-                        if (!card) return;
-                        const prev = parseInt(card.getAttribute('data-stock')) || 0;
-                        card.setAttribute('data-stock', Math.max(0, prev - qty));
-                    });
+                        if (selectedPaymentMethod === 'qris' && data.qris_data && data.qris_data.qr_url) {
+                            addLog('QRIS Midtrans aktif. Menyembunyikan tombol struk sementara.');
+                            
+                            // Hide Print/New buttons while pending
+                            receiptActions.style.display = 'none';
 
-                    initStockCache();
-                    renderCart();
-                    checkoutBtn.textContent = 'Proses Pembayaran';
+                            qrisImg.src = data.qris_data.qr_url;
+                            qrisImg.style.display = 'block';
+                            qrisImg.style.margin = '15px auto';
+                            qrisSection.style.display = 'block';
+                            
+                            const p = qrisSection.querySelector('p');
+                            if (p) {
+                                p.style.display = 'block';
+                                p.style.textAlign = 'center';
+                                p.style.fontWeight = 'bold';
+                                p.style.marginTop = '10px';
+                                p.innerHTML = `Menunggu Pembayaran...<br><span style="font-size:1.4rem; color:#ef4444;" id="countdown-timer">15:00</span>`;
+                                p.style.color = '#f59e0b';
+                                p.id = 'payment-status-text';
+                            }
+
+                            // Add/Show Cancel Button in a dedicated area below actions if needed, 
+                            // but let's put it where receiptActions was for a clean swap.
+                            let cancelBtnArea = document.getElementById('qris-cancel-area');
+                            if (!cancelBtnArea) {
+                                cancelBtnArea = document.createElement('div');
+                                cancelBtnArea.id = 'qris-cancel-area';
+                                cancelBtnArea.className = 'receipt-actions'; // Use same styling
+                                cancelBtnArea.style.marginTop = '15px';
+                                cancelBtnArea.innerHTML = `
+                                    <button id="qris-cancel-btn" class="receipt-btn btn-close" style="background:#ef4444; color:white; border:none; width:100%;">
+                                        ❌ Batalkan Pesanan
+                                    </button>
+                                `;
+                                receiptActions.parentNode.insertBefore(cancelBtnArea, receiptActions.nextSibling);
+                            }
+                            cancelBtnArea.style.display = 'block';
+
+                            const cancelOrderAction = async () => {
+                                const confirmModal = document.getElementById('cancel-confirm-modal');
+                                confirmModal.classList.add('active');
+                                
+                                const handleNo = () => { confirmModal.classList.remove('active'); cleanup(); };
+                                const handleYes = async () => {
+                                    confirmModal.classList.remove('active');
+                                    cleanup();
+                                    try {
+                                        const cancelRes = await fetch(`/cashier/pos/cancel/${data.transaction_number}`, {
+                                            method: 'POST',
+                                            headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content') }
+                                        });
+                                        const cancelData = await cancelRes.json();
+                                        if (cancelData.success) {
+                                            clearInterval(pollingInterval);
+                                            if (window.countdownInterval) clearInterval(window.countdownInterval);
+                                            showToast('Pesanan dibatalkan.', 'info');
+                                            
+                                            // Langsung refresh halaman agar stok sinkron
+                                            setTimeout(() => {
+                                                location.reload();
+                                            }, 500); 
+                                        }
+                                    } catch (err) { console.error(err); }
+                                };
+                                const cleanup = () => {
+                                    document.getElementById('confirm-no').removeEventListener('click', handleNo);
+                                    document.getElementById('confirm-yes').removeEventListener('click', handleYes);
+                                };
+                                document.getElementById('confirm-no').addEventListener('click', handleNo);
+                                document.getElementById('confirm-yes').addEventListener('click', handleYes);
+                            };
+
+                            document.getElementById('qris-cancel-btn').onclick = cancelOrderAction;
+
+                            // Countdown Logic
+                            let timeLeft = 15 * 60;
+                            if (window.countdownInterval) clearInterval(window.countdownInterval);
+                            window.countdownInterval = setInterval(() => {
+                                const minutes = Math.floor(timeLeft / 60);
+                                const seconds = timeLeft % 60;
+                                const timerEl = document.getElementById('countdown-timer');
+                                if (timerEl) timerEl.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                                if (timeLeft <= 0) {
+                                    clearInterval(window.countdownInterval);
+                                    clearInterval(pollingInterval);
+                                    cancelBtnArea.style.display = 'none';
+                                    receiptActions.style.display = 'grid';
+                                    document.querySelector('.btn-print').style.display = 'none';
+                                }
+                                timeLeft--;
+                            }, 1000);
+
+                            // Polling Logic
+                            pollingInterval = setInterval(async () => {
+                                try {
+                                    const checkRes = await fetch(`/cashier/pos/check-status/${data.transaction_number}`);
+                                    const checkData = await checkRes.json();
+                                    if (checkData.status === 'success') {
+                                        clearInterval(pollingInterval);
+                                        if (window.countdownInterval) clearInterval(window.countdownInterval);
+                                        cancelBtnArea.style.display = 'none';
+                                        receiptActions.style.display = 'grid'; // Restore Print/New
+                                        document.querySelector('.btn-print').style.display = 'block';
+                                        
+                                        const statusText = document.getElementById('payment-status-text');
+                                        if (statusText) {
+                                            statusText.innerHTML = '✅ PEMBAYARAN BERHASIL';
+                                            statusText.style.color = '#16a34a';
+                                        }
+                                        showToast('Pembayaran Berhasil!', 'success');
+                                    }
+                                } catch (err) { console.error(err); }
+                            }, 5000);
+
+                        } else {
+                            qrisSection.style.display = 'none';
+                            if (document.getElementById('qris-cancel-area')) {
+                                document.getElementById('qris-cancel-area').style.display = 'none';
+                            }
+                        }
+
+                        const itemsList = document.getElementById('receipt-items-list');
+                        itemsList.innerHTML = '';
+                        cart.forEach(item => {
+                            const itemDiv = document.createElement('div');
+                            itemDiv.className = 'receipt-item';
+                            itemDiv.innerHTML = `<span>${item.name} x ${item.qty}</span><strong>${formatCurrency(item.price * item.qty)}</strong>`;
+                            itemsList.appendChild(itemDiv);
+                        });
+
+                        receiptModal.classList.remove('hidden');
+
+                        const soldItems = cart.map(item => ({ id: item.id, qty: item.qty }));
+                        cart.length = 0;
+
+                        soldItems.forEach(({ id, qty }) => {
+                            const card = document.querySelector(`[data-product-id="${id}"]`);
+                            if (!card) return;
+                            const prev = parseInt(card.getAttribute('data-stock')) || 0;
+                            card.setAttribute('data-stock', Math.max(0, prev - qty));
+                        });
+
+                        initStockCache();
+                        renderCart();
+                        checkoutBtn.textContent = 'Proses Pembayaran';
+                        checkoutBtn.disabled = false;
+                    };
+
+                    renderReceipt();
                 } catch (e) {
                     console.error(e);
+                    const loadingOverlay = document.getElementById('loading-overlay');
+                    if (loadingOverlay) loadingOverlay.classList.add('hidden');
+                    
                     showToast('Gagal terhubung ke server. Coba lagi.');
                     checkoutBtn.disabled = false;
                     checkoutBtn.textContent = 'Proses Pembayaran';

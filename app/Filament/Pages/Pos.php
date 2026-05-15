@@ -34,9 +34,29 @@ class Pos extends Page
     /** Service charge percentage from the toko — read-only in POS */
     public int $serviceChargePercentage = 0;
 
+    public string $qrisType = 'manual';
+    public array $activePaymentMethods = [];
+    public ?string $midtransClientKey = null;
+
     public function mount(): void
     {
         $user = Auth::user();
+        $toko = $user?->toko;
+
+        if ($toko) {
+            $this->taxPercentage = (int) $toko->tax_percentage;
+            $this->serviceChargePercentage = (int) $toko->service_charge_percentage;
+            $this->tokoName = $toko->name;
+            $this->tokoLogo = $toko->logo_url;
+            $this->qrisType = $toko->qris_type ?? 'manual';
+            $this->midtransClientKey = $toko->midtrans_client_key;
+            
+            // Load active payment methods from the database
+            $this->activePaymentMethods = $toko->paymentMethods()
+                ->where('is_active', true)
+                ->pluck('type')
+                ->toArray();
+        }
 
         $productQuery = Product::query()
             ->where('is_active', true)
@@ -45,18 +65,9 @@ class Pos extends Page
         $categoryQuery = Category::query()
             ->select(['id', 'name']);
 
-        if ($user?->role === 'kasir' && filled($user->toko_id)) {
-            $productQuery->where('toko_id', $user->toko_id);
-            $categoryQuery->where('toko_id', $user->toko_id);
-
-            // Sync tax & service from the toko record
-            $toko = $user->toko;
-            if ($toko) {
-                $this->taxPercentage = (int) $toko->tax_percentage;
-                $this->serviceChargePercentage = (int) $toko->service_charge_percentage;
-                $this->tokoName = $toko->name;
-                $this->tokoLogo = $toko->logo_url;
-            }
+        if ($toko) {
+            $productQuery->where('toko_id', $toko->id);
+            $categoryQuery->where('toko_id', $toko->id);
         }
 
         $products = $productQuery->orderBy('name', 'asc')->get();

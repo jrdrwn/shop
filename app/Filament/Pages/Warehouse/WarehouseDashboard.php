@@ -12,8 +12,8 @@ class WarehouseDashboard extends BaseDashboard
     {
         return [
             \App\Filament\Widgets\ResourceStats\ProductStatsWidget::class,
+            \App\Filament\Widgets\WarehouseStockMovementChart::class,
             \App\Filament\Widgets\OwnerLowStockTable::class,
-            \App\Filament\Widgets\WarehouseRecentStockTable::class,
             \App\Filament\Widgets\ResourceStats\InventoryLogStatsWidget::class,
         ];
     }

@@ -167,6 +167,20 @@
                 <strong class="text-success">Rp {{ number_format($transaction->change_amount, 0, ',', '.') }}</strong>
             </div>
 
+            @php
+                $payment = $transaction->payments->first();
+                $qrisData = $payment?->metadata ?? null;
+            @endphp
+
+            @if($qrisData && isset($qrisData['qr_url']) && $transaction->status === 'pending')
+                <div class="receipt-divider"></div>
+                <div class="receipt-section-label" style="text-align: center;">Scan QRIS untuk Bayar</div>
+                <div style="text-align: center; margin: 1rem 0;">
+                    <img src="{{ $qrisData['qr_url'] }}" alt="QRIS" style="width: 200px; height: 200px; border: 4px solid #fff; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+                    <p style="font-size: 0.75rem; color: #6b7280; margin-top: 0.5rem;">Silakan scan QRIS di atas untuk menyelesaikan pembayaran.</p>
+                </div>
+            @endif
+
             <div class="receipt-footer">
                 <p class="receipt-time">{{ $transaction->created_at->format('d M Y, H:i') }}</p>
                 <p class="receipt-thanks">Terima kasih atas kunjungan Anda</p>

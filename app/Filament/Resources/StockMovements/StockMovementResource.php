@@ -34,14 +34,9 @@ class StockMovementResource extends Resource
 
     protected static array $allowedRoles = ['owner', 'gudang'];
 
-    public static function getNavigationGroup(): ?string
+    public static function shouldRegisterNavigation(): bool
     {
-
-        if (Auth::user()?->role === 'owner') {
-            return static::$roleNavigationGroup;
-        }
-
-        return null;
+        return false;
     }
 
     public static function form(Schema $schema): Schema

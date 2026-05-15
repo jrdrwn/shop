@@ -33,6 +33,14 @@ Route::post('/cashier/pos/checkout', [PosController::class, 'checkout'])
     ->name('pos.checkout')
     ->middleware(['auth']);
 
+Route::get('/cashier/pos/check-status/{transactionNumber}', [PosController::class, 'checkStatus'])
+    ->name('pos.check-status')
+    ->middleware(['auth']);
+
+Route::post('/cashier/pos/cancel/{transactionNumber}', [PosController::class, 'cancelOrder'])
+    ->name('pos.cancel')
+    ->middleware(['auth']);
+
 // Receipt printing route
 Route::get('/transactions/{transaction}/receipt', [TransactionController::class, 'receipt'])
     ->name('transactions.receipt')
