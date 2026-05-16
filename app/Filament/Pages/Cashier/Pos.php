@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Filament\Pages;
+namespace App\Filament\Pages\Cashier;
 
 use App\Models\Category;
 use App\Models\Product;
@@ -35,7 +35,9 @@ class Pos extends Page
     public int $serviceChargePercentage = 0;
 
     public string $qrisType = 'manual';
+
     public array $activePaymentMethods = [];
+
     public ?string $midtransClientKey = null;
 
     public function mount(): void
@@ -50,7 +52,7 @@ class Pos extends Page
             $this->tokoLogo = $toko->logo_url;
             $this->qrisType = $toko->qris_type ?? 'manual';
             $this->midtransClientKey = $toko->midtrans_client_key;
-            
+
             // Load active payment methods from the database
             $this->activePaymentMethods = $toko->paymentMethods()
                 ->where('is_active', true)

@@ -26,7 +26,7 @@ class ProductForm
         $canUseDiscounts = false;
 
         $user = Auth::user();
-        if ($user?->role === 'owner' && filled($user->toko_id)) {
+        if (in_array($user?->role, ['owner', 'gudang'], true) && filled($user->toko_id)) {
             $toko = Toko::find($user->toko_id);
             if ($toko) {
                 $service = app(SubscriptionService::class);

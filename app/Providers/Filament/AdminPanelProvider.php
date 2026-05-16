@@ -2,8 +2,8 @@
 
 namespace App\Providers\Filament;
 
-use App\Filament\Pages\AdminLogin;
-use App\Filament\Pages\Dashboard;
+use App\Filament\Pages\SuperAdmin\AdminLogin;
+use App\Filament\Pages\SuperAdmin\Dashboard;
 use Awcodes\LightSwitch\LightSwitchPlugin;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
@@ -39,6 +39,7 @@ class AdminPanelProvider extends PanelProvider
                 'primary' => Color::Amber,
             ])
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
+            ->discoverPages(in: app_path('Filament/Pages/SuperAdmin'), for: 'App\Filament\Pages\SuperAdmin')
             ->pages([
                 Dashboard::class,
             ])

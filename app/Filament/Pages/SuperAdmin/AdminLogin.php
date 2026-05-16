@@ -1,18 +1,18 @@
 <?php
 
-namespace App\Filament\Pages;
+namespace App\Filament\Pages\SuperAdmin;
 
 use Filament\Auth\Pages\Login;
 
-class CashierLogin extends Login
+class AdminLogin extends Login
 {
     public function getHeading(): string
     {
-        return 'Login Kasir';
+        return 'Login Admin';
     }
 
     public function getSubheading(): ?string
     {
-        return 'Panel Kasir - Point of Sale';
+        return 'Panel Admin - Kelola Semua Toko';
     }
 }

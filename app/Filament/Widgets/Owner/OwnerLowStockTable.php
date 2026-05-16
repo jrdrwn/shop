@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Filament\Widgets;
+namespace App\Filament\Widgets\Owner;
 
 use App\Enums\UserRole;
 use App\Models\Product;

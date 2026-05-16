@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Filament\Pages;
+namespace App\Filament\Pages\Owner;
 
 use Filament\Auth\Pages\Login;
 

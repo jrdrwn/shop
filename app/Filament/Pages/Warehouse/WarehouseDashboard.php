@@ -2,6 +2,10 @@
 
 namespace App\Filament\Pages\Warehouse;
 
+use App\Filament\Widgets\Owner\OwnerLowStockTable;
+use App\Filament\Widgets\ResourceStats\InventoryLogStatsWidget;
+use App\Filament\Widgets\ResourceStats\ProductStatsWidget;
+use App\Filament\Widgets\Warehouse\WarehouseStockMovementChart;
 use Filament\Pages\Dashboard as BaseDashboard;
 
 class WarehouseDashboard extends BaseDashboard
@@ -11,10 +15,10 @@ class WarehouseDashboard extends BaseDashboard
     public function getWidgets(): array
     {
         return [
-            \App\Filament\Widgets\ResourceStats\ProductStatsWidget::class,
-            \App\Filament\Widgets\WarehouseStockMovementChart::class,
-            \App\Filament\Widgets\OwnerLowStockTable::class,
-            \App\Filament\Widgets\ResourceStats\InventoryLogStatsWidget::class,
+            ProductStatsWidget::class,
+            WarehouseStockMovementChart::class,
+            OwnerLowStockTable::class,
+            InventoryLogStatsWidget::class,
         ];
     }
 }

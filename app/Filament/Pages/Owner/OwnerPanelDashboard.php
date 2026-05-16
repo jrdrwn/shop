@@ -2,14 +2,14 @@
 
 namespace App\Filament\Pages\Owner;
 
-use App\Filament\Widgets\OwnerDailyRevenueChart;
-use App\Filament\Widgets\OwnerLowStockTable;
-use App\Filament\Widgets\OwnerStaffPerformanceTable;
-use App\Filament\Widgets\OwnerStatsWidget;
-use App\Filament\Widgets\OwnerTokoTransactionsTable;
-use App\Filament\Widgets\OwnerTopProductsChart;
-use App\Filament\Widgets\SubscriptionStatusWidget;
-use App\Filament\Widgets\SubscriptionUpgradeWidget;
+use App\Filament\Widgets\Owner\OwnerDailyRevenueChart;
+use App\Filament\Widgets\Owner\OwnerLowStockTable;
+use App\Filament\Widgets\Owner\OwnerStaffPerformanceTable;
+use App\Filament\Widgets\Owner\OwnerStatsWidget;
+use App\Filament\Widgets\Owner\OwnerTokoTransactionsTable;
+use App\Filament\Widgets\Owner\OwnerTopProductsChart;
+use App\Filament\Widgets\Subscription\SubscriptionStatusWidget;
+use App\Filament\Widgets\Subscription\SubscriptionUpgradeWidget;
 use BackedEnum;
 use Filament\Pages\Dashboard as BaseDashboard;
 

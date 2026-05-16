@@ -29,18 +29,22 @@ class WarehousePanelProvider extends PanelProvider
         return $panel
             ->id('warehouse')
             ->path('warehouse')
+            ->viteTheme('resources/css/filament/warehouse/theme.css')
             ->brandName('Gudang Toko')
+            ->brandLogo(asset('/default-logo/light-mode.png'))
+            ->darkModeBrandLogo(asset('/default-logo/dark-mode.png'))
+            ->brandLogoHeight('2rem')
             ->topNavigation()
             ->login()
             ->colors([
                 'primary' => Color::Fuchsia,
             ])
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
-            ->discoverPages(in: app_path('Filament/Warehouse/Pages'), for: 'App\Filament\Warehouse\Pages')
+            ->discoverPages(in: app_path('Filament/Pages/Warehouse'), for: 'App\Filament\Pages\Warehouse')
             ->pages([
                 WarehouseDashboard::class,
             ])
-            ->discoverWidgets(in: app_path('Filament/Warehouse/Widgets'), for: 'App\Filament\Warehouse\Widgets')
+            ->discoverWidgets(in: app_path('Filament/Widgets/Warehouse'), for: 'App\Filament\Widgets\Warehouse')
             ->widgets([
                 AccountWidget::class,
                 FilamentInfoWidget::class,
@@ -62,7 +66,7 @@ class WarehousePanelProvider extends PanelProvider
             ])
             ->renderHook(
                 PanelsRenderHook::AUTH_LOGIN_FORM_AFTER,
-                fn(): string => Blade::render('<x-warehouse-role-links />')
+                fn (): string => Blade::render('<x-warehouse-role-links />')
             );
     }
 }

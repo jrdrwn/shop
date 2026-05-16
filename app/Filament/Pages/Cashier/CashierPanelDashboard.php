@@ -2,9 +2,9 @@
 
 namespace App\Filament\Pages\Cashier;
 
-use App\Filament\Widgets\CashierHourlyTransactionsChart;
-use App\Filament\Widgets\CashierStatsWidget;
-use App\Filament\Widgets\CashierTodayTransactionsTable;
+use App\Filament\Widgets\Cashier\CashierHourlyTransactionsChart;
+use App\Filament\Widgets\Cashier\CashierStatsWidget;
+use App\Filament\Widgets\Cashier\CashierTodayTransactionsTable;
 use BackedEnum;
 use Filament\Pages\Dashboard as BaseDashboard;
 

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Filament\Widgets;
+namespace App\Filament\Widgets\Cashier;
 
 use App\Models\Transaction;
 use Filament\Widgets\ChartWidget;

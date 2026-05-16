@@ -12,14 +12,14 @@ use Illuminate\Support\Facades\Auth;
 trait ResolvesSubscription
 {
     /**
-     * Resolve the toko for the currently logged-in owner.
+     * Resolve the toko for the currently logged-in owner or gudang.
      * Returns null for super_admin (not gated) and cashier (read-only role).
      */
     protected static function tokoForCurrentUser(): ?Toko
     {
         $user = Auth::user();
 
-        if ($user?->role !== 'owner') {
+        if (! in_array($user?->role, ['owner', 'gudang'], true)) {
             return null;
         }
 

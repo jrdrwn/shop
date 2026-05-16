@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Filament\Pages;
+namespace App\Filament\Pages\SuperAdmin;
 
-use App\Filament\Widgets\SuperAdminStatsWidget;
-use App\Filament\Widgets\SuperAdminSubscriptionChart;
-use App\Filament\Widgets\SuperAdminTokoSummaryTable;
+use App\Filament\Widgets\SuperAdmin\SuperAdminStatsWidget;
+use App\Filament\Widgets\SuperAdmin\SuperAdminSubscriptionChart;
+use App\Filament\Widgets\SuperAdmin\SuperAdminTokoSummaryTable;
 use Filament\Pages\Dashboard as BaseDashboard;
 use Illuminate\Support\Facades\Auth;
 

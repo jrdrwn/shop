@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Filament\Widgets;
+namespace App\Filament\Widgets\Subscription;
 
 use App\Enums\SubscriptionPlan;
 use App\Enums\UserRole;

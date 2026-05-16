@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Filament\Widgets;
+namespace App\Filament\Widgets\SuperAdmin;
 
 use App\Models\Toko;
 use Filament\Tables\Columns\IconColumn;

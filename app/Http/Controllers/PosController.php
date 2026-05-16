@@ -180,7 +180,10 @@ class PosController extends Controller
 
                 if ($paymentMethod === 'qris') {
                     $toko = Toko::find($user->toko_id);
-                    if ($toko && $toko->qris_type === 'midtrans') {
+                    // Default to midtrans if keys are present but qris_type is N/A
+                    $effectiveQrisType = $toko->qris_type ?? (filled($toko->midtrans_server_key) ? 'midtrans' : 'manual');
+
+                    if ($effectiveQrisType === 'midtrans') {
                         try {
                             $midtransResponse = app(MidtransService::class)->generateQris($transaction);
 
@@ -194,10 +197,15 @@ class PosController extends Controller
                                 'expiry_time' => now()->addMinutes(15)->format('H:i'),
                             ];
 
+                            if (empty($qrisData['qr_url'])) {
+                                throw new \Exception('Midtrans tidak memberikan URL QR Code. Cek konfigurasi pembayaran.');
+                            }
+
                             // Save to payment metadata
                             $payment->update(['metadata' => $qrisData]);
                         } catch (\Exception $e) {
                             Log::error('Midtrans QRIS Error: '.$e->getMessage());
+                            throw new \Exception('Gagal terhubung ke Midtrans: '.$e->getMessage());
                         }
                     }
                 }
@@ -288,17 +296,17 @@ class PosController extends Controller
 
     public function cancelOrder(string $transactionNumber)
     {
-        $user = \Illuminate\Support\Facades\Auth::user();
-        $transaction = \App\Models\Transaction::where('transaction_number', $transactionNumber)
+        $user = Auth::user();
+        $transaction = Transaction::where('transaction_number', $transactionNumber)
             ->where('toko_id', $user->toko_id)
             ->where('status', 'pending')
             ->first();
 
-        if (!$transaction) {
+        if (! $transaction) {
             return response()->json(['message' => 'Transaksi tidak ditemukan atau sudah diproses.'], 404);
         }
 
-        \Illuminate\Support\Facades\DB::transaction(function () use ($transaction, $user) {
+        DB::transaction(function () use ($transaction, $user) {
             $transaction->update(['status' => 'cancelled']);
             $transaction->payments()->update(['status' => 'failed']);
 
@@ -309,7 +317,7 @@ class PosController extends Controller
                     $product->increment('stock', $item->quantity);
                     $after = $product->stock;
 
-                    \App\Models\InventoryLog::create([
+                    InventoryLog::create([
                         'toko_id' => $user->toko_id,
                         'product_id' => $product->id,
                         'action' => 'adjustment',

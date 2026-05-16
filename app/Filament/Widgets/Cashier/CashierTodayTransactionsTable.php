@@ -1,8 +1,7 @@
 <?php
 
-namespace App\Filament\Widgets;
+namespace App\Filament\Widgets\Cashier;
 
-use App\Enums\UserRole;
 use App\Models\Transaction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
@@ -10,17 +9,17 @@ use Filament\Widgets\TableWidget;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
 
-class OwnerTokoTransactionsTable extends TableWidget
+class CashierTodayTransactionsTable extends TableWidget
 {
-    protected static ?string $heading = 'Transaksi Toko Hari Ini';
+    protected static ?string $heading = 'Transaksi Saya Hari Ini';
 
-    protected static ?int $sort = 6;
+    protected static ?int $sort = 3;
 
-    protected int|string|array $columnSpan = 'full';
+    protected int|string|array $columnSpan = 1;
 
     public static function canView(): bool
     {
-        return Auth::user()?->role === UserRole::Owner->value || Auth::user()?->role === 'owner';
+        return Auth::user()?->role === 'kasir';
     }
 
     public function table(Table $table): Table
@@ -28,21 +27,19 @@ class OwnerTokoTransactionsTable extends TableWidget
         return $table
             ->query(
                 fn (): Builder => Transaction::query()
-                    ->where('toko_id', Auth::user()?->toko_id)
+                    ->where('cashier_id', Auth::id())
                     ->whereDate('created_at', today())
-                    ->with('cashier')
                     ->latest('id')
-                    ->limit(15)
+                    ->limit(20)
             )
             ->columns([
                 TextColumn::make('transaction_number')->label('No. Transaksi')->sortable(),
-                TextColumn::make('cashier.name')->label('Kasir')->sortable(),
                 TextColumn::make('total_amount')
                     ->label('Total')
                     ->formatStateUsing(fn ($state) => 'Rp '.number_format($state, 0, ',', '.'))
                     ->sortable(),
                 TextColumn::make('status')->label('Status')->badge(),
-                TextColumn::make('created_at')->label('Waktu')->time()->sortable(),
+                TextColumn::make('created_at')->label('Waktu')->dateTime('H:i'),
             ])
             ->striped()
             ->defaultPaginationPageOption(5);

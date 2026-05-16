@@ -2,9 +2,9 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Pages\Cashier\CashierLogin;
 use App\Filament\Pages\Cashier\CashierPanelDashboard;
-use App\Filament\Pages\CashierLogin;
-use App\Filament\Pages\Pos;
+use App\Filament\Pages\Cashier\Pos;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -29,6 +29,7 @@ class CashierPanelProvider extends PanelProvider
             ->id('cashier')
             ->brandName('Kasir Toko')
             ->path('cashier')
+            ->viteTheme('resources/css/filament/cashier/theme.css')
             ->brandLogo(asset('/default-logo/light-mode.png'))
             ->darkModeBrandLogo(asset('/default-logo/dark-mode.png'))
             ->brandLogoHeight('2rem')
@@ -38,6 +39,7 @@ class CashierPanelProvider extends PanelProvider
                 'primary' => Color::Emerald,
             ])
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
+            ->discoverPages(in: app_path('Filament/Pages/Cashier'), for: 'App\Filament\Pages\Cashier')
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\Filament\Widgets')
             ->pages([
                 CashierPanelDashboard::class,

@@ -1,17 +1,15 @@
 <?php
 
-namespace App\Filament\Widgets;
+namespace App\Filament\Widgets\Warehouse;
 
 use App\Models\InventoryLog;
 use Filament\Widgets\ChartWidget;
 use Illuminate\Support\Facades\Auth;
-use Flowframe\Trend\Trend;
-use Flowframe\Trend\TrendValue;
 
 class WarehouseStockMovementChart extends ChartWidget
 {
     protected ?string $heading = 'Tren Pergerakan Stok (7 Hari Terakhir)';
-    
+
     protected static ?int $sort = 2;
 
     protected int|string|array $columnSpan = 1;
@@ -19,7 +17,7 @@ class WarehouseStockMovementChart extends ChartWidget
     protected function getData(): array
     {
         $tokoId = Auth::user()?->toko_id;
-        
+
         // Data Stok Masuk
         $inData = InventoryLog::query()
             ->where('toko_id', $tokoId)

@@ -2,9 +2,9 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Pages\Owner\OwnerLogin;
 use App\Filament\Pages\Owner\OwnerPanelDashboard;
 use App\Filament\Pages\Owner\OwnerRegistration;
-use App\Filament\Pages\OwnerLogin;
 use App\Http\Middleware\CheckSubscriptionExpiry;
 use Awcodes\LightSwitch\LightSwitchPlugin;
 use Filament\Http\Middleware\Authenticate;
@@ -43,6 +43,7 @@ class OwnerPanelProvider extends PanelProvider
             ])
             ->sidebarCollapsibleOnDesktop()
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
+            ->discoverPages(in: app_path('Filament/Pages/Owner'), for: 'App\Filament\Pages\Owner')
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\Filament\Widgets')
             ->pages([
                 OwnerPanelDashboard::class,
