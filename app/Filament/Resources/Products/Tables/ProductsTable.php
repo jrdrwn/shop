@@ -3,10 +3,10 @@
 namespace App\Filament\Resources\Products\Tables;
 
 use App\Services\BarcodeService;
+use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
-use Filament\Actions\Action;
 use Filament\Tables\Columns\BadgeColumn;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
@@ -35,23 +35,23 @@ class ProductsTable
                 TextColumn::make('price')
                     ->label('Harga')
                     ->sortable()
-                    ->formatStateUsing(fn($state): string => 'Rp ' . number_format((int) $state, 0, ',', '.')),
+                    ->formatStateUsing(fn ($state): string => 'Rp '.number_format((int) $state, 0, ',', '.')),
                 TextColumn::make('stock')
                     ->label('Stok')
                     ->sortable()
                     ->badge()
-                    ->formatStateUsing(fn($state): string => (string) $state)
-                    ->color(fn($state): string => (int) $state <= 5 ? 'warning' : 'success'),
+                    ->formatStateUsing(fn ($state): string => (string) $state)
+                    ->color(fn ($state): string => (int) $state <= 5 ? 'warning' : 'success'),
                 BadgeColumn::make('is_active')
                     ->label('Status')
-                    ->formatStateUsing(fn($state): string => $state ? 'Aktif' : 'Nonaktif')
+                    ->formatStateUsing(fn ($state): string => $state ? 'Aktif' : 'Nonaktif')
                     ->colors([
                         'success' => true,
                         'gray' => false,
                     ]),
                 BadgeColumn::make('has_variants')
                     ->label('Varian')
-                    ->formatStateUsing(fn($state): string => $state ? 'Ada Varian' : '-')
+                    ->formatStateUsing(fn ($state): string => $state ? 'Ada Varian' : '-')
                     ->colors([
                         'primary' => true,
                         'gray' => false,
@@ -69,7 +69,7 @@ class ProductsTable
                 Action::make('generate_barcode')
                     ->label('Barcode')
                     ->icon('heroicon-o-qr-code')
-                    ->modalContent(fn($record) => view('barcode.label', [
+                    ->modalContent(fn ($record) => view('barcode.label', [
                         'barcode' => app(BarcodeService::class)->generateBarcode($record->sku ?? 'SKU', 'svg'),
                         'productName' => $record->name,
                         'sku' => $record->sku ?? 'SKU',

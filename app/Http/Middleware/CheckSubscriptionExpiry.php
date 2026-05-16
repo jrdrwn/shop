@@ -21,7 +21,7 @@ class CheckSubscriptionExpiry
     public function handle(Request $request, Closure $next): Response
     {
         $user = auth()->user();
-        if ($user && ($user->role === UserRole::Owner->value || $user->role === 'owner') && $user->toko_id) {
+        if ($user && in_array($user->role, [UserRole::Owner->value, 'owner', 'gudang'], true) && $user->toko_id) {
             $toko = $user->toko;
             if ($toko && $toko->subscription_id) {
                 $subscription = $toko->subscription;

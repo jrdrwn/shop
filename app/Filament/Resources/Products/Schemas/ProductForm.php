@@ -24,6 +24,7 @@ class ProductForm
     {
         $canUseVariants = false;
         $canUseDiscounts = false;
+        $canUseInventory = false;
 
         $user = Auth::user();
         if (in_array($user?->role, ['owner', 'gudang'], true) && filled($user->toko_id)) {
@@ -32,6 +33,7 @@ class ProductForm
                 $service = app(SubscriptionService::class);
                 $canUseVariants = $service->canUseVariants($toko);
                 $canUseDiscounts = $service->canUseDiscounts($toko);
+                $canUseInventory = $service->canUseInventory($toko);
             }
         }
 
@@ -113,10 +115,22 @@ class ProductForm
                             ->numeric()
                             ->suffix('unit')
                             ->minValue(0)
-                            ->default(0),
+                            ->default(0)
+                            ->visible($canUseInventory)
+                            ->helperText($canUseInventory ? 'Jumlah stok saat ini.' : null),
                         RichEditor::make('description')
                             ->label('Deskripsi')
                             ->columnSpanFull(),
+                    ]),
+
+                // Inventory locked notice
+                Section::make('Manajemen Inventori')
+                    ->description('Fitur manajemen stok tidak tersedia di paket Anda.')
+                    ->visible(! $canUseInventory)
+                    ->schema([
+                        Placeholder::make('inventory_locked')
+                            ->label('')
+                            ->content('🔒 Fitur manajemen stok & inventori tersedia di paket Pro. Upgrade paket Anda untuk mengaktifkan fitur ini.'),
                     ]),
 
                 // Discount locked notice (visible only when discount feature is locked)

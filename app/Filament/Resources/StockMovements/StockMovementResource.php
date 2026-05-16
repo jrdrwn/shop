@@ -3,8 +3,6 @@
 namespace App\Filament\Resources\StockMovements;
 
 use App\Filament\Resources\Concerns\HasRoleNavigation;
-use App\Filament\Resources\StockMovements\Pages\CreateStockMovement;
-use App\Filament\Resources\StockMovements\Pages\EditStockMovement;
 use App\Filament\Resources\StockMovements\Pages\ListStockMovements;
 use App\Filament\Resources\StockMovements\Schemas\StockMovementForm;
 use App\Filament\Resources\StockMovements\Tables\StockMovementsTable;
@@ -14,6 +12,7 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
 
 class StockMovementResource extends Resource
@@ -23,13 +22,13 @@ class StockMovementResource extends Resource
     protected static ?string $model = StockMovement::class;
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-clock';
- 
+
     protected static ?string $navigationLabel = 'Riwayat Barang';
- 
+
     protected static ?string $pluralModelLabel = 'Riwayat Barang';
- 
+
     protected static ?string $modelLabel = 'Riwayat Barang';
- 
+
     protected static ?string $roleNavigationGroup = 'Laporan';
 
     protected static array $allowedRoles = ['owner', 'gudang'];
@@ -53,13 +52,13 @@ class StockMovementResource extends Resource
     {
         return false;
     }
- 
-    public static function canEdit(\Illuminate\Database\Eloquent\Model $record): bool
+
+    public static function canEdit(Model $record): bool
     {
         return false;
     }
- 
-    public static function canDelete(\Illuminate\Database\Eloquent\Model $record): bool
+
+    public static function canDelete(Model $record): bool
     {
         return false;
     }

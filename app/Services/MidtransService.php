@@ -2,10 +2,14 @@
 
 namespace App\Services;
 
+use App\Models\CashFlow;
+use App\Models\Payment;
 use App\Models\Subscription;
 use App\Models\SubscriptionPayment;
 use App\Models\Toko;
+use App\Models\Transaction;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 class MidtransService
@@ -28,7 +32,7 @@ class MidtransService
     public function forToko(Toko $toko): self
     {
         $clone = clone $this;
-        
+
         // If toko has its own server key, use it. Otherwise fall back to system default.
         if (filled($toko->midtrans_server_key)) {
             $clone->serverKey = $toko->midtrans_server_key;
@@ -38,13 +42,13 @@ class MidtransService
                 ? 'https://api.midtrans.com'
                 : 'https://api.sandbox.midtrans.com';
 
-            \Illuminate\Support\Facades\Log::info("Using TOKO Midtrans Keys for Shop: {$toko->name}", [
-                'server_key' => \Illuminate\Support\Str::mask($clone->serverKey, '*', 6, -6),
-                'client_key' => \Illuminate\Support\Str::mask($clone->clientKey, '*', 6, -6),
-                'is_production' => $clone->isProduction
+            Log::info("Using TOKO Midtrans Keys for Shop: {$toko->name}", [
+                'server_key' => Str::mask($clone->serverKey, '*', 6, -6),
+                'client_key' => Str::mask($clone->clientKey, '*', 6, -6),
+                'is_production' => $clone->isProduction,
             ]);
         } else {
-            \Illuminate\Support\Facades\Log::info("Using SYSTEM Default Midtrans Keys for Shop: {$toko->name}");
+            Log::info("Using SYSTEM Default Midtrans Keys for Shop: {$toko->name}");
         }
 
         return $clone;
@@ -53,12 +57,12 @@ class MidtransService
     /**
      * Generate a QRIS code for a transaction.
      */
-    public function generateQris(\App\Models\Transaction $transaction): array
+    public function generateQris(Transaction $transaction): array
     {
         $toko = $transaction->toko;
         $orderId = $transaction->transaction_number;
 
-        $items = $transaction->items->map(function($item) {
+        $items = $transaction->items->map(function ($item) {
             return [
                 'id' => (string) $item->product_id,
                 'price' => (int) $item->unit_price,
@@ -110,7 +114,7 @@ class MidtransService
         ];
 
         $service = $this->forToko($toko);
-        
+
         $response = Http::timeout(10)
             ->withBasicAuth($service->serverKey, '')
             ->withHeaders([
@@ -120,7 +124,7 @@ class MidtransService
             ->post("{$service->baseUrl}/v2/charge", $payload);
 
         if (! $response->successful()) {
-            throw new \RuntimeException('Gagal generate QRIS Midtrans: ' . $response->body());
+            throw new \RuntimeException('Gagal generate QRIS Midtrans: '.$response->body());
         }
 
         return $response->json();
@@ -129,12 +133,12 @@ class MidtransService
     /**
      * Create a Snap token for a POS transaction.
      */
-    public function createTransactionSnapToken(\App\Models\Transaction $transaction): string
+    public function createTransactionSnapToken(Transaction $transaction): string
     {
         $toko = $transaction->toko;
         $orderId = $transaction->transaction_number;
 
-        $items = $transaction->items->map(function($item) {
+        $items = $transaction->items->map(function ($item) {
             return [
                 'id' => (string) $item->product_id,
                 'price' => (int) $item->unit_price,
@@ -179,7 +183,7 @@ class MidtransService
                 'gross_amount' => (int) $transaction->total_amount,
             ],
             'customer_details' => [
-                'first_name' => $toko->name . ' Customer',
+                'first_name' => $toko->name.' Customer',
             ],
             'item_details' => $items,
             'enabled_payments' => ['qris', 'gopay', 'shopeepay', 'other_qris'],
@@ -196,7 +200,7 @@ class MidtransService
             ->post("{$service->baseUrl}/snap/v1/transactions", $payload);
 
         if (! $response->successful()) {
-            throw new \RuntimeException('Gagal membuat Snap Token POS: ' . $response->body());
+            throw new \RuntimeException('Gagal membuat Snap Token POS: '.$response->body());
         }
 
         return $response->json()['token'];
@@ -285,15 +289,15 @@ class MidtransService
         } else {
             // 2. POS Transaction (Uses Toko Server Key)
             // Try to find the transaction by its number (order_id)
-            $transaction = \App\Models\Transaction::where('transaction_number', $orderId)->first();
-            
-            if (!$transaction) {
+            $transaction = Transaction::where('transaction_number', $orderId)->first();
+
+            if (! $transaction) {
                 // Fallback: search for reference number in payments
-                $paymentRecord = \App\Models\Payment::where('reference_number', 'LIKE', "%{$orderId}%")->first();
+                $paymentRecord = Payment::where('reference_number', 'LIKE', "%{$orderId}%")->first();
                 $transaction = $paymentRecord?->transaction;
             }
 
-            if (!$transaction || !$transaction->toko) {
+            if (! $transaction || ! $transaction->toko) {
                 throw new \RuntimeException("Transaction not found for order ID: {$orderId}");
             }
 
@@ -342,14 +346,14 @@ class MidtransService
     /**
      * Process internal POS transaction payment logic.
      */
-    private function processTransactionNotification(\App\Models\Transaction $transaction, array $notification): \App\Models\Transaction
+    private function processTransactionNotification(Transaction $transaction, array $notification): Transaction
     {
         $transactionStatus = $notification['transaction_status'] ?? '';
         $status = $this->mapMidtransStatus($transactionStatus);
 
         if ($status === 'success') {
             $transaction->update(['status' => 'completed']);
-            
+
             // Update the specific payment record
             $paymentRecord = $transaction->payments()->where('status', 'pending')->first();
             if ($paymentRecord) {
@@ -360,7 +364,7 @@ class MidtransService
             }
 
             // Record to Cash Flow automatically upon success
-            \App\Models\CashFlow::firstOrCreate(
+            CashFlow::firstOrCreate(
                 ['reference_id' => $transaction->id, 'reference_type' => 'transaction'],
                 [
                     'toko_id' => $transaction->toko_id,

@@ -89,6 +89,4 @@ class Toko extends Model
     {
         return $this->hasMany(CashFlow::class, 'toko_id');
     }
-
-
 }

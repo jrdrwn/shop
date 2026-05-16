@@ -17,7 +17,9 @@ class SubscriptionStatusWidget extends Widget
 
     public static function canView(): bool
     {
-        return false;
+        $user = Auth::user();
+
+        return $user && in_array($user->role, ['owner'], true);
     }
 
     /**

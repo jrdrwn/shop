@@ -4,6 +4,7 @@ namespace App\Providers\Filament;
 
 use App\Filament\Pages\Warehouse\WarehouseDashboard;
 use App\Http\Middleware\AuthenticateWarehouse;
+use App\Http\Middleware\CheckSubscriptionExpiry;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -63,6 +64,7 @@ class WarehousePanelProvider extends PanelProvider
             ->authMiddleware([
                 Authenticate::class,
                 AuthenticateWarehouse::class,
+                CheckSubscriptionExpiry::class,
             ])
             ->renderHook(
                 PanelsRenderHook::AUTH_LOGIN_FORM_AFTER,

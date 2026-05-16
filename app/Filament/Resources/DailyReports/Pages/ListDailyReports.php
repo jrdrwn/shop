@@ -3,8 +3,12 @@
 namespace App\Filament\Resources\DailyReports\Pages;
 
 use App\Filament\Resources\DailyReports\DailyReportResource;
-use Filament\Actions\CreateAction;
+use App\Models\DailyReport;
+use App\Models\Transaction;
+use Filament\Actions\Action;
+use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ListRecords;
+use Illuminate\Support\Facades\Auth;
 
 class ListDailyReports extends ListRecords
 {
@@ -13,24 +17,24 @@ class ListDailyReports extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            \Filament\Actions\Action::make('generate')
+            Action::make('generate')
                 ->label('Generate Laporan Hari Ini')
                 ->color('success')
                 ->action(function () {
-                    $user = \Illuminate\Support\Facades\Auth::user();
+                    $user = Auth::user();
                     $toko_id = $user->toko_id;
                     $today = now()->toDateString();
-                    
-                    $transactions = \App\Models\Transaction::where('toko_id', $toko_id)
+
+                    $transactions = Transaction::where('toko_id', $toko_id)
                         ->whereDate('created_at', $today)
                         ->where('status', 'completed')
                         ->with('payments.paymentMethod')
                         ->get();
-                        
+
                     $total_sales = $transactions->sum('total_amount');
                     $total_discount = $transactions->sum('discount_amount');
                     $total_tax = $transactions->sum('tax_amount');
-                    
+
                     $total_cash = 0;
                     $total_debit = 0;
                     $total_qris = 0;
@@ -47,8 +51,8 @@ class ListDailyReports extends ListRecords
                             }
                         }
                     }
-                    
-                    \App\Models\DailyReport::updateOrCreate(
+
+                    DailyReport::updateOrCreate(
                         ['toko_id' => $toko_id, 'report_date' => $today],
                         [
                             'total_transactions' => $transactions->count(),
@@ -63,8 +67,8 @@ class ListDailyReports extends ListRecords
                             'created_by' => $user->id,
                         ]
                     );
-                    
-                    \Filament\Notifications\Notification::make()
+
+                    Notification::make()
                         ->title('Laporan berhasil di-generate')
                         ->success()
                         ->send();

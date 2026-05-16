@@ -36,6 +36,7 @@ class ProductResource extends Resource
     protected static array $allowedRoles = ['owner', 'gudang'];
 
     protected static ?string $recordTitleAttribute = 'name';
+
     public static function getNavigationGroup(): ?string
     {
 
@@ -45,6 +46,7 @@ class ProductResource extends Resource
 
         return null;
     }
+
     public static function form(Schema $schema): Schema
     {
         return ProductForm::configure($schema);
