@@ -43,16 +43,16 @@ class TokoResource extends Resource
 
     protected static ?string $modelLabel = 'Toko';
 
-    protected static ?string $roleNavigationGroup = 'Platform';
+    // protected static ?string $roleNavigationGroup = 'Platform';
 
-    public static function getNavigationGroup(): ?string
-    {
-        if (Auth::user()?->role === 'super_admin') {
-            return null;
-        }
+    // public static function getNavigationGroup(): ?string
+    // {
+    //     if (Auth::user()?->role === 'super_admin') {
+    //         return null;
+    //     }
 
-        return 'Toko & Owner';
-    }
+    //     return 'Toko & Owner';
+    // }
 
     /**
      * super_admin : read-only (list + view)
@@ -125,7 +125,7 @@ class TokoResource extends Resource
         $items = [
             NavigationItem::make('Detail')
                 ->icon(Heroicon::OutlinedEye)
-                ->isActiveWhen(fn (): bool => $page::getRouteName() === ViewToko::getRouteName())
+                ->isActiveWhen(fn(): bool => $page::getRouteName() === ViewToko::getRouteName())
                 ->url(static::getUrl('view', ['record' => $record])),
         ];
 
@@ -133,7 +133,7 @@ class TokoResource extends Resource
         if (static::canEdit($record)) {
             $items[] = NavigationItem::make('Edit')
                 ->icon(Heroicon::OutlinedPencilSquare)
-                ->isActiveWhen(fn (): bool => $page::getRouteName() === EditToko::getRouteName())
+                ->isActiveWhen(fn(): bool => $page::getRouteName() === EditToko::getRouteName())
                 ->url(static::getUrl('edit', ['record' => $record]));
         }
 

@@ -30,7 +30,7 @@ class UserResource extends Resource
 
     protected static ?string $modelLabel = 'Pengguna';
 
-    protected static ?string $roleNavigationGroup = 'Manajemen Pengguna';
+    // protected static ?string $roleNavigationGroup = 'Manajemen Pengguna';
 
     protected static array $allowedRoles = ['owner'];
 

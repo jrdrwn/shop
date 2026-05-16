@@ -37,7 +37,7 @@ class MidtransService
         if (filled($toko->midtrans_server_key)) {
             $clone->serverKey = $toko->midtrans_server_key;
             $clone->clientKey = $toko->midtrans_client_key ?? '';
-            $clone->isProduction = (bool) $toko->midtrans_is_production;
+            $clone->isProduction = (bool) config('midtrans.is_production', false);
             $clone->baseUrl = $clone->isProduction
                 ? 'https://api.midtrans.com'
                 : 'https://api.sandbox.midtrans.com';

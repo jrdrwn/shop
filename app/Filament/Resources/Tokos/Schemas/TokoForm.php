@@ -120,8 +120,11 @@ class TokoForm
                                     ->placeholder('SB-Mid-server-xxxxxxxx')
                                     ->required(fn ($get) => $get('qris_type') === 'midtrans'),
                                 Toggle::make('midtrans_is_production')
-                                    ->label('Mode Produksi')
-                                    ->helperText('Aktifkan jika menggunakan akun Midtrans Production.'),
+                                    ->label('Mode Produksi (Otomatis)')
+                                    ->helperText('Status mengikuti pengaturan sistem: '.(config('midtrans.is_production') ? 'PRODUCTION' : 'SANDBOX'))
+                                    ->default(config('midtrans.is_production'))
+                                    ->disabled()
+                                    ->dehydrated(),
                             ])
                             ->visible(fn ($get) => $get('qris_type') === 'midtrans'),
                     ]),

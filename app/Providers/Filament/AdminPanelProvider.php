@@ -29,6 +29,7 @@ class AdminPanelProvider extends PanelProvider
             ->default()
             ->brandName('Admin Toko')
             ->id('admin')
+            ->viteTheme('resources/css/filament/admin/theme.css')
             ->brandLogo(asset('/default-logo/light-mode.png'))
             ->darkModeBrandLogo(asset('/default-logo/dark-mode.png'))
             ->brandLogoHeight('2rem')

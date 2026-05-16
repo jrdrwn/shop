@@ -87,6 +87,35 @@ class TokoInfolist
                             ->formatStateUsing(fn ($state): string => 'Rp '.number_format((int) $state, 0, ',', '.'))
                             ->placeholder('Belum diatur'),
                     ]),
+                Section::make('Payment Gateway')
+                    ->description('Konfigurasi Midtrans untuk pembayaran otomatis.')
+                    ->columns(2)
+                    ->schema([
+                        TextEntry::make('qris_type')
+                            ->label('Tipe QRIS')
+                            ->formatStateUsing(fn (string $state): string => strtoupper($state))
+                            ->badge(),
+                        TextEntry::make('midtrans_merchant_id')
+                            ->label('Merchant ID')
+                            ->placeholder('-')
+                            ->visible(fn ($record) => $record->qris_type === 'midtrans'),
+                        TextEntry::make('midtrans_client_key')
+                            ->label('Client Key')
+                            ->placeholder('-')
+                            ->copyable()
+                            ->visible(fn ($record) => $record->qris_type === 'midtrans'),
+                        TextEntry::make('midtrans_server_key')
+                            ->label('Server Key')
+                            ->placeholder('-')
+                            ->formatStateUsing(fn ($state) => $state ? '********' : '-')
+                            ->visible(fn ($record) => $record->qris_type === 'midtrans'),
+                        TextEntry::make('midtrans_is_production')
+                            ->label('Environment')
+                            ->formatStateUsing(fn ($state) => $state ? 'PRODUCTION' : 'SANDBOX')
+                            ->badge()
+                            ->color(fn ($state) => $state ? 'success' : 'warning')
+                            ->visible(fn ($record) => $record->qris_type === 'midtrans'),
+                    ]),
             ]);
     }
 }

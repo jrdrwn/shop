@@ -225,11 +225,32 @@ class SubscriptionUpgradeWidget extends Widget implements HasActions, HasSchemas
                 Select::make('subscription_id')
                     ->label('Paket')
                     ->options(function (): array {
+                        $user = Auth::user();
+                        $currentToko = $user?->toko;
+                        $currentPlan = $currentToko?->subscription?->plan;
+
                         $options = [];
                         foreach (SubscriptionPlan::cases() as $plan) {
                             $subscription = Subscription::where('plan', $plan->value)->where('is_active', true)->first();
+
                             if ($subscription) {
-                                $options[$subscription->id] = "{$subscription->name} — Rp ".number_format((int) $subscription->price, 0, ',', '.');
+                                $label = "{$subscription->name} — Rp ".number_format((int) $subscription->price, 0, ',', '.');
+                                $isDisabled = false;
+
+                                // Disable current plan
+                                if ($currentPlan && $currentPlan->value === $plan->value) {
+                                    $label .= ' (Paket Aktif)';
+                                    $isDisabled = true;
+                                }
+
+                                // Disable Free if already on Pro (no downgrade via UI)
+                                if ($currentPlan && $currentPlan->value === 'pro' && $plan->value === 'free') {
+                                    $isDisabled = true;
+                                }
+
+                                if (! $isDisabled) {
+                                    $options[$subscription->id] = $label;
+                                }
                             }
                         }
 

@@ -55,20 +55,21 @@ class OwnerRegistration extends BaseRegister
             $user = $this->getUserModel()::create($data);
 
             // 2. Find free subscription
-            $freeSubscription = Subscription::whereName('Free')
-                ->orWhereName('Free Plan')
-                ->orWhere('price', 0)
-                ->first();
+            $freeSubscription = Subscription::where(function ($query) {
+                $query->where('name', 'Free')
+                    ->orWhere('name', 'Free Plan')
+                    ->orWhere('price', 0);
+            })->first();
 
             // 3. Create toko
             $toko = Toko::create([
-                'name' => $user->name.' Toko',
+                'name' => $user->name . ' Toko',
                 'address' => '-',
                 'phone' => $user->phone ?? '-',
                 'email' => $user->email,
                 'city' => '-',
                 'province' => '-',
-                'description' => 'Toko milik '.$user->name,
+                'description' => 'Toko milik ' . $user->name,
                 'owner_name' => $user->name,
                 'logo_url' => null,
                 'is_active' => true,

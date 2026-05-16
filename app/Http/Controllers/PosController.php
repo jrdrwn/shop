@@ -59,6 +59,7 @@ class PosController extends Controller
                 foreach ($cart as $item) {
                     $product = Product::whereId($item['id'])
                         ->where('toko_id', $user->toko_id)
+                        ->where('is_active', true)
                         ->first();
 
                     if (! $product) {
