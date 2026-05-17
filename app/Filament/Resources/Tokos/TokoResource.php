@@ -125,7 +125,7 @@ class TokoResource extends Resource
         $items = [
             NavigationItem::make('Detail')
                 ->icon(Heroicon::OutlinedEye)
-                ->isActiveWhen(fn(): bool => $page::getRouteName() === ViewToko::getRouteName())
+                ->isActiveWhen(fn (): bool => $page::getRouteName() === ViewToko::getRouteName())
                 ->url(static::getUrl('view', ['record' => $record])),
         ];
 
@@ -133,7 +133,7 @@ class TokoResource extends Resource
         if (static::canEdit($record)) {
             $items[] = NavigationItem::make('Edit')
                 ->icon(Heroicon::OutlinedPencilSquare)
-                ->isActiveWhen(fn(): bool => $page::getRouteName() === EditToko::getRouteName())
+                ->isActiveWhen(fn (): bool => $page::getRouteName() === EditToko::getRouteName())
                 ->url(static::getUrl('edit', ['record' => $record]));
         }
 

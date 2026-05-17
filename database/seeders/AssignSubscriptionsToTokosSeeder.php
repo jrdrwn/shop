@@ -3,8 +3,8 @@
 namespace Database\Seeders;
 
 use App\Enums\SubscriptionPlan;
-use App\Models\Toko;
 use App\Models\Subscription;
+use App\Models\Toko;
 use Illuminate\Database\Seeder;
 
 class AssignSubscriptionsToTokosSeeder extends Seeder

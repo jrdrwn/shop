@@ -2,8 +2,8 @@
 
 namespace Database\Factories;
 
-use App\Models\Toko;
 use App\Models\PaymentMethod;
+use App\Models\Toko;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**

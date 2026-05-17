@@ -1,8 +1,8 @@
 <?php
 
 use App\Filament\Resources\Products\Pages\CreateProduct;
-use App\Models\Toko;
 use App\Models\Category;
+use App\Models\Toko;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 

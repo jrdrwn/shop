@@ -19,42 +19,37 @@
             'description' => 'Manajemen Stok',
         ],
     ];
+
+    if (! config('app.debug')) {
+        $links = collect($links)->filter(fn ($link) => $link['name'] !== 'Admin')->all();
+    }
 @endphp
 
-<div class="border-t border-gray-200 dark:border-white/10 mt-6 pt-4">
-    <div class="text-center mb-4">
-        <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
+<div class="fi-role-links">
+    <div class="fi-role-links__heading">
+        <p class="fi-role-links__heading-text">
             Login sebagai role lain?
         </p>
     </div>
 
-    <div class="flex flex-col gap-2">
+    <div class="fi-role-links__list">
         @foreach ($links as $link)
-            <a
-                href="{{ $link['url'] }}"
-                class="group flex items-center justify-between gap-3 rounded-xl border border-gray-200/80 dark:border-white/10 bg-white/60 dark:bg-white/5 px-4 py-3 transition-colors hover:border-primary-500/70 hover:bg-gray-50 dark:hover:bg-white/10 no-underline"
-            >
-                <div class="flex items-center gap-3">
-                    <div class="shrink-0 text-gray-400 group-hover:text-primary-500 transition-colors">
-                        <x-filament::icon
-                            :icon="$link['icon']"
-                            class="w-5 h-5"
-                        />
+            <a href="{{ $link['url'] }}" class="fi-role-link group">
+                <div class="fi-role-link__content">
+                    <div class="fi-role-link__icon">
+                        <x-filament::icon :icon="$link['icon']" />
                     </div>
                     <div class="min-w-0">
-                        <div class="font-semibold text-sm text-gray-900 dark:text-white">
+                        <div class="fi-role-link__name">
                             {{ $link['name'] }}
                         </div>
-                        <div class="text-xs text-gray-500 dark:text-gray-400">
+                        <div class="fi-role-link__description">
                             {{ $link['description'] }}
                         </div>
                     </div>
                 </div>
-                <div class="shrink-0 text-gray-300 group-hover:text-primary-500 transition-colors">
-                    <x-filament::icon
-                        icon="heroicon-m-arrow-right"
-                        class="w-4 h-4"
-                    />
+                <div class="fi-role-link__chevron">
+                    <x-filament::icon icon="heroicon-m-arrow-right" />
                 </div>
             </a>
         @endforeach

@@ -2,9 +2,9 @@
 
 namespace Database\Factories;
 
-use App\Models\Toko;
 use App\Models\Subscription;
 use App\Models\SubscriptionPayment;
+use App\Models\Toko;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**

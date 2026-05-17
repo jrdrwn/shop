@@ -2,9 +2,9 @@
 
 namespace Database\Factories;
 
-use App\Models\Toko;
 use App\Models\Category;
 use App\Models\Product;
+use App\Models\Toko;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**

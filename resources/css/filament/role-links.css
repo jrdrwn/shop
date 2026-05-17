@@ -1,0 +1,148 @@
+@layer components {
+    .fi-role-links {
+        margin-top: 1.5rem;
+        padding-top: 1rem;
+        border-top: 1px solid color-mix(in oklab, var(--gray-200) 100%, transparent);
+    }
+
+    .fi-role-links--compact {
+        margin-top: 0;
+        padding-top: 0;
+        border-top-width: 0;
+    }
+
+    .dark .fi-role-links {
+        border-top-color: color-mix(in oklab, var(--color-white) 10%, transparent);
+    }
+
+    .fi-role-links__heading {
+        margin-bottom: 1rem;
+        text-align: center;
+    }
+
+    .fi-role-links__heading-text {
+        color: var(--gray-500);
+        font-size: 0.875rem;
+        font-weight: 500;
+    }
+
+    .dark .fi-role-links__heading-text {
+        color: var(--gray-400);
+    }
+
+    .fi-role-links__list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .fi-role-link {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+        border: 1px solid color-mix(in oklab, var(--gray-200) 80%, transparent);
+        border-radius: 0.75rem;
+        background-color: color-mix(in oklab, var(--gray-50) 60%, transparent);
+        padding: 0.75rem 1rem;
+        text-decoration: none;
+        transition:
+            border-color 0.2s ease,
+            background-color 0.2s ease,
+            transform 0.2s ease,
+            color 0.2s ease;
+    }
+
+    .dark .fi-role-link {
+        border-color: color-mix(in oklab, var(--color-white) 10%, transparent);
+        background-color: color-mix(in oklab, var(--gray-800) 70%, transparent);
+    }
+
+    .fi-role-link:hover {
+        border-color: color-mix(in oklab, var(--primary-500) 70%, transparent);
+        background-color: color-mix(in oklab, var(--primary-500) 10%, transparent);
+    }
+
+    .dark .fi-role-link:hover {
+        border-color: color-mix(in oklab, var(--primary-400) 70%, transparent);
+        background-color: color-mix(in oklab, var(--primary-400) 12%, transparent);
+    }
+
+    .fi-role-link:active {
+        border-color: var(--primary-500);
+        background-color: color-mix(in oklab, var(--primary-500) 15%, transparent);
+        transform: scale(0.99);
+    }
+
+    .dark .fi-role-link:active {
+        border-color: var(--primary-400);
+        background-color: color-mix(in oklab, var(--primary-400) 15%, transparent);
+    }
+
+    .fi-role-link__content {
+        display: flex;
+        min-width: 0;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .fi-role-link__icon,
+    .fi-role-link__chevron {
+        flex-shrink: 0;
+        color: var(--gray-500);
+        transition: color 0.2s ease;
+    }
+
+    .fi-role-link__icon .fi-icon {
+        width: 1.25rem;
+        height: 1.25rem;
+    }
+
+    .fi-role-link__chevron .fi-icon {
+        width: 1rem;
+        height: 1rem;
+    }
+
+    .dark .fi-role-link__icon,
+    .dark .fi-role-link__chevron {
+        color: var(--gray-400);
+    }
+
+    .fi-role-link:hover .fi-role-link__icon,
+    .fi-role-link:hover .fi-role-link__chevron {
+        color: var(--primary-500);
+    }
+
+    .dark .fi-role-link:hover .fi-role-link__icon,
+    .dark .fi-role-link:hover .fi-role-link__chevron {
+        color: var(--primary-400);
+    }
+
+    .fi-role-link__name {
+        color: var(--gray-950);
+        font-size: 0.875rem;
+        font-weight: 600;
+        transition: color 0.2s ease;
+    }
+
+    .dark .fi-role-link__name {
+        color: var(--gray-100);
+    }
+
+    .fi-role-link:hover .fi-role-link__name {
+        color: var(--primary-500);
+    }
+
+    .dark .fi-role-link:hover .fi-role-link__name {
+        color: var(--primary-400);
+    }
+
+    .fi-role-link__description {
+        color: var(--gray-500);
+        font-size: 0.75rem;
+    }
+
+    .dark .fi-role-link__description {
+        color: var(--gray-400);
+    }
+}

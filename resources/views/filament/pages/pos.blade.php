@@ -2,9 +2,9 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <script src="{{ app(\App\Services\MidtransService::class)->snapUrl() }}" data-client-key="{{ $midtransClientKey ?? app(\App\Services\MidtransService::class)->clientKey() }}"></script>
 
-    <div id="pos-app" class="min-h-screen bg-gray-50 dark:bg-gray-950 p-4 md:p-6 lg:p-8">
+    <div id="pos-app" class="min-h-screen bg-gray-50 dark:bg-gray-950 p-4 md:p-6 lg:p-8 fi-bg-color-50 dark:fi-bg-color-950">
         <!-- Toast -->
-        <div id="pos-toast" class="fixed top-5 left-1/2 -translate-x-1/2 z-[4000] px-6 py-3 rounded-xl shadow-2xl font-semibold text-sm transition-all duration-300 opacity-0 pointer-events-none [&.active]:opacity-100 [&.active]:top-8 bg-gray-900 text-white dark:bg-white dark:text-gray-900"></div>
+        <div id="pos-toast" class="fixed top-5 left-1/2 -translate-x-1/2 z-[4000] px-6 py-3 rounded-xl shadow-2xl font-semibold text-sm transition-all duration-300 opacity-0 pointer-events-none [&.active]:opacity-100 [&.active]:top-8 bg-gray-900 text-white dark:bg-white dark:text-gray-900 fi-bg-color-900 fi-text-color-0 dark:fi-bg-color-50 dark:fi-text-color-900"></div>
 
         <!-- Loading Overlay -->
         <div id="loading-overlay" class="fixed inset-0 bg-black/60 backdrop-blur-md z-[5000] flex flex-col items-center justify-center gap-4 text-white opacity-0 pointer-events-none transition-opacity duration-300 [&.active]:opacity-100 [&.active]:pointer-events-auto hidden">
@@ -14,7 +14,7 @@
 
         <!-- Custom Confirmation Modal -->
         <div id="cancel-confirm-modal" class="fixed inset-0 bg-black/75 flex items-center justify-center z-[5000] backdrop-blur-sm opacity-0 pointer-events-none transition-all duration-300 [&.active]:opacity-100 [&.active]:pointer-events-auto">
-            <div class="bg-white dark:bg-gray-800 rounded-2xl w-[min(380px,90vw)] p-8 text-center shadow-2xl scale-90 transition-all duration-300 transform [div.active_&]:scale-100">
+            <div class="bg-white dark:bg-gray-800 rounded-2xl w-[min(380px,90vw)] p-8 text-center shadow-2xl scale-90 transition-all duration-300 transform [div.active_&]:scale-100 fi-pos-card">
                 <div class="text-5xl mb-4 text-red-500">⚠️</div>
                 <div class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">Batalkan Pesanan?</div>
                 <div class="text-sm text-gray-500 dark:text-gray-400 mb-8 leading-relaxed">
@@ -30,8 +30,8 @@
 
         <!-- Receipt Modal -->
         <div id="receipt-modal" class="fixed inset-0 bg-black/75 flex items-center justify-center z-[3000] backdrop-blur-sm opacity-0 pointer-events-none transition-all duration-300 [&.active]:opacity-100 [&.active]:pointer-events-auto" role="dialog" aria-modal="true">
-            <div class="bg-white dark:bg-gray-900 rounded-2xl w-[min(460px,94vw)] max-h-[90vh] flex flex-col overflow-hidden shadow-2xl scale-95 transition-all duration-300 transform [div.active_&]:scale-100">
-                <div class="text-center p-7 border-b border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-950">
+            <div class="bg-white dark:bg-gray-900 rounded-2xl w-[min(460px,94vw)] max-h-[90vh] flex flex-col overflow-hidden shadow-2xl scale-95 transition-all duration-300 transform [div.active_&]:scale-100 fi-pos-card">
+                <div class="text-center p-7 border-b border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-950 fi-pos-border fi-pos-border-dark fi-bg-color-50 dark:fi-bg-color-950">
                     <div class="mb-2">
                         @if($tokoLogo)
                             <img src="{{ asset('storage/' . $tokoLogo) }}" alt="Logo Toko" class="max-h-12 max-w-full mx-auto">
@@ -40,8 +40,8 @@
                             <img src="{{ asset('/default-logo/dark-mode.png') }}" class="logo-dark max-h-12 max-w-full mx-auto hidden" alt="Logo Default">
                         @endif
                     </div>
-                    <h2 class="m-0 text-lg font-bold tracking-widest text-gray-700 dark:text-gray-200 uppercase">{{ $tokoName }}</h2>
-                    <p id="receipt-trx-num" class="mt-1 text-xs text-gray-400 font-mono">TRX...</p>
+                    <h2 class="m-0 text-lg font-bold tracking-widest text-gray-700 dark:text-gray-200 uppercase fi-text-color-700 dark:fi-text-color-0">{{ $tokoName }}</h2>
+                    <p id="receipt-trx-num" class="mt-1 text-xs text-gray-400 font-mono fi-text-color-400">TRX...</p>
                 </div>
 
                 <div class="flex-1 overflow-y-auto p-5 flex flex-col gap-2">

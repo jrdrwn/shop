@@ -63,13 +63,13 @@ class OwnerRegistration extends BaseRegister
 
             // 3. Create toko
             $toko = Toko::create([
-                'name' => $user->name . ' Toko',
+                'name' => $user->name.' Toko',
                 'address' => '-',
                 'phone' => $user->phone ?? '-',
                 'email' => $user->email,
                 'city' => '-',
                 'province' => '-',
-                'description' => 'Toko milik ' . $user->name,
+                'description' => 'Toko milik '.$user->name,
                 'owner_name' => $user->name,
                 'logo_url' => null,
                 'is_active' => true,

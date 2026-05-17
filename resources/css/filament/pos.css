@@ -1,0 +1,16 @@
+/* POS-specific semantic classes mapped to Filament tokens */
+.fi-pos-bg { background-color: var(--bg); }
+.fi-pos-text { color: var(--text); }
+.fi-pos-muted { color: var(--gray-400); }
+.fi-pos-card { background-color: var(--color-white); color: var(--gray-950); border-color: var(--gray-100); }
+.fi-pos-card:where(.dark,.dark *) { background-color: var(--gray-900); color: var(--color-white); border-color: var(--gray-800); }
+.fi-pos-primary { color: var(--color-600); }
+.fi-pos-primary-bg { background-color: var(--color-50); }
+.fi-pos-success { color: var(--success-600); }
+.fi-pos-danger { color: var(--danger-600); }
+.fi-pos-warning { color: var(--warning-600); }
+.fi-pos-badge { background-color: var(--color-600); color: var(--color-white); }
+
+/* Helpers for elements compiled via inline templates */
+.fi-pos-border { border-color: var(--gray-100); }
+.fi-pos-border-dark:where(.dark,.dark *) { border-color: var(--gray-800); }

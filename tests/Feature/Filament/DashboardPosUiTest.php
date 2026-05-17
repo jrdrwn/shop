@@ -1,9 +1,9 @@
 <?php
 
 use App\Filament\Pages\Pos;
-use App\Models\Toko;
 use App\Models\Category;
 use App\Models\Product;
+use App\Models\Toko;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;

@@ -1,12 +1,12 @@
 <?php
 
 use App\Filament\Pages\Pos;
-use App\Filament\Resources\Tokos\TokoResource;
 use App\Filament\Resources\Categories\CategoryResource;
 use App\Filament\Resources\InventoryLogs\InventoryLogResource;
 use App\Filament\Resources\PaymentMethods\PaymentMethodResource;
 use App\Filament\Resources\Products\ProductResource;
 use App\Filament\Resources\Subscriptions\SubscriptionResource;
+use App\Filament\Resources\Tokos\TokoResource;
 use App\Filament\Resources\Transactions\TransactionResource;
 use App\Filament\Resources\Users\UserResource;
 use App\Models\User;

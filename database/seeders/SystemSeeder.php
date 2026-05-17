@@ -109,7 +109,7 @@ class SystemSeeder extends Seeder
             $kategoriMinuman = Category::firstOrCreate(['name' => 'Minuman', 'toko_id' => $toko->id], [
                 'description' => 'Minuman segar dan kopi',
             ]);
-            
+
             $kategoriMakanan = Category::firstOrCreate(['name' => 'Makanan', 'toko_id' => $toko->id], [
                 'description' => 'Makanan ringan dan berat',
             ]);
@@ -123,7 +123,7 @@ class SystemSeeder extends Seeder
 
             foreach ($products as $p) {
                 Product::firstOrCreate(
-                    ['sku' => $p['sku'], 'toko_id' => $toko->id], 
+                    ['sku' => $p['sku'], 'toko_id' => $toko->id],
                     array_merge($p, [
                         'is_active' => true,
                         'has_variants' => false,
@@ -136,7 +136,7 @@ class SystemSeeder extends Seeder
             $methods = ['Tunai' => 'cash', 'Debit/Kredit' => 'debit', 'QRIS' => 'qris'];
             foreach ($methods as $name => $type) {
                 PaymentMethod::firstOrCreate(
-                    ['name' => $name, 'toko_id' => $toko->id], 
+                    ['name' => $name, 'toko_id' => $toko->id],
                     [
                         'type' => $type,
                         'is_active' => true,

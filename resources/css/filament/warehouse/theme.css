@@ -1,4 +1,8 @@
 @import '../../../../vendor/filament/filament/resources/css/theme.css';
+@import '../role-links.css';
+@import '../barcode-label.css';
+@import '../subscription-widgets.css';
+@import '../pos.css';
 
 @source '../../../../app/Filament/**/*';
 @source '../../../../resources/views/filament/**/*';

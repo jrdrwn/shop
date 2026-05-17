@@ -2,12 +2,12 @@
 
 namespace Database\Seeders;
 
-use App\Models\Toko;
-use App\Models\TokoOwner;
 use App\Models\Category;
 use App\Models\PaymentMethod;
 use App\Models\Product;
 use App\Models\Subscription;
+use App\Models\Toko;
+use App\Models\TokoOwner;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;

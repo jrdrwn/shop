@@ -31,7 +31,7 @@ return new class extends Migration
                 'midtrans_client_key',
                 'midtrans_server_key',
                 'midtrans_merchant_id',
-                'midtrans_is_production'
+                'midtrans_is_production',
             ]);
         });
     }
