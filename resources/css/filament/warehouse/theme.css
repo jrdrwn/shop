@@ -6,3 +6,5 @@
 
 @source '../../../../app/Filament/**/*';
 @source '../../../../resources/views/filament/**/*';
+
+@source '../../../../vendor/awcodes/light-switch/resources/**/*.blade.php';

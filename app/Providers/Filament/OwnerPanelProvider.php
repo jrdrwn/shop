@@ -39,7 +39,7 @@ class OwnerPanelProvider extends PanelProvider
             ->registration(OwnerRegistration::class)
             ->homeUrl('/owner')
             ->colors([
-                'primary' => Color::Blue,
+                'primary' => Color::Emerald,
             ])
             ->sidebarCollapsibleOnDesktop()
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')

@@ -3,8 +3,10 @@
 namespace App\Providers\Filament;
 
 use App\Filament\Pages\Warehouse\WarehouseDashboard;
+use App\Filament\Pages\Warehouse\WarehouseLogin;
 use App\Http\Middleware\AuthenticateWarehouse;
 use App\Http\Middleware\CheckSubscriptionExpiry;
+use Awcodes\LightSwitch\LightSwitchPlugin;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -36,9 +38,9 @@ class WarehousePanelProvider extends PanelProvider
             ->darkModeBrandLogo(asset('/default-logo/dark-mode.png'))
             ->brandLogoHeight('2rem')
             ->topNavigation()
-            ->login()
+            ->login(WarehouseLogin::class)
             ->colors([
-                'primary' => Color::Fuchsia,
+                'primary' => Color::Emerald,
             ])
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
             ->discoverPages(in: app_path('Filament/Pages/Warehouse'), for: 'App\Filament\Pages\Warehouse')
@@ -69,6 +71,8 @@ class WarehousePanelProvider extends PanelProvider
             ->renderHook(
                 PanelsRenderHook::AUTH_LOGIN_FORM_AFTER,
                 fn (): string => Blade::render('<x-warehouse-role-links />')
-            );
+            )->plugins([
+                LightSwitchPlugin::make(),
+            ]);
     }
 }

@@ -1319,7 +1319,7 @@
                         itemsList.innerHTML = '';
                         cart.forEach(item => {
                             const itemDiv = document.createElement('div');
-                            itemDiv.className = 'receipt-item';
+                            itemDiv.className = 'receipt-item flex justify-between text-sm text-gray-900 dark:text-white gap-3';
                             itemDiv.innerHTML = `<span>${item.name} x ${item.qty}</span><strong>${formatCurrency(item.price * item.qty)}</strong>`;
                             itemsList.appendChild(itemDiv);
                         });

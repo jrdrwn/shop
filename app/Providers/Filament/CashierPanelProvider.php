@@ -5,6 +5,7 @@ namespace App\Providers\Filament;
 use App\Filament\Pages\Cashier\CashierLogin;
 use App\Filament\Pages\Cashier\CashierPanelDashboard;
 use App\Filament\Pages\Cashier\Pos;
+use Awcodes\LightSwitch\LightSwitchPlugin;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -63,6 +64,8 @@ class CashierPanelProvider extends PanelProvider
             ->renderHook(
                 PanelsRenderHook::AUTH_LOGIN_FORM_AFTER,
                 fn (): string => Blade::render('<x-cashier-role-links />')
-            );
+            )->plugins([
+                LightSwitchPlugin::make(),
+            ]);
     }
 }
