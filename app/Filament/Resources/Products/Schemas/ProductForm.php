@@ -15,6 +15,7 @@ use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\HtmlString;
 
@@ -82,7 +83,18 @@ class ProductForm
                             }),
                         Select::make('category_id')
                             ->label('Kategori')
-                            ->relationship('category', 'name')
+                            ->relationship(
+                                name: 'category',
+                                titleAttribute: 'name',
+                                modifyQueryUsing: function (Builder $query) {
+                                    $user = Auth::user();
+                                    if (in_array($user?->role, ['owner', 'gudang'], true) && filled($user->toko_id)) {
+                                        return $query->where('toko_id', $user->toko_id);
+                                    }
+
+                                    return $query;
+                                }
+                            )
                             ->searchable()
                             ->preload()
                             ->required(),
@@ -130,7 +142,7 @@ class ProductForm
                     ->schema([
                         Placeholder::make('inventory_locked')
                             ->label('')
-                            ->content('🔒 Fitur manajemen stok & inventori tersedia di paket Pro. Upgrade paket Anda untuk mengaktifkan fitur ini.'),
+                            ->content('🔒 Fitur manajemen stok & inventori tersedia di paket Medium. Upgrade paket Anda untuk mengaktifkan fitur ini.'),
                     ]),
 
                 // Discount locked notice (visible only when discount feature is locked)
@@ -140,7 +152,7 @@ class ProductForm
                     ->schema([
                         Placeholder::make('discount_locked')
                             ->label('')
-                            ->content('🔒 Fitur diskon tersedia di paket Pro. Upgrade paket Anda untuk mengaktifkan diskon per produk.'),
+                            ->content('🔒 Fitur diskon tersedia di paket Medium. Upgrade paket Anda untuk mengaktifkan diskon per produk.'),
                     ]),
 
                 Section::make('Varian Produk')
@@ -175,7 +187,7 @@ class ProductForm
                             : [
                                 Placeholder::make('variants_locked')
                                     ->label('')
-                                    ->content('🔒 Fitur varian produk tersedia di paket Pro. Upgrade paket Anda untuk mengaktifkan varian ukuran, suhu, dan lainnya.'),
+                                    ->content('🔒 Fitur varian produk tersedia di paket Medium. Upgrade paket Anda untuk mengaktifkan varian ukuran, suhu, dan lainnya.'),
                             ]
                     ),
             ]);

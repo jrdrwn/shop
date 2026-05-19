@@ -19,7 +19,7 @@ test('effectiveLimits returns plan defaults when no custom limits are set', func
     $limits = $subscription->effectiveLimits();
 
     expect($limits['max_products'])->toBe(10)
-        ->and($limits['max_categories'])->toBe(3)
+        ->and($limits['max_categories'])->toBe(1)
         ->and($limits['can_export_reports'])->toBeFalse()
         ->and($limits['can_use_variants'])->toBeFalse();
 });
@@ -32,18 +32,18 @@ test('effectiveLimits merges custom limits over plan defaults', function () {
     $limits = $subscription->effectiveLimits();
 
     expect($limits['max_products'])->toBe(25)   // overridden
-        ->and($limits['max_categories'])->toBe(3); // still plan default
+        ->and($limits['max_categories'])->toBe(1); // still plan default
 });
 
 test('getLimit returns null for unlimited plans', function () {
-    $subscription = Subscription::factory()->pro()->make();
+    $subscription = Subscription::factory()->premium()->make();
 
     expect($subscription->getLimit('max_products'))->toBeNull()
         ->and($subscription->getLimit('max_categories'))->toBeNull();
 });
 
 test('hasFeature returns true for pro plan features', function () {
-    $subscription = Subscription::factory()->pro()->make();
+    $subscription = Subscription::factory()->premium()->make();
 
     expect($subscription->hasFeature('can_use_inventory'))->toBeTrue()
         ->and($subscription->hasFeature('can_export_reports'))->toBeTrue();
@@ -94,8 +94,8 @@ test('canCreateProduct returns false when toko has reached the product limit', f
     expect($service->canCreateProduct($toko))->toBeFalse();
 });
 
-test('canCreateProduct returns true for unlimited pro plan regardless of product count', function () {
-    $subscription = Subscription::factory()->pro()->create(); // unlimited
+test('canCreateProduct returns true for unlimited premium plan regardless of product count', function () {
+    $subscription = Subscription::factory()->premium()->create(); // unlimited
     $toko = Toko::factory()->create(['subscription_id' => $subscription->id]);
 
     $category = Category::factory()->create(['toko_id' => $toko->id]);
@@ -107,7 +107,7 @@ test('canCreateProduct returns true for unlimited pro plan regardless of product
 });
 
 test('remainingProducts returns null for unlimited plans', function () {
-    $subscription = Subscription::factory()->pro()->create();
+    $subscription = Subscription::factory()->premium()->create();
     $toko = Toko::factory()->create(['subscription_id' => $subscription->id]);
 
     expect(app(SubscriptionService::class)->remainingProducts($toko))->toBeNull();
@@ -134,8 +134,8 @@ test('canUseInventory returns false for free plan', function () {
     expect(app(SubscriptionService::class)->canUseInventory($toko))->toBeFalse();
 });
 
-test('canUseInventory returns true for pro plan', function () {
-    $subscription = Subscription::factory()->pro()->create();
+test('canUseInventory returns true for premium plan', function () {
+    $subscription = Subscription::factory()->premium()->create();
     $toko = Toko::factory()->create(['subscription_id' => $subscription->id]);
 
     expect(app(SubscriptionService::class)->canUseInventory($toko))->toBeTrue();
@@ -148,8 +148,8 @@ test('canUseDiscounts returns false for free plan', function () {
     expect(app(SubscriptionService::class)->canUseDiscounts($toko))->toBeFalse();
 });
 
-test('canUseDiscounts returns true for pro plan', function () {
-    $subscription = Subscription::factory()->pro()->create();
+test('canUseDiscounts returns true for premium plan', function () {
+    $subscription = Subscription::factory()->premium()->create();
     $toko = Toko::factory()->create(['subscription_id' => $subscription->id]);
 
     expect(app(SubscriptionService::class)->canUseDiscounts($toko))->toBeTrue();
@@ -159,8 +159,8 @@ test('canUseDiscounts returns true for pro plan', function () {
 // SubscriptionPlan enum
 // ---------------------------------------------------------------------------
 
-test('pro plan has all features enabled', function () {
-    $limits = SubscriptionPlan::Pro->defaultLimits();
+test('premium plan has all features enabled', function () {
+    $limits = SubscriptionPlan::Premium->defaultLimits();
 
     expect($limits['max_products'])->toBeNull()
         ->and($limits['can_export_reports'])->toBeTrue()
@@ -204,20 +204,19 @@ test('effectiveLimits preserves plan boolean false when not overridden', functio
 // ---------------------------------------------------------------------------
 
 test('canCreateCategory returns false when limit reached', function () {
-    $subscription = Subscription::factory()->free()->create(); // max 3 categories
+    $subscription = Subscription::factory()->free()->create(); // max 1 categories
     $toko = Toko::factory()->create(['subscription_id' => $subscription->id]);
 
-    Category::factory()->count(3)->create(['toko_id' => $toko->id]);
+    Category::factory()->count(1)->create(['toko_id' => $toko->id]);
 
     expect(app(SubscriptionService::class)->canCreateCategory($toko))->toBeFalse();
 });
 
 test('canCreateCategory returns true when under limit', function () {
-    $subscription = Subscription::factory()->free()->create(); // max 3 categories
+    $subscription = Subscription::factory()->free()->create(); // max 1 categories
     $toko = Toko::factory()->create(['subscription_id' => $subscription->id]);
 
-    Category::factory()->count(2)->create(['toko_id' => $toko->id]);
-
+    // Has 0 categories
     expect(app(SubscriptionService::class)->canCreateCategory($toko))->toBeTrue();
 });
 
@@ -229,13 +228,17 @@ test('canAddPaymentMethod returns false when limit reached', function () {
     $subscription = Subscription::factory()->free()->create(); // max 2
     $toko = Toko::factory()->create(['subscription_id' => $subscription->id]);
 
-    PaymentMethod::factory()->count(2)->create(['toko_id' => $toko->id]);
+    // Toko has booted payment methods (Tunai, QRIS are default-active)
+    // Wait, the booted event in Toko creates 3 payment methods (2 active: Tunai, QRIS)
+    // To cleanly test: count currently active payment methods.
+    $activeCount = $toko->paymentMethods()->where('is_active', true)->count();
+    expect($activeCount)->toBe(2);
 
     expect(app(SubscriptionService::class)->canAddPaymentMethod($toko))->toBeFalse();
 });
 
-test('canAddPaymentMethod returns true when unlimited on pro plan', function () {
-    $subscription = Subscription::factory()->pro()->create();
+test('canAddPaymentMethod returns true when unlimited on premium plan', function () {
+    $subscription = Subscription::factory()->premium()->create();
     $toko = Toko::factory()->create(['subscription_id' => $subscription->id]);
 
     PaymentMethod::factory()->count(50)->create(['toko_id' => $toko->id]);
@@ -257,8 +260,8 @@ test('canAddStaff counts toko users with Owner or kasir role', function () {
     expect(app(SubscriptionService::class)->canAddStaff($toko))->toBeFalse();
 });
 
-test('canAddStaff returns true when under the staff limit on pro plan', function () {
-    $subscription = Subscription::factory()->pro()->create(); // unlimited staff
+test('canAddStaff returns true when under the staff limit on premium plan', function () {
+    $subscription = Subscription::factory()->premium()->create(); // unlimited staff
     $toko = Toko::factory()->create(['subscription_id' => $subscription->id]);
 
     User::factory()->count(10)->create(['toko_id' => $toko->id, 'role' => 'owner']);

@@ -4,7 +4,6 @@ namespace App\Filament\Resources\Subscriptions;
 
 use App\Filament\Resources\Concerns\HasRoleNavigation;
 use App\Filament\Resources\Subscriptions\Infolists\SubscriptionInfolist;
-use App\Filament\Resources\Subscriptions\Pages\CreateSubscription;
 use App\Filament\Resources\Subscriptions\Pages\EditSubscription;
 use App\Filament\Resources\Subscriptions\Pages\ListSubscriptions;
 use App\Filament\Resources\Subscriptions\Pages\ViewSubscription;
@@ -16,6 +15,7 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Model;
 
 class SubscriptionResource extends Resource
 {
@@ -30,6 +30,21 @@ class SubscriptionResource extends Resource
     protected static array $allowedRoles = ['super_admin'];
 
     protected static ?string $recordTitleAttribute = 'name';
+
+    public static function canCreate(): bool
+    {
+        return false;
+    }
+
+    public static function canDelete(Model $record): bool
+    {
+        return false;
+    }
+
+    public static function canDeleteAny(): bool
+    {
+        return false;
+    }
 
     public static function form(Schema $schema): Schema
     {
@@ -57,7 +72,6 @@ class SubscriptionResource extends Resource
     {
         return [
             'index' => ListSubscriptions::route('/'),
-            'create' => CreateSubscription::route('/create'),
             'edit' => EditSubscription::route('/{record}/edit'),
             'view' => ViewSubscription::route('/{record}'),
         ];

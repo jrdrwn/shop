@@ -25,12 +25,7 @@ class ViewToko extends ViewRecord
                 ->color('gray')
                 ->visible(fn (): bool => Auth::user()?->role === 'owner')
                 ->form([
-                    TextInput::make('current_password')
-                        ->label('Password Saat Ini')
-                        ->password()
-                        ->revealable()
-                        ->required()
-                        ->currentPassword(),
+
                     TextInput::make('new_password')
                         ->label('Password Baru')
                         ->password()

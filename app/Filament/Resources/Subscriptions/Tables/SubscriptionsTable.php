@@ -3,8 +3,6 @@
 namespace App\Filament\Resources\Subscriptions\Tables;
 
 use App\Enums\SubscriptionPlan;
-use Filament\Actions\BulkActionGroup;
-use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\BadgeColumn;
@@ -32,7 +30,7 @@ class SubscriptionsTable
                     ->formatStateUsing(fn (SubscriptionPlan $state): string => $state->getLabel())
                     ->colors([
                         'gray' => SubscriptionPlan::Free->value,
-                        'warning' => SubscriptionPlan::Pro->value,
+                        'primary' => [SubscriptionPlan::Medium->value, SubscriptionPlan::Premium->value],
                     ])
                     ->sortable(),
                 TextColumn::make('price')
@@ -82,14 +80,6 @@ class SubscriptionsTable
                     ? [ViewAction::make()]
                     : [ViewAction::make(), EditAction::make()]
             )
-            ->toolbarActions(
-                $isOwner
-                    ? []
-                    : [
-                        BulkActionGroup::make([
-                            DeleteBulkAction::make(),
-                        ]),
-                    ]
-            );
+            ->toolbarActions([]);
     }
 }

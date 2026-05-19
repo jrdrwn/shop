@@ -1,6 +1,6 @@
 <?php
 
-use App\Filament\Pages\Pos;
+use App\Filament\Pages\Cashier\Pos;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\Toko;

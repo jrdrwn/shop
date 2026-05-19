@@ -114,10 +114,18 @@ class SampleDataSeeder extends Seeder
             ]);
 
             Subscription::create([
-                'name' => 'Pro Plan',
-                'price' => 99000,
+                'name' => 'Medium Plan',
+                'price' => 150000,
                 'duration_months' => 1,
-                'features' => ['advanced_reports', 'multiple-stores'],
+                'features' => ['advanced_reports', 'inventory_management'],
+                'is_active' => true,
+            ]);
+
+            Subscription::create([
+                'name' => 'Premium Plan',
+                'price' => 200000,
+                'duration_months' => 1,
+                'features' => ['unlimited_stores', 'all_features'],
                 'is_active' => true,
             ]);
         });

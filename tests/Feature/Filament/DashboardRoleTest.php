@@ -1,22 +1,21 @@
 <?php
 
-use App\Filament\Pages\CashierDashboard;
-use App\Filament\Pages\Dashboard;
-use App\Filament\Pages\OwnerDashboard;
-use App\Filament\Widgets\CashierHourlyTransactionsChart;
-use App\Filament\Widgets\CashierStatsWidget;
-use App\Filament\Widgets\CashierTodayTransactionsTable;
-use App\Filament\Widgets\OwnerDailyRevenueChart;
-use App\Filament\Widgets\OwnerLowStockTable;
-use App\Filament\Widgets\OwnerStaffPerformanceTable;
-use App\Filament\Widgets\OwnerStatsWidget;
-use App\Filament\Widgets\OwnerTokoTransactionsTable;
-use App\Filament\Widgets\OwnerTopProductsChart;
-use App\Filament\Widgets\SubscriptionStatusWidget;
-use App\Filament\Widgets\SubscriptionUpgradeWidget;
-use App\Filament\Widgets\SuperAdminStatsWidget;
-use App\Filament\Widgets\SuperAdminSubscriptionChart;
-use App\Filament\Widgets\SuperAdminTokoSummaryTable;
+use App\Filament\Pages\Cashier\CashierPanelDashboard as CashierDashboard;
+use App\Filament\Pages\Owner\OwnerPanelDashboard as OwnerDashboard;
+use App\Filament\Pages\SuperAdmin\Dashboard;
+use App\Filament\Widgets\Cashier\CashierHourlyTransactionsChart;
+use App\Filament\Widgets\Cashier\CashierStatsWidget;
+use App\Filament\Widgets\Cashier\CashierTodayTransactionsTable;
+use App\Filament\Widgets\Owner\OwnerDailyRevenueChart;
+use App\Filament\Widgets\Owner\OwnerLowStockTable;
+use App\Filament\Widgets\Owner\OwnerStaffPerformanceTable;
+use App\Filament\Widgets\Owner\OwnerStatsWidget;
+use App\Filament\Widgets\Owner\OwnerTokoTransactionsTable;
+use App\Filament\Widgets\Owner\OwnerTopProductsChart;
+use App\Filament\Widgets\Subscription\SubscriptionUpgradeWidget;
+use App\Filament\Widgets\SuperAdmin\SuperAdminStatsWidget;
+use App\Filament\Widgets\SuperAdmin\SuperAdminSubscriptionChart;
+use App\Filament\Widgets\SuperAdmin\SuperAdminTokoSummaryTable;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\Subscription;
@@ -37,7 +36,7 @@ test('super admin dashboard memantau toko, Owner, dan subscription', function ()
     $Owner = User::factory()->createOne(['role' => 'owner', 'is_active' => true]);
 
     $subscription = Subscription::query()->create([
-        'name' => 'Pro Plan', 'price' => 250000, 'duration_months' => 1,
+        'name' => 'Premium Plan', 'plan' => 'premium', 'price' => 250000, 'duration_months' => 1,
         'features' => ['reports'], 'is_active' => true,
     ]);
 
@@ -132,7 +131,6 @@ test('Owner dashboard lebih detail dari kasir', function (): void {
 
     // All Owner widgets present
     expect($ownerWidgets)->toContain(SubscriptionUpgradeWidget::class)
-        ->toContain(SubscriptionStatusWidget::class)
         ->toContain(OwnerStatsWidget::class)
         ->toContain(OwnerDailyRevenueChart::class)
         ->toContain(OwnerTopProductsChart::class)

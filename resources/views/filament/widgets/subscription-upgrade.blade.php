@@ -5,7 +5,7 @@
             description="Tingkatkan toko Anda dengan paket yang sesuai."
             icon="heroicon-o-rocket-launch"
             collapsible
-            collapsed
+            class="bg-primary-50/60 dark:bg-primary-950/20 border border-primary-200/50 dark:border-primary-800/40"
         >
             @php
                 $currentPlan = $this->getCurrentPlan();
@@ -62,7 +62,7 @@
                     @endphp
 
                     <div
-                        class="fi-subscription-upgrade__plan {{ $isCurrent ? 'fi-subscription-upgrade__plan--current' : '' }}"
+                        class="fi-subscription-upgrade__plan fi-subscription-upgrade__plan--{{ $planData['plan']->value }} {{ $isCurrent ? 'fi-subscription-upgrade__plan--current' : '' }}"
                         style="border-color: {{ $isCurrent ? $colorVar : 'transparent' }};"
                     >
                         @if ($isCurrent)

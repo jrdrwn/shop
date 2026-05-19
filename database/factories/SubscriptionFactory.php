@@ -37,13 +37,24 @@ class SubscriptionFactory extends Factory
         ]);
     }
 
-    public function pro(): static
+    public function medium(): static
     {
         return $this->state([
-            'plan' => SubscriptionPlan::Pro,
-            'price' => SubscriptionPlan::Pro->price(),
-            'duration_months' => SubscriptionPlan::Pro->durationMonths(),
-            'features' => SubscriptionPlan::Pro->marketingFeatures(),
+            'plan' => SubscriptionPlan::Medium,
+            'price' => SubscriptionPlan::Medium->price(),
+            'duration_months' => SubscriptionPlan::Medium->durationMonths(),
+            'features' => SubscriptionPlan::Medium->marketingFeatures(),
+            'limits' => null,
+        ]);
+    }
+
+    public function premium(): static
+    {
+        return $this->state([
+            'plan' => SubscriptionPlan::Premium,
+            'price' => SubscriptionPlan::Premium->price(),
+            'duration_months' => SubscriptionPlan::Premium->durationMonths(),
+            'features' => SubscriptionPlan::Premium->marketingFeatures(),
             'limits' => null,
         ]);
     }

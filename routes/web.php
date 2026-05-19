@@ -62,4 +62,4 @@ Route::prefix('subscription')->name('subscription.')->group(function () {
         ->name('error');
 });
 
-// require __DIR__.'/settings.php';
+require __DIR__.'/settings.php';

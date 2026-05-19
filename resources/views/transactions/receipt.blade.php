@@ -106,13 +106,23 @@
         <div class="receipt-header">
             <div class="receipt-logo">
                 @if($transaction->toko && $transaction->toko->logo_url)
-                    <img src="{{ asset('storage/' . $transaction->toko->logo_url) }}" alt="Logo Toko" style="max-height: 48px; max-width: 100%;">
+                    <img src="{{ asset('storage/' . $transaction->toko->logo_url) }}" alt="Logo Toko" style="max-height: 56px; max-width: 100%; border-radius: 12px;">
                 @else
-                    <img src="{{ asset('/default-logo/light-mode.png') }}" class="logo-light" alt="Logo Default" style="max-height: 48px; max-width: 100%;">
-                    <img src="{{ asset('/default-logo/dark-mode.png') }}" class="logo-dark" alt="Logo Default" style="max-height: 48px; max-width: 100%;">
+                    <img src="{{ asset('/default-logo/light-mode.png') }}" class="logo-light" alt="Logo Default" style="max-height: 56px; max-width: 100%; border-radius: 12px;">
+                    <img src="{{ asset('/default-logo/dark-mode.png') }}" class="logo-dark" alt="Logo Default" style="max-height: 56px; max-width: 100%; border-radius: 12px;">
                 @endif
             </div>
             <h2>{{ strtoupper($transaction->toko->name ?? 'TOKO') }}</h2>
+            @php
+                $locationParts = array_filter([
+                    $transaction->toko->address ?? null,
+                    $transaction->toko->city ?? null,
+                    $transaction->toko->province ?? null,
+                ]);
+            @endphp
+            @if(!empty($locationParts))
+                <p class="receipt-trx-num" style="margin: .15rem 0 .35rem; font-size: .75rem;">{{ implode(', ', $locationParts) }}</p>
+            @endif
             <p class="receipt-trx-num">{{ $transaction->transaction_number }}</p>
         </div>
 

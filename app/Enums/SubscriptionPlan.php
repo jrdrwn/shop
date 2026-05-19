@@ -8,13 +8,15 @@ use Filament\Support\Contracts\HasLabel;
 enum SubscriptionPlan: string implements HasColor, HasLabel
 {
     case Free = 'free';
-    case Pro = 'pro';
+    case Medium = 'medium';
+    case Premium = 'premium';
 
     public function getLabel(): string
     {
         return match ($this) {
             self::Free => 'Free',
-            self::Pro => 'Pro',
+            self::Medium => 'Medium',
+            self::Premium => 'Premium',
         };
     }
 
@@ -22,7 +24,8 @@ enum SubscriptionPlan: string implements HasColor, HasLabel
     {
         return match ($this) {
             self::Free => 'gray',
-            self::Pro => 'warning',
+            self::Medium => 'primary',
+            self::Premium => 'warning',
         };
     }
 
@@ -46,15 +49,25 @@ enum SubscriptionPlan: string implements HasColor, HasLabel
         return match ($this) {
             self::Free => [
                 'max_products' => 10,
-                'max_categories' => 3,
-                'max_staff' => 4,
+                'max_categories' => 1,
+                'max_staff' => 1,
                 'max_payment_methods' => 2,
                 'can_export_reports' => false,
                 'can_use_inventory' => false,
                 'can_use_variants' => false,
                 'can_use_discounts' => false,
             ],
-            self::Pro => [
+            self::Medium => [
+                'max_products' => 20,
+                'max_categories' => 7,
+                'max_staff' => 8,
+                'max_payment_methods' => 3,
+                'can_export_reports' => true,
+                'can_use_inventory' => true,
+                'can_use_variants' => true,
+                'can_use_discounts' => true,
+            ],
+            self::Premium => [
                 'max_products' => null,
                 'max_categories' => null,
                 'max_staff' => null,
@@ -73,8 +86,9 @@ enum SubscriptionPlan: string implements HasColor, HasLabel
     public function description(): string
     {
         return match ($this) {
-            self::Free => 'Gratis selamanya, cocok untuk bisnis baru.',
-            self::Pro => 'Semua fitur tanpa batas untuk bisnis Anda.',
+            self::Free => 'Gratis selamanya, cocok untuk toko baru.',
+            self::Medium => 'Akses 70% fitur untuk toko berkembang.',
+            self::Premium => 'Akses penuh semua fitur untuk toko Anda.',
         };
     }
 
@@ -88,12 +102,22 @@ enum SubscriptionPlan: string implements HasColor, HasLabel
         return match ($this) {
             self::Free => [
                 '10 Produk',
-                '3 Kategori',
-                '4 Staff',
+                '1 Kategori',
+                '1 Staff',
                 '2 Metode Pembayaran',
                 'Laporan Dasar',
             ],
-            self::Pro => [
+            self::Medium => [
+                '20 Produk',
+                '7 Kategori',
+                '8 Staff',
+                '3 Metode Pembayaran',
+                'Ekspor Laporan',
+                'Manajemen Inventori',
+                'Varian Produk',
+                'Diskon Produk',
+            ],
+            self::Premium => [
                 'Produk Tidak Terbatas',
                 'Kategori Tidak Terbatas',
                 'Staff Tidak Terbatas',
@@ -113,7 +137,8 @@ enum SubscriptionPlan: string implements HasColor, HasLabel
     {
         return match ($this) {
             self::Free => 0,
-            self::Pro => 150000,
+            self::Medium => 150000,
+            self::Premium => 200000,
         };
     }
 
@@ -124,7 +149,8 @@ enum SubscriptionPlan: string implements HasColor, HasLabel
     {
         return match ($this) {
             self::Free => 0,
-            self::Pro => 1,
+            self::Medium => 1,
+            self::Premium => 1,
         };
     }
 }

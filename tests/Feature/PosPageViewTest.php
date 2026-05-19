@@ -1,32 +1,50 @@
 <?php
 
+use App\Filament\Pages\Cashier\Pos;
+use App\Models\Category;
+use App\Models\Product;
+use App\Models\Toko;
+use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Livewire\Livewire;
+
+uses(RefreshDatabase::class);
+
 test('pos page renders searchable product data attributes', function () {
-    $view = view('filament.pages.pos', [
-        'products' => [
-            [
-                'id' => 1,
-                'name' => 'Kopi Gula Aren',
-                'price' => 18000,
-                'stock' => 5,
-                'sku' => 'SKU-1',
-                'category_id' => 1,
-                'image_url' => null,
-                'has_variants' => false,
-            ],
-        ],
-        'categories' => [],
-        'taxPercentage' => 0,
-        'serviceChargePercentage' => 0,
-        'activePaymentMethods' => ['cash'],
-        'qrisType' => 'manual',
-        'tokoName' => 'Tokatur',
-        'tokoLogo' => null,
-        'midtransClientKey' => null,
+    $admin = User::factory()->createOne([
+        'role' => 'super_admin',
+        'is_active' => true,
     ]);
 
-    $html = $view->render();
+    $toko = Toko::query()->create([
+        'name' => 'Tokatur',
+        'created_by' => $admin->id,
+    ]);
 
-    expect($html)->toContain('data-display-name="Kopi Gula Aren"');
-    expect($html)->toContain('data-name="kopi gula aren"');
-    expect($html)->toContain('data-price="18000"');
+    $category = Category::query()->create([
+        'toko_id' => $toko->id,
+        'name' => 'Coffee',
+    ]);
+
+    Product::query()->create([
+        'toko_id' => $toko->id,
+        'category_id' => $category->id,
+        'name' => 'Kopi Gula Aren',
+        'price' => 18000,
+        'stock' => 5,
+        'sku' => 'SKU-1',
+        'is_active' => true,
+    ]);
+
+    $kasir = User::factory()->createOne([
+        'role' => 'kasir',
+        'toko_id' => $toko->id,
+        'is_active' => true,
+    ]);
+
+    Livewire::actingAs($kasir)
+        ->test(Pos::class)
+        ->assertSeeHtml('data-display-name="Kopi Gula Aren"')
+        ->assertSeeHtml('data-name="kopi gula aren"')
+        ->assertSeeHtml('data-price="18000"');
 });

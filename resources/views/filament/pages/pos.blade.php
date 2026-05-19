@@ -34,13 +34,19 @@
                 <div class="text-center p-7 border-b border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-950 fi-pos-border fi-pos-border-dark fi-bg-color-50 dark:fi-bg-color-950">
                     <div class="mb-2">
                         @if($tokoLogo)
-                            <img src="{{ asset('storage/' . $tokoLogo) }}" alt="Logo Toko" class="max-h-12 max-w-full mx-auto">
+                            <img src="{{ asset('storage/' . $tokoLogo) }}" alt="Logo Toko" class="max-h-12 max-w-full mx-auto rounded-xl">
                         @else
-                            <img src="{{ asset('/default-logo/light-mode.png') }}" class="logo-light max-h-12 max-w-full mx-auto" alt="Logo Default">
-                            <img src="{{ asset('/default-logo/dark-mode.png') }}" class="logo-dark max-h-12 max-w-full mx-auto hidden" alt="Logo Default">
+                            <img src="{{ asset('/default-logo/light-mode.png') }}" class="logo-light max-h-12 max-w-full mx-auto rounded-xl" alt="Logo Default">
+                            <img src="{{ asset('/default-logo/dark-mode.png') }}" class="logo-dark max-h-12 max-w-full mx-auto hidden rounded-xl" alt="Logo Default">
                         @endif
                     </div>
                     <h2 class="m-0 text-lg font-bold tracking-widest text-gray-700 dark:text-gray-200 uppercase fi-text-color-700 dark:fi-text-color-0">{{ $tokoName }}</h2>
+                    @php
+                        $locationParts = array_filter([$tokoAddress ?? null, $tokoCity ?? null, $tokoProvince ?? null]);
+                    @endphp
+                    @if(!empty($locationParts))
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">{{ implode(', ', $locationParts) }}</p>
+                    @endif
                     <p id="receipt-trx-num" class="mt-1 text-xs text-gray-400 font-mono fi-text-color-400">TRX...</p>
                 </div>
 

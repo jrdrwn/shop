@@ -3,7 +3,7 @@
 use Illuminate\Support\Facades\Blade;
 
 test('role links menyembunyikan tombol admin saat mode debug off', function () {
-    config(['app.debug' => false]);
+    app()->detectEnvironment(fn () => 'production');
 
     $adminHtml = Blade::render('<x-admin-role-links />');
     expect($adminHtml)->toContain('fi-role-links--compact');
@@ -26,7 +26,7 @@ test('role links menyembunyikan tombol admin saat mode debug off', function () {
 });
 
 test('role links menampilkan tombol admin saat mode debug on', function () {
-    config(['app.debug' => true]);
+    app()->detectEnvironment(fn () => 'local');
 
     $adminHtml = Blade::render('<x-admin-role-links />');
     expect($adminHtml)->toContain('fi-role-link');

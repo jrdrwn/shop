@@ -13,7 +13,7 @@ use App\Services\SubscriptionService;
 
 test('subscription payment can be created', function () {
     $toko = Toko::factory()->create();
-    $subscription = Subscription::factory()->pro()->create();
+    $subscription = Subscription::factory()->premium()->create();
 
     $payment = SubscriptionPayment::create([
         'toko_id' => $toko->id,
@@ -31,7 +31,7 @@ test('subscription payment can be created', function () {
 
 test('subscription payment status helpers work correctly', function () {
     $toko = Toko::factory()->create();
-    $subscription = Subscription::factory()->pro()->create();
+    $subscription = Subscription::factory()->premium()->create();
 
     $pending = SubscriptionPayment::create([
         'toko_id' => $toko->id,
@@ -68,25 +68,25 @@ test('subscription payment status helpers work correctly', function () {
 
 test('activate subscription updates toko subscription_id', function () {
     $toko = Toko::factory()->create();
-    $proSubscription = Subscription::factory()->pro()->create();
+    $premiumSubscription = Subscription::factory()->premium()->create();
 
     $service = app(SubscriptionService::class);
-    $service->activateSubscription($toko, $proSubscription, 'trx-123');
+    $service->activateSubscription($toko, $premiumSubscription, 'trx-123');
 
     $toko->refresh();
 
-    expect($toko->subscription_id)->toBe($proSubscription->id);
+    expect($toko->subscription_id)->toBe($premiumSubscription->id);
 });
 
 // ---------------------------------------------------------------------------
-// Subscription plan enum – only Free and Pro
+// Subscription plan enum – Free, Medium and Premium
 // ---------------------------------------------------------------------------
 
-test('subscription plan enum has only free and pro cases', function () {
+test('subscription plan enum has only free, medium and premium cases', function () {
     $cases = SubscriptionPlan::cases();
 
-    expect($cases)->toHaveCount(2)
-        ->and(collect($cases)->pluck('value')->toArray())->toContain('free', 'pro');
+    expect($cases)->toHaveCount(3)
+        ->and(collect($cases)->pluck('value')->toArray())->toContain('free', 'medium', 'premium');
 });
 
 test('free plan has correct default values', function () {
@@ -98,12 +98,21 @@ test('free plan has correct default values', function () {
         ->and($plan->getColor())->toBe('gray');
 });
 
-test('pro plan has correct default values', function () {
-    $plan = SubscriptionPlan::Pro;
+test('medium plan has correct default values', function () {
+    $plan = SubscriptionPlan::Medium;
 
     expect($plan->price())->toBe(150000)
         ->and($plan->durationMonths())->toBe(1)
-        ->and($plan->getLabel())->toBe('Pro')
+        ->and($plan->getLabel())->toBe('Medium')
+        ->and($plan->getColor())->toBe('primary');
+});
+
+test('premium plan has correct default values', function () {
+    $plan = SubscriptionPlan::Premium;
+
+    expect($plan->price())->toBe(200000)
+        ->and($plan->durationMonths())->toBe(1)
+        ->and($plan->getLabel())->toBe('Premium')
         ->and($plan->getColor())->toBe('warning');
 });
 
@@ -111,14 +120,27 @@ test('free plan marketing features are correct', function () {
     $features = SubscriptionPlan::Free->marketingFeatures();
 
     expect($features)->toContain('10 Produk')
-        ->and($features)->toContain('3 Kategori')
+        ->and($features)->toContain('1 Kategori')
         ->and($features)->toContain('1 Staff')
         ->and($features)->toContain('2 Metode Pembayaran')
         ->and($features)->toContain('Laporan Dasar');
 });
 
-test('pro plan marketing features include all premium features', function () {
-    $features = SubscriptionPlan::Pro->marketingFeatures();
+test('medium plan marketing features are correct', function () {
+    $features = SubscriptionPlan::Medium->marketingFeatures();
+
+    expect($features)->toContain('20 Produk')
+        ->and($features)->toContain('7 Kategori')
+        ->and($features)->toContain('8 Staff')
+        ->and($features)->toContain('3 Metode Pembayaran')
+        ->and($features)->toContain('Ekspor Laporan')
+        ->and($features)->toContain('Manajemen Inventori')
+        ->and($features)->toContain('Varian Produk')
+        ->and($features)->toContain('Diskon Produk');
+});
+
+test('premium plan marketing features include all premium features', function () {
+    $features = SubscriptionPlan::Premium->marketingFeatures();
 
     expect($features)->toContain('Produk Tidak Terbatas')
         ->and($features)->toContain('Kategori Tidak Terbatas')
@@ -144,7 +166,7 @@ test('snap token endpoint requires authentication', function () {
 
 test('snap token endpoint requires Owner role', function () {
     $user = User::factory()->create(['role' => 'kasir']);
-    $subscription = Subscription::factory()->pro()->create();
+    $subscription = Subscription::factory()->premium()->create();
 
     $response = $this->actingAs($user)->postJson(route('subscription.snap-token'), [
         'subscription_id' => $subscription->id,

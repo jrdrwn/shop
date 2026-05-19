@@ -28,6 +28,12 @@ class Pos extends Page
 
     public ?string $tokoLogo = null;
 
+    public ?string $tokoAddress = null;
+
+    public ?string $tokoCity = null;
+
+    public ?string $tokoProvince = null;
+
     /** Tax percentage from the toko — read-only in POS */
     public int $taxPercentage = 0;
 
@@ -50,6 +56,9 @@ class Pos extends Page
             $this->serviceChargePercentage = (int) $toko->service_charge_percentage;
             $this->tokoName = $toko->name;
             $this->tokoLogo = $toko->logo_url;
+            $this->tokoAddress = $toko->address;
+            $this->tokoCity = $toko->city;
+            $this->tokoProvince = $toko->province;
             $this->qrisType = $toko->qris_type ?? 'manual';
             $this->midtransClientKey = $toko->midtrans_client_key;
 

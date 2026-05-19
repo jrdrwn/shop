@@ -20,7 +20,7 @@
         ],
     ];
 
-    if (! config('app.debug')) {
+    if (app()->environment('production')) {
         $links = collect($links)->filter(fn ($link) => $link['name'] !== 'Admin')->all();
     }
 @endphp

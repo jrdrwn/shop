@@ -3,7 +3,6 @@
 namespace App\Filament\Resources\Subscriptions\Pages;
 
 use App\Filament\Resources\Subscriptions\SubscriptionResource;
-use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
 use Filament\Resources\Pages\ViewRecord;
 use Illuminate\Support\Facades\Auth;
@@ -23,7 +22,6 @@ class ViewSubscription extends ViewRecord
 
         return [
             EditAction::make(),
-            DeleteAction::make(),
         ];
     }
 }

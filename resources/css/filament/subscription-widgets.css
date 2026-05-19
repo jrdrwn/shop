@@ -99,6 +99,7 @@
         gap: 1rem;
         border-radius: 0.75rem;
         padding: 0.75rem;
+        margin-bottom: 1.5rem;
     }
 
     .fi-subscription-upgrade__current-copy {
@@ -145,6 +146,12 @@
     @media (min-width: 640px) {
         .fi-subscription-upgrade__plans {
             grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+
+    @media (min-width: 1024px) {
+        .fi-subscription-upgrade__plans {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
         }
     }
 
@@ -335,9 +342,62 @@
     .fi-subscription-upgrade__actions {
         display: flex;
         justify-content: flex-end;
+        margin-top: 1.5rem;
     }
 
     .fi-subscription-upgrade__hooks {
         display: none;
+    }
+
+    /* Free Card Styles (Netral / Gray) */
+    .fi-subscription-upgrade__plan--free {
+        background-color: var(--color-gray-50);
+        border: 1px solid var(--color-gray-200) !important;
+    }
+    .dark .fi-subscription-upgrade__plan--free {
+        background-color: color-mix(in oklab, var(--color-white) 3%, var(--gray-950));
+        border-color: var(--color-gray-800) !important;
+    }
+    .fi-subscription-upgrade__plan--free:hover {
+        border-color: var(--color-gray-400) !important;
+    }
+    .dark .fi-subscription-upgrade__plan--free:hover {
+        border-color: var(--color-gray-600) !important;
+    }
+
+    /* Medium Card Styles (Primary / Hijau) */
+    .fi-subscription-upgrade__plan--medium {
+        background-color: color-mix(in oklab, var(--color-primary-500) 6%, var(--color-white));
+        border: 1.5px solid color-mix(in oklab, var(--color-primary-500) 25%, transparent) !important;
+    }
+    .dark .fi-subscription-upgrade__plan--medium {
+        background-color: color-mix(in oklab, var(--color-primary-500) 8%, var(--gray-900));
+        border-color: color-mix(in oklab, var(--color-primary-500) 35%, transparent) !important;
+    }
+    .fi-subscription-upgrade__plan--medium:hover {
+        border-color: var(--color-primary-500) !important;
+        box-shadow: 0 12px 24px color-mix(in oklab, var(--color-primary-500) 12%, transparent) !important;
+    }
+    .dark .fi-subscription-upgrade__plan--medium:hover {
+        border-color: var(--color-primary-400) !important;
+        box-shadow: 0 12px 24px color-mix(in oklab, var(--color-primary-400) 15%, transparent) !important;
+    }
+
+    /* Premium Card Styles (Warning / Gold / Kuning) */
+    .fi-subscription-upgrade__plan--premium {
+        background-color: color-mix(in oklab, var(--color-warning-500) 6%, var(--color-white));
+        border: 2px solid color-mix(in oklab, var(--color-warning-500) 40%, transparent) !important;
+    }
+    .dark .fi-subscription-upgrade__plan--premium {
+        background-color: color-mix(in oklab, var(--color-warning-500) 8%, var(--gray-900));
+        border-color: color-mix(in oklab, var(--color-warning-500) 50%, transparent) !important;
+    }
+    .fi-subscription-upgrade__plan--premium:hover {
+        border-color: var(--color-warning-500) !important;
+        box-shadow: 0 12px 24px color-mix(in oklab, var(--color-warning-500) 15%, transparent) !important;
+    }
+    .dark .fi-subscription-upgrade__plan--premium:hover {
+        border-color: var(--color-warning-400) !important;
+        box-shadow: 0 12px 24px color-mix(in oklab, var(--color-warning-400) 18%, transparent) !important;
     }
 }

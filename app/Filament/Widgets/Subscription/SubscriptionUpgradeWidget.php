@@ -175,10 +175,10 @@ class SubscriptionUpgradeWidget extends Widget implements HasActions, HasSchemas
         $stats[] = $this->usageStat('Staff', $toko->users()->whereIn('role', ['kasir', 'gudang'])->count(), $subscription?->getLimit('max_staff'), 'heroicon-m-users');
         $stats[] = $this->usageStat('Metode Pembayaran', $toko->paymentMethods()->count(), $subscription?->getLimit('max_payment_methods'), 'heroicon-m-banknotes');
 
-        $stats[] = $this->featureStat('Inventori', $service->canUseInventory($toko), 'heroicon-m-archive-box', 'Pro');
-        $stats[] = $this->featureStat('Varian Produk', $service->canUseVariants($toko), 'heroicon-m-adjustments-horizontal', 'Pro');
-        $stats[] = $this->featureStat('Diskon Produk', $service->canUseDiscounts($toko), 'heroicon-m-receipt-percent', 'Pro');
-        $stats[] = $this->featureStat('Ekspor Laporan', $service->canExportReports($toko), 'heroicon-m-document-arrow-down', 'Pro');
+        $stats[] = $this->featureStat('Inventori', $service->canUseInventory($toko), 'heroicon-m-archive-box', 'Medium');
+        $stats[] = $this->featureStat('Varian Produk', $service->canUseVariants($toko), 'heroicon-m-adjustments-horizontal', 'Medium');
+        $stats[] = $this->featureStat('Diskon Produk', $service->canUseDiscounts($toko), 'heroicon-m-receipt-percent', 'Medium');
+        $stats[] = $this->featureStat('Ekspor Laporan', $service->canExportReports($toko), 'heroicon-m-document-arrow-down', 'Medium');
 
         return $stats;
     }
@@ -243,8 +243,8 @@ class SubscriptionUpgradeWidget extends Widget implements HasActions, HasSchemas
                                     $isDisabled = true;
                                 }
 
-                                // Disable Free if already on Pro (no downgrade via UI)
-                                if ($currentPlan && $currentPlan->value === 'pro' && $plan->value === 'free') {
+                                // Disable downgrades via UI
+                                if ($currentPlan && $currentPlan->price() > $plan->price()) {
                                     $isDisabled = true;
                                 }
 

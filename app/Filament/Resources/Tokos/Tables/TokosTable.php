@@ -29,9 +29,8 @@ class TokosTable
                 BadgeColumn::make('subscription.name')
                     ->label('Langganan')
                     ->colors([
-                        'secondary' => fn ($state): bool => strtolower((string) $state) === 'free',
-                        'warning' => fn ($state): bool => strtolower((string) $state) === 'plus',
-                        'success' => fn ($state): bool => strtolower((string) $state) === 'pro',
+                        'gray' => fn ($state): bool => strtolower((string) $state) === 'free',
+                        'primary' => fn ($state): bool => in_array(strtolower((string) $state), ['medium', 'premium'], true),
                     ])
                     ->sortable()
                     ->searchable(),

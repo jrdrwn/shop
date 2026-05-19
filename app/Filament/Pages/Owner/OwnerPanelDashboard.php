@@ -8,10 +8,10 @@ use App\Filament\Widgets\Owner\OwnerStaffPerformanceTable;
 use App\Filament\Widgets\Owner\OwnerStatsWidget;
 use App\Filament\Widgets\Owner\OwnerTokoTransactionsTable;
 use App\Filament\Widgets\Owner\OwnerTopProductsChart;
-use App\Filament\Widgets\Subscription\SubscriptionStatusWidget;
 use App\Filament\Widgets\Subscription\SubscriptionUpgradeWidget;
 use BackedEnum;
 use Filament\Pages\Dashboard as BaseDashboard;
+use Illuminate\Support\Facades\Auth;
 
 class OwnerPanelDashboard extends BaseDashboard
 {
@@ -21,11 +21,22 @@ class OwnerPanelDashboard extends BaseDashboard
 
     protected static string $routePath = '/';
 
+    public static function canAccess(): bool
+    {
+        $role = Auth::user()?->role;
+
+        return Auth::check() && in_array($role, ['owner', 'manager'], true);
+    }
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        return static::canAccess();
+    }
+
     public function getWidgets(): array
     {
         return [
             SubscriptionUpgradeWidget::class,
-            SubscriptionStatusWidget::class,
             OwnerStatsWidget::class,
             OwnerDailyRevenueChart::class,
             OwnerTopProductsChart::class,

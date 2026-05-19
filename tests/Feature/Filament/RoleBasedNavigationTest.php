@@ -1,6 +1,6 @@
 <?php
 
-use App\Filament\Pages\Pos;
+use App\Filament\Pages\Cashier\Pos;
 use App\Filament\Resources\Categories\CategoryResource;
 use App\Filament\Resources\InventoryLogs\InventoryLogResource;
 use App\Filament\Resources\PaymentMethods\PaymentMethodResource;
