@@ -1,0 +1,55 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  build-and-zip:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install Node Dependencies
+        run: npm ci
+
+      - name: Install PHP dependencies
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: 8.4
+          tools: composer:v2
+      - name: Composer install
+        run: composer install --no-interaction --prefer-dist --optimize-autoloader
+
+      - name: Build Assets
+        run: npm run build
+
+      - name: Zip project (include vendor, exclude node_modules)
+        run: |
+          zip -r build_with_vendor.zip . -x "node_modules/*" ".git/*" "*.zip"
+
+      - name: Zip project (exclude vendor and node_modules)
+        run: |
+          zip -r build_no_vendor.zip . -x "vendor/*" "node_modules/*" ".git/*" "*.zip"
+
+      - name: Zip project (exclude vendor, storage, and node_modules)
+        run: |
+          zip -r build_no_vendor_storage.zip . -x "vendor/*" "storage/*" "node_modules/*" ".git/*" "*.zip"
+
+      - name: Upload Release Assets
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            build_with_vendor.zip
+            build_no_vendor.zip
+            build_no_vendor_storage.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
