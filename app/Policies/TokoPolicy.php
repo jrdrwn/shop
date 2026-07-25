@@ -18,7 +18,7 @@ class TokoPolicy
     public function view(User $user, Toko $toko): bool
     {
         if ($user->role === UserRole::Owner->value || $user->role === 'owner') {
-            return $user->toko_id === $toko->id;
+            return (int) $user->toko_id === (int) $toko->id;
         }
 
         return false;
@@ -32,7 +32,7 @@ class TokoPolicy
     public function update(User $user, Toko $toko): bool
     {
         if ($user->role === UserRole::Owner->value || $user->role === 'owner') {
-            return $user->toko_id === $toko->id;
+            return (int) $user->toko_id === (int) $toko->id;
         }
 
         return false;

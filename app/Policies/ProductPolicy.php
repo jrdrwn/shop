@@ -18,7 +18,7 @@ class ProductPolicy
     public function view(User $user, Product $product): bool
     {
         if (in_array($user->role, [UserRole::Owner->value, 'owner', UserRole::Warehouse->value, 'gudang'])) {
-            return $user->toko_id === $product->toko_id;
+            return (int) $user->toko_id === (int) $product->toko_id;
         }
 
         return false;
@@ -32,7 +32,7 @@ class ProductPolicy
     public function update(User $user, Product $product): bool
     {
         if (in_array($user->role, [UserRole::Owner->value, 'owner', UserRole::Warehouse->value, 'gudang'])) {
-            return $user->toko_id === $product->toko_id;
+            return (int) $user->toko_id === (int) $product->toko_id;
         }
 
         return false;
@@ -41,7 +41,7 @@ class ProductPolicy
     public function delete(User $user, Product $product): bool
     {
         if (in_array($user->role, [UserRole::Owner->value, 'owner', UserRole::Warehouse->value, 'gudang'])) {
-            return $user->toko_id === $product->toko_id;
+            return (int) $user->toko_id === (int) $product->toko_id;
         }
 
         return false;

@@ -103,7 +103,7 @@ class SubscriptionUpgradeWidget extends Widget implements HasActions, HasSchemas
 
             $freePlan = Subscription::where('plan', 'free')->first();
 
-            if ($freePlan && $toko->subscription_id !== $freePlan->id) {
+            if ($freePlan && (int) $toko->subscription_id !== (int) $freePlan->id) {
                 $toko->update(['subscription_id' => $freePlan->id]);
                 Log::info('Toko downgraded to Free');
                 $toko->refresh();

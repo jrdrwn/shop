@@ -18,10 +18,10 @@ class TransactionPolicy
     public function view(User $user, Transaction $transaction): bool
     {
         if ($user->role === UserRole::Owner->value || $user->role === 'owner') {
-            return $user->toko_id === $transaction->toko_id;
+            return (int) $user->toko_id === (int) $transaction->toko_id;
         }
         if ($user->role === 'cashier') {
-            return $user->id === $transaction->cashier_id;
+            return (int) $user->id === (int) $transaction->cashier_id;
         }
 
         return false;

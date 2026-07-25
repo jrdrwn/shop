@@ -13,11 +13,11 @@ class TransactionController extends Controller
         $user = Auth::user();
 
         // Check if user is authorized to see this transaction
-        if (($user->role === UserRole::Owner->value || $user->role === 'owner') && $user->toko_id !== $transaction->toko_id) {
+        if (($user->role === UserRole::Owner->value || $user->role === 'owner') && (int) $user->toko_id !== (int) $transaction->toko_id) {
             abort(403);
         }
 
-        if ($user->role === 'kasir' && $user->id !== $transaction->cashier_id) {
+        if ($user->role === 'kasir' && (int) $user->id !== (int) $transaction->cashier_id) {
             abort(403);
         }
 
