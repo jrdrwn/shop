@@ -11,4 +11,6 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/settings/security', [SecurityController::class, 'edit'])->name('security.edit');
     Route::patch('/settings/security', [SecurityController::class, 'update'])->name('security.update');
+
+    Route::inertia('/settings/appearance', 'settings/appearance')->name('appearance.edit');
 });

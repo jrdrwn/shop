@@ -6,6 +6,8 @@ use App\Http\Controllers\TransactionController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
+Route::redirect('/login', '/owner/login')->name('login');
+
 Route::get('/', function () {
     $user = Auth::user();
 
