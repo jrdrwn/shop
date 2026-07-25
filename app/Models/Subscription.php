@@ -17,6 +17,7 @@ class Subscription extends Model
         'features' => 'array',
         'limits' => 'array',
         'is_active' => 'boolean',
+        'duration_months' => 'integer',
     ];
 
     public function tokos()

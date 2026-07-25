@@ -143,7 +143,7 @@ class SubscriptionUpgradeWidget extends Widget implements HasActions, HasSchemas
         }
 
         $startTime = $lastPayment->settlement_time ?? $lastPayment->created_at;
-        $expiry = Carbon::parse($startTime)->addMonths($lastPayment->subscription->duration_months);
+        $expiry = Carbon::parse($startTime)->addMonths((int) $lastPayment->subscription->duration_months);
 
         if (now()->gt($expiry)) {
             $seconds = 0;

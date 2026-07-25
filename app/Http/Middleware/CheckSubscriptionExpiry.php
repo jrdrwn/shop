@@ -33,7 +33,7 @@ class CheckSubscriptionExpiry
                         ->first();
 
                     if ($latestPayment && $latestPayment->settlement_time) {
-                        $expiresAt = $latestPayment->settlement_time->addMonths($subscription->duration_months);
+                        $expiresAt = $latestPayment->settlement_time->addMonths((int) $subscription->duration_months);
                         if (now()->greaterThan($expiresAt)) {
                             // Expired!
                             // Downgrade to Free plan!
