@@ -10,7 +10,7 @@ use App\Models\Product;
 use App\Models\Toko;
 use App\Models\Transaction;
 use App\Models\TransactionItem;
-use App\Services\MidtransService;
+use App\Services\DokuService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -171,8 +171,9 @@ class PosController extends Controller
                     'status' => $paymentStatus,
                 ]);
 
-                // QRIS Logic: Handle Midtrans vs Manual
+                // QRIS Logic: Handle Doku vs Manual
                 $qrisData = null;
+                $toko = Toko::find($user->toko_id);
                 Log::info('POS Checkout Debug', [
                     'received_payment_method' => $paymentMethod,
                     'toko_qris_type' => $toko->qris_type ?? 'N/A',
@@ -180,33 +181,30 @@ class PosController extends Controller
                 ]);
 
                 if ($paymentMethod === 'qris') {
-                    $toko = Toko::find($user->toko_id);
-                    // Default to midtrans if keys are present but qris_type is N/A
-                    $effectiveQrisType = $toko->qris_type ?? (filled($toko->midtrans_server_key) ? 'midtrans' : 'manual');
+                    // Default to doku if keys are present but qris_type is N/A
+                    $effectiveQrisType = $toko->qris_type ?? (filled($toko->doku_client_id) ? 'doku' : 'manual');
 
-                    if ($effectiveQrisType === 'midtrans') {
+                    if ($effectiveQrisType === 'doku') {
                         try {
-                            $midtransResponse = app(MidtransService::class)->generateQris($transaction);
-
-                            // Find the QR code action in Midtrans response
-                            $qrAction = collect($midtransResponse['actions'] ?? [])->where('name', 'generate-qr-code')->first();
+                            $dokuResponse = app(DokuService::class)->generateQris($transaction);
 
                             $qrisData = [
-                                'type' => 'midtrans',
-                                'qr_url' => $qrAction['url'] ?? null,
-                                'transaction_id' => $midtransResponse['transaction_id'] ?? null,
+                                'type' => 'doku',
+                                'qr_url' => $dokuResponse['qr_url'] ?? null,
+                                'checkout_url' => $dokuResponse['checkout_url'] ?? null,
+                                'transaction_id' => $dokuResponse['transaction_id'] ?? null,
                                 'expiry_time' => now()->addMinutes(15)->format('H:i'),
                             ];
 
-                            if (empty($qrisData['qr_url'])) {
-                                throw new \Exception('Midtrans tidak memberikan URL QR Code. Cek konfigurasi pembayaran.');
+                            if (empty($qrisData['checkout_url'])) {
+                                throw new \Exception('Doku tidak memberikan URL checkout. Cek konfigurasi pembayaran.');
                             }
 
                             // Save to payment metadata
                             $payment->update(['metadata' => $qrisData]);
                         } catch (\Exception $e) {
-                            Log::error('Midtrans QRIS Error: '.$e->getMessage());
-                            throw new \Exception('Gagal terhubung ke Midtrans: '.$e->getMessage());
+                            Log::error('Doku QRIS Error: '.$e->getMessage());
+                            throw new \Exception('Gagal terhubung ke Doku: '.$e->getMessage());
                         }
                     }
                 }
@@ -255,14 +253,14 @@ class PosController extends Controller
             return response()->json(['status' => 'success']);
         }
 
-        // If pending, try to check Midtrans directly for latest status
+        // If pending, try to check Doku directly for latest status
         try {
-            $midtrans = app(MidtransService::class)->forToko($transaction->toko);
-            $statusResponse = $midtrans->checkStatus($transactionNumber);
+            $doku = app(DokuService::class)->forToko($transaction->toko);
+            $statusResponse = $doku->checkStatus($transactionNumber);
 
-            $transactionStatus = $statusResponse['transaction_status'] ?? '';
+            $transactionStatus = $statusResponse['status'] ?? '';
 
-            if (in_array($transactionStatus, ['capture', 'settlement'])) {
+            if ($transactionStatus === 'success') {
                 $transaction->update(['status' => 'completed']);
                 $transaction->payments()->update(['status' => 'success']);
 
@@ -274,7 +272,7 @@ class PosController extends Controller
                         'type' => 'income',
                         'category' => 'sales',
                         'amount' => $transaction->total_amount,
-                        'description' => "Penjualan POS #{$transaction->transaction_number} (Midtrans Check)",
+                        'description' => "Penjualan POS #{$transaction->transaction_number} (Doku Check)",
                         'created_by' => $transaction->cashier_id,
                     ]
                 );
@@ -335,5 +333,33 @@ class PosController extends Controller
         });
 
         return response()->json(['success' => true, 'message' => 'Pesanan berhasil dibatalkan dan stok telah kembali.']);
+    }
+
+    public function finish(Request $request)
+    {
+        $orderId = $request->input('order_id');
+
+        Log::info('Doku POS finish redirect triggered', ['order_id' => $orderId, 'query' => $request->all()]);
+
+        if ($orderId) {
+            $transaction = Transaction::where('transaction_number', $orderId)->first();
+            if ($transaction && $transaction->status === 'pending') {
+                try {
+                    $doku = app(DokuService::class)->forToko($transaction->toko);
+                    $statusResponse = $doku->checkStatus($orderId);
+                    $transactionStatus = $statusResponse['status'] ?? '';
+
+                    if ($transactionStatus === 'success') {
+                        $transaction->update(['status' => 'completed']);
+                        $transaction->payments()->update(['status' => 'success']);
+                    }
+                } catch (\Exception $e) {
+                    Log::error('Doku POS finish verification error: '.$e->getMessage());
+                }
+            }
+        }
+
+        return redirect('/cashier')
+            ->with('success', 'Transaksi selesai. Halaman kasir diperbarui.');
     }
 }

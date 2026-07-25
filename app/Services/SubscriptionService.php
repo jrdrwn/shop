@@ -150,7 +150,7 @@ class SubscriptionService
     }
 
     // -------------------------------------------------------------------------
-    // Payment Gateway Integration (Midtrans)
+    // Payment Gateway Integration (Doku)
     // -------------------------------------------------------------------------
 
     /**
@@ -158,13 +158,13 @@ class SubscriptionService
      *
      * @param  Toko  $toko  The toko requesting the upgrade.
      * @param  Subscription  $subscription  Target subscription plan to upgrade to.
-     * @return string Snap token for Midtrans payment.
+     * @return string Checkout URL for Doku payment.
      */
     public function initiateUpgrade(Toko $toko, Subscription $subscription): string
     {
-        $midtrans = app(MidtransService::class);
+        $doku = app(DokuService::class);
 
-        return $midtrans->createSnapToken($toko, $subscription);
+        return $doku->createSnapToken($toko, $subscription);
     }
 
     /**

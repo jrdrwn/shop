@@ -7,16 +7,10 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    return Auth::check()
-        ? redirect()->route('dashboard')
-        : redirect()->route('login');
-})->name('home');
-
-Route::get('/dashboard', function () {
     $user = Auth::user();
 
     if (! $user) {
-        return redirect()->route('login');
+        return redirect()->route('filament.manager.auth.login');
     }
 
     return match ($user->role) {
@@ -24,7 +18,7 @@ Route::get('/dashboard', function () {
         'owner', 'manager' => redirect('/owner'),
         'kasir', 'cashier' => redirect('/cashier'),
         'gudang', 'warehouse' => redirect('/warehouse'),
-        default => redirect('/login'),
+        default => redirect('/owner/login'),
     };
 })->middleware(['auth'])->name('dashboard');
 
@@ -36,6 +30,9 @@ Route::post('/cashier/pos/checkout', [PosController::class, 'checkout'])
 Route::get('/cashier/pos/check-status/{transactionNumber}', [PosController::class, 'checkStatus'])
     ->name('pos.check-status')
     ->middleware(['auth']);
+
+Route::get('/cashier/pos/finish', [PosController::class, 'finish'])
+    ->name('pos.finish');
 
 Route::post('/cashier/pos/cancel/{transactionNumber}', [PosController::class, 'cancelOrder'])
     ->name('pos.cancel')

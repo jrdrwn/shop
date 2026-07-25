@@ -1,6 +1,6 @@
 <x-filament-panels::page>
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <script src="{{ app(\App\Services\MidtransService::class)->snapUrl() }}" data-client-key="{{ $midtransClientKey ?? app(\App\Services\MidtransService::class)->clientKey() }}"></script>
+    <script src="{{ app(\App\Services\DokuService::class)->snapUrl() }}" data-client-key="{{ $dokuClientId ?? app(\App\Services\DokuService::class)->clientKey() }}"></script>
 
     <div id="pos-app" class="min-h-screen bg-gray-50 dark:bg-gray-950 p-4 md:p-6 lg:p-8 fi-bg-color-50 dark:fi-bg-color-950">
         <!-- Toast -->
@@ -177,9 +177,15 @@
             <section class="flex-1 space-y-6">
                 <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-gray-900 p-6 rounded-3xl border border-gray-100 dark:border-gray-800 shadow-sm">
                     <div class="flex items-center gap-4">
-                        <div class="p-3 bg-primary-600 text-white rounded-2xl shadow-lg shadow-primary-600/20">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
-                        </div>
+                        @if($tokoLogo)
+                            <div class="w-12 h-12 rounded-2xl shadow-lg overflow-hidden flex items-center justify-center bg-white border border-gray-100 dark:border-gray-800">
+                                <img src="{{ asset('storage/' . $tokoLogo) }}" alt="Logo Toko" class="w-full h-full object-cover">
+                            </div>
+                        @else
+                            <div class="p-3 bg-primary-600 text-white rounded-2xl shadow-lg shadow-primary-600/20">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
+                            </div>
+                        @endif
                         <div>
                             <h3 class="text-xl font-black text-gray-900 dark:text-white uppercase tracking-tight">Menu Produk</h3>
                             <p id="pos-product-count" class="text-xs text-gray-400 font-bold tracking-widest uppercase">{{ count($products) }} item tersedia</p>
@@ -1225,10 +1231,10 @@
                         document.getElementById('receipt-discount-amt').textContent = discountAmt > 0 ? '-' + formatCurrency(discountAmt) : formatCurrency(0);
                         document.getElementById('receipt-total').textContent = formatCurrency(total);
 
-                        // Dynamic label: QRIS (Midtrans) or QRIS (Manual)
+                        // Dynamic label: QRIS (Doku) or QRIS (Manual)
                         let methodLabel = selectedPaymentMethod.toUpperCase();
                         if (selectedPaymentMethod === 'qris') {
-                            methodLabel += ' (' + ('{{ $qrisType }}' === 'midtrans' ? 'MIDTRANS' : 'MANUAL') + ')';
+                            methodLabel += ' (' + ('{{ $qrisType }}' === 'doku' ? 'DOKU' : 'MANUAL') + ')';
                         }
                         document.getElementById('receipt-payment-method').textContent = methodLabel;
 
@@ -1243,15 +1249,21 @@
                         // Default: Show actions
                         receiptActions.style.display = 'grid';
 
-                        if (selectedPaymentMethod === 'qris' && data.qris_data && data.qris_data.qr_url) {
-                            addLog('QRIS Midtrans aktif. Menyembunyikan tombol struk sementara.');
+                        if (selectedPaymentMethod === 'qris' && data.qris_data && data.qris_data.checkout_url) {
+                            addLog('QRIS Doku aktif. Membuka modal pembayaran Jokul.');
 
                             // Hide Print/New buttons while pending
                             receiptActions.style.display = 'none';
 
-                            qrisImg.src = data.qris_data.qr_url;
-                            qrisImg.style.display = 'block';
-                            qrisImg.style.margin = '15px auto';
+                            // Trigger Doku Jokul Checkout JS Modal
+                            if (typeof loadJokulCheckout === 'function') {
+                                loadJokulCheckout(data.qris_data.checkout_url);
+                            } else {
+                                console.error('loadJokulCheckout is not loaded. Falling back to redirect.');
+                                window.open(data.qris_data.checkout_url, '_blank');
+                            }
+
+                            qrisImg.style.display = 'none';
                             qrisSection.style.display = 'block';
 
                             const p = qrisSection.querySelector('p');
@@ -1260,7 +1272,7 @@
                                 p.style.textAlign = 'center';
                                 p.style.fontWeight = 'bold';
                                 p.style.marginTop = '10px';
-                                p.innerHTML = `Menunggu Pembayaran...<br><span style="font-size:1.4rem; color:#ef4444;" id="countdown-timer">15:00</span>`;
+                                p.innerHTML = `Modal Pembayaran Aktif...<br><span style="font-size:1.4rem; color:#ef4444;" id="countdown-timer">15:00</span>`;
                                 p.style.color = '#f59e0b';
                                 p.id = 'payment-status-text';
                             }

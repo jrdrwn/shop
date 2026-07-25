@@ -51,7 +51,6 @@ class TokoForm
                                 ->helperText('Toko nonaktif akan disembunyikan dari pemilihan data utama.'),
                         ]),
 
-
                     Section::make('Lokasi & Brand')
                         ->description('Tambahkan alamat dan aset visual agar tampilan lebih profesional.')
                         ->columns(2)
@@ -119,35 +118,31 @@ class TokoForm
                                 ->label('Tipe QRIS')
                                 ->options([
                                     'manual' => 'Manual (Scan Statis / Foto)',
-                                    'midtrans' => 'Otomatis (Midtrans Dynamic QRIS)',
+                                    'doku' => 'Otomatis (Doku Dynamic QRIS / Checkout Link)',
                                 ])
                                 ->required()
                                 ->live(),
 
                             Grid::make(2)
                                 ->schema([
-                                    TextInput::make('midtrans_merchant_id')
-                                        ->label('Midtrans Merchant ID')
-                                        ->placeholder('Gxxxxxxxxx')
-                                        ->required(fn($get) => $get('qris_type') === 'midtrans'),
-                                    TextInput::make('midtrans_client_key')
-                                        ->label('Midtrans Client Key')
-                                        ->placeholder('SB-Mid-client-xxxxxxxx')
-                                        ->required(fn($get) => $get('qris_type') === 'midtrans'),
-                                    TextInput::make('midtrans_server_key')
-                                        ->label('Midtrans Server Key')
+                                    TextInput::make('doku_client_id')
+                                        ->label('Doku Client ID')
+                                        ->placeholder('BRN-xxxx-xxxxxxxxxxxxxxx')
+                                        ->required(fn ($get) => $get('qris_type') === 'doku'),
+                                    TextInput::make('doku_secret_key')
+                                        ->label('Doku Secret Key')
                                         ->password()
                                         ->revealable()
-                                        ->placeholder('SB-Mid-server-xxxxxxxx')
-                                        ->required(fn($get) => $get('qris_type') === 'midtrans'),
-                                    Toggle::make('midtrans_is_production')
+                                        ->placeholder('SK-xxxxxxxxxxxxxxxxxx')
+                                        ->required(fn ($get) => $get('qris_type') === 'doku'),
+                                    Toggle::make('doku_is_production')
                                         ->label('Mode Produksi (Otomatis)')
-                                        ->helperText('Status mengikuti pengaturan sistem: ' . (config('midtrans.is_production') ? 'PRODUCTION' : 'SANDBOX'))
-                                        ->default(config('midtrans.is_production'))
+                                        ->helperText('Status mengikuti pengaturan sistem: '.(config('doku.is_production') ? 'PRODUCTION' : 'SANDBOX'))
+                                        ->default(config('doku.is_production'))
                                         ->disabled()
                                         ->dehydrated(),
                                 ])
-                                ->visible(fn($get) => $get('qris_type') === 'midtrans'),
+                                ->visible(fn ($get) => $get('qris_type') === 'doku'),
                         ]),
                     // Subscription assignment — super admin only
                     Section::make('Langganan')
@@ -166,9 +161,6 @@ class TokoForm
                                 ->nullable(),
                         ]),
                 ]),
-
-
-
 
             ]);
     }

@@ -27,17 +27,16 @@ class Toko extends Model
         'tax_percentage',
         'service_charge_percentage',
         'qris_type',
-        'midtrans_client_key',
-        'midtrans_server_key',
-        'midtrans_merchant_id',
-        'midtrans_is_production',
+        'doku_client_id',
+        'doku_secret_key',
+        'doku_is_production',
     ];
 
     protected $casts = [
         'tax_percentage' => 'integer',
         'service_charge_percentage' => 'integer',
         'is_active' => 'boolean',
-        'midtrans_is_production' => 'boolean',
+        'doku_is_production' => 'boolean',
     ];
 
     protected static function booted()

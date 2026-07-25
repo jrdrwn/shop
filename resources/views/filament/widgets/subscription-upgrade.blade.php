@@ -187,50 +187,12 @@
             </div>
         </x-filament::section>
 
-        <div class="fi-subscription-upgrade__hooks" x-data="{
-            token: @entangle('snapToken'),
-            clientKey: @entangle('clientKey'),
-            snapUrl: @entangle('snapUrl')
+        <div x-data="{
+            token: @entangle('snapToken')
         }"
         x-init="$watch('token', value => {
             if (value) {
-                if (!window.snap) {
-                    const script = document.createElement('script');
-                    script.src = snapUrl;
-                    script.setAttribute('data-client-key', clientKey);
-                    script.onload = () => {
-                        window.snap.pay(value, {
-                            onSuccess: function(result) {
-                                window.location.href = '{{ route("subscription.finish") }}?order_id=' + encodeURIComponent(result.order_id) + '&status_code=200';
-                            },
-                            onPending: function(result) {
-                                window.location.href = '{{ route("subscription.finish") }}?order_id=' + encodeURIComponent(result.order_id) + '&status_code=201';
-                            },
-                            onError: function(result) {
-                                window.location.href = '{{ route("subscription.error") }}?order_id=' + encodeURIComponent(result.order_id || '');
-                            },
-                            onClose: function() {
-                                token = null;
-                            }
-                        });
-                    };
-                    document.head.appendChild(script);
-                } else {
-                    window.snap.pay(value, {
-                        onSuccess: function(result) {
-                            window.location.href = '{{ route("subscription.finish") }}?order_id=' + encodeURIComponent(result.order_id) + '&status_code=200';
-                        },
-                        onPending: function(result) {
-                            window.location.href = '{{ route("subscription.finish") }}?order_id=' + encodeURIComponent(result.order_id) + '&status_code=201';
-                        },
-                        onError: function(result) {
-                            window.location.href = '{{ route("subscription.error") }}?order_id=' + encodeURIComponent(result.order_id || '');
-                        },
-                        onClose: function() {
-                            token = null;
-                        }
-                    });
-                }
+                window.location.href = value;
             }
         })"></div>
 

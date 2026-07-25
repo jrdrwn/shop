@@ -40,7 +40,6 @@ class TokoInfolist
                                 ->placeholder('Belum diisi'),
                         ]),
 
-
                     Section::make('Langganan')
                         ->description('Paket aktif toko dan masa berlakunya.')
                         ->columns(2)
@@ -49,7 +48,7 @@ class TokoInfolist
                             TextEntry::make('subscription.name')
                                 ->label('Paket')
                                 ->badge()
-                                ->color(fn(?string $state): string => match (strtolower((string) $state)) {
+                                ->color(fn (?string $state): string => match (strtolower((string) $state)) {
                                     'free' => 'gray',
                                     'medium', 'premium' => 'primary',
                                     default => 'gray',
@@ -60,7 +59,7 @@ class TokoInfolist
                                 ->placeholder('Belum diatur'),
                             TextEntry::make('subscription.price')
                                 ->label('Harga')
-                                ->formatStateUsing(fn($state): string => 'Rp ' . number_format((int) $state, 0, ',', '.'))
+                                ->formatStateUsing(fn ($state): string => 'Rp '.number_format((int) $state, 0, ',', '.'))
                                 ->placeholder('Belum diatur'),
                         ]),
                 ]),
@@ -72,14 +71,14 @@ class TokoInfolist
                         ->schema([
                             TextEntry::make('tax_percentage')
                                 ->label('Pajak')
-                                ->formatStateUsing(fn(int $state): string => $state > 0 ? "{$state}%" : 'Tidak ada pajak')
+                                ->formatStateUsing(fn (int $state): string => $state > 0 ? "{$state}%" : 'Tidak ada pajak')
                                 ->badge()
-                                ->color(fn(int $state): string => $state > 0 ? 'warning' : 'gray'),
+                                ->color(fn (int $state): string => $state > 0 ? 'warning' : 'gray'),
                             TextEntry::make('service_charge_percentage')
                                 ->label('Service Charge')
-                                ->formatStateUsing(fn(int $state): string => $state > 0 ? "{$state}%" : 'Tidak ada service charge')
+                                ->formatStateUsing(fn (int $state): string => $state > 0 ? "{$state}%" : 'Tidak ada service charge')
                                 ->badge()
-                                ->color(fn(int $state): string => $state > 0 ? 'info' : 'gray'),
+                                ->color(fn (int $state): string => $state > 0 ? 'info' : 'gray'),
                         ]),
                     Section::make('Owner')
                         ->description('Informasi Owner yang ditugaskan pada toko ini.')
@@ -92,35 +91,27 @@ class TokoInfolist
                         ]),
 
                     Section::make('Payment Gateway')
-                        ->description('Konfigurasi Midtrans untuk pembayaran otomatis.')
+                        ->description('Konfigurasi Doku untuk pembayaran otomatis.')
                         ->columns(2)
                         ->schema([
                             TextEntry::make('qris_type')
                                 ->label('Tipe QRIS')
-                                ->formatStateUsing(fn(string $state): string => strtoupper($state))
-                                ->badge(),
-                            TextEntry::make('midtrans_merchant_id')
-                                ->label('Merchant ID')
-                                ->placeholder('-')
-                                ->visible(fn($record) => $record->qris_type === 'midtrans'),
-                            TextEntry::make('midtrans_client_key')
-                                ->label('Client Key')
+                                ->formatStateUsing(fn (string $state): string => strtoupper($state))
+                                ->badge()
+                                ->color(fn (string $state): string => $state === 'doku' ? 'success' : 'gray'),
+                            TextEntry::make('doku_client_id')
+                                ->label('Doku Client ID')
                                 ->placeholder('-')
                                 ->copyable()
-                                ->visible(fn($record) => $record->qris_type === 'midtrans'),
-                            TextEntry::make('midtrans_server_key')
-                                ->label('Server Key')
-                                ->placeholder('-')
-                                ->formatStateUsing(fn($state) => $state ? '********' : '-')
-                                ->visible(fn($record) => $record->qris_type === 'midtrans'),
-                            TextEntry::make('midtrans_is_production')
-                                ->label('Environment')
-                                ->formatStateUsing(fn($state) => $state ? 'PRODUCTION' : 'SANDBOX')
+                                ->visible(fn ($record) => $record->qris_type === 'doku'),
+                            TextEntry::make('doku_is_production')
+                                ->label('Mode Doku')
+                                ->formatStateUsing(fn ($state) => $state ? 'PRODUCTION' : 'SANDBOX')
                                 ->badge()
-                                ->color(fn($state) => $state ? 'success' : 'warning')
-                                ->visible(fn($record) => $record->qris_type === 'midtrans'),
+                                ->color(fn ($state) => $state ? 'success' : 'warning')
+                                ->visible(fn ($record) => $record->qris_type === 'doku'),
                         ]),
-                ])
+                ]),
             ]);
     }
 }
