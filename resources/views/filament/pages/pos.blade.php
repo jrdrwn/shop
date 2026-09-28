@@ -1,6 +1,5 @@
 <x-filament-panels::page>
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <script src="{{ app(\App\Services\DokuService::class)->snapUrl() }}" data-client-key="{{ $dokuClientId ?? app(\App\Services\DokuService::class)->clientKey() }}"></script>
 
     <div id="pos-app" class="min-h-screen bg-gray-50 dark:bg-gray-950 p-4 md:p-6 lg:p-8 fi-bg-color-50 dark:fi-bg-color-950">
         <!-- Toast -->
@@ -48,6 +47,8 @@
                         <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">{{ implode(', ', $locationParts) }}</p>
                     @endif
                     <p id="receipt-trx-num" class="mt-1 text-xs text-gray-400 font-mono fi-text-color-400">TRX...</p>
+                    <p id="receipt-ref-id" class="mt-1 text-xs text-gray-500 font-mono" style="display:none"></p>
+                    <p id="receipt-ipaymu-id" class="mt-1 text-xs text-gray-500 font-mono" style="display:none"></p>
                 </div>
 
                 <div class="flex-1 overflow-y-auto p-5 flex flex-col gap-2">
@@ -1191,7 +1192,7 @@
                         data = await res.json();
                         addLog('DEBUG: Data JSON diterima dari server.');
                         if (data.qris_data) {
-                            addLog('DEBUG: qris_data ditemukan. Snap Token: ' + (data.qris_data.snap_token || 'KOSONG'));
+                            addLog('DEBUG: qris_data ditemukan. URL pembayaran: ' + (data.qris_data.checkout_url || 'KOSONG'));
                         } else {
                             addLog('DEBUG: qris_data TIDAK ditemukan dalam respons.');
                         }
@@ -1223,6 +1224,14 @@
 
                         // Show receipt
                         document.getElementById('receipt-trx-num').textContent = data.transaction_number;
+                        const referenceId = data.qris_data?.reference_id;
+                        const referenceIdElement = document.getElementById('receipt-ref-id');
+                        referenceIdElement.textContent = referenceId ? `Ref ID: ${referenceId}` : '';
+                        referenceIdElement.style.display = referenceId ? 'block' : 'none';
+                        const ipaymuTransactionId = data.qris_data?.transaction_id;
+                        const ipaymuTransactionIdElement = document.getElementById('receipt-ipaymu-id');
+                        ipaymuTransactionIdElement.textContent = ipaymuTransactionId ? `ID iPaymu: ${ipaymuTransactionId}` : '';
+                        ipaymuTransactionIdElement.style.display = ipaymuTransactionId ? 'block' : 'none';
                         document.getElementById('receipt-subtotal').textContent = formatCurrency(subtotal);
                         document.getElementById('receipt-tax-rate').textContent = TOKO_TAX_RATE;
                         document.getElementById('receipt-tax-amt').textContent = formatCurrency(taxAmt);
@@ -1231,10 +1240,10 @@
                         document.getElementById('receipt-discount-amt').textContent = discountAmt > 0 ? '-' + formatCurrency(discountAmt) : formatCurrency(0);
                         document.getElementById('receipt-total').textContent = formatCurrency(total);
 
-                        // Dynamic label: QRIS (Doku) or QRIS (Manual)
+                        // Dynamic label: QRIS (iPaymu) or QRIS (Manual)
                         let methodLabel = selectedPaymentMethod.toUpperCase();
                         if (selectedPaymentMethod === 'qris') {
-                            methodLabel += ' (' + ('{{ $qrisType }}' === 'doku' ? 'DOKU' : 'MANUAL') + ')';
+                            methodLabel += ' (' + ('{{ $qrisType }}' === 'ipaymu' ? 'IPAYMU' : 'MANUAL') + ')';
                         }
                         document.getElementById('receipt-payment-method').textContent = methodLabel;
 
@@ -1249,21 +1258,18 @@
                         // Default: Show actions
                         receiptActions.style.display = 'grid';
 
-                        if (selectedPaymentMethod === 'qris' && data.qris_data && data.qris_data.checkout_url) {
-                            addLog('QRIS Doku aktif. Membuka modal pembayaran Jokul.');
+                        if (selectedPaymentMethod === 'qris' && data.qris_data && (data.qris_data.qr_url || data.qris_data.checkout_url)) {
+                            addLog('QRIS iPaymu aktif.');
 
                             // Hide Print/New buttons while pending
                             receiptActions.style.display = 'none';
 
-                            // Trigger Doku Jokul Checkout JS Modal
-                            if (typeof loadJokulCheckout === 'function') {
-                                loadJokulCheckout(data.qris_data.checkout_url);
-                            } else {
-                                console.error('loadJokulCheckout is not loaded. Falling back to redirect.');
+                            if (data.qris_data.checkout_url) {
                                 window.open(data.qris_data.checkout_url, '_blank');
                             }
 
-                            qrisImg.style.display = 'none';
+                            qrisImg.src = data.qris_data.qr_url || '';
+                            qrisImg.style.display = data.qris_data.qr_url ? 'block' : 'none';
                             qrisSection.style.display = 'block';
 
                             const p = qrisSection.querySelector('p');
@@ -1272,13 +1278,13 @@
                                 p.style.textAlign = 'center';
                                 p.style.fontWeight = 'bold';
                                 p.style.marginTop = '10px';
-                                p.innerHTML = `Modal Pembayaran Aktif...<br><span style="font-size:1.4rem; color:#ef4444;" id="countdown-timer">15:00</span>`;
+                                p.innerHTML = `${data.qris_data.qr_url ? 'Scan QRIS di atas untuk membayar' : 'Halaman pembayaran telah dibuka'}<br><span style="font-size:1.4rem; color:#ef4444;" id="countdown-timer">05:00</span>`;
                                 p.style.color = '#f59e0b';
                                 p.id = 'payment-status-text';
                             }
 
                             const cancelBtnArea = document.getElementById('qris-cancel-area');
-                            cancelBtnArea.style.display = 'block';
+                            cancelBtnArea.style.display = data.qris_data.type === 'ipaymu' ? 'none' : 'block';
 
                             window.currentTransactionNumber = data.transaction_number;
                             document.getElementById('qris-cancel-btn').onclick = () => {
@@ -1287,7 +1293,7 @@
                             };
 
                             // Countdown Logic
-                            let timeLeft = 15 * 60;
+                            let timeLeft = 5 * 60;
                             if (window.countdownInterval) clearInterval(window.countdownInterval);
                             window.countdownInterval = setInterval(() => {
                                 const minutes = Math.floor(timeLeft / 60);
@@ -1342,6 +1348,7 @@
                             itemsList.appendChild(itemDiv);
                         });
 
+                        receiptModal.classList.remove('hidden');
                         receiptModal.classList.add('active');
 
                         const soldItems = cart.map(item => ({ id: item.id, qty: item.qty }));
@@ -1374,7 +1381,7 @@
 
             // Close receipt
             closeReceiptBtn.addEventListener('click', () => {
-                receiptModal.classList.add('hidden');
+                receiptModal.classList.remove('active');
             });
 
             // Print receipt

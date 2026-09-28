@@ -7,7 +7,7 @@ use App\Enums\UserRole;
 use App\Models\Subscription;
 use App\Models\SubscriptionPayment;
 use App\Models\Toko;
-use App\Services\DokuService;
+use App\Services\IpaymuService;
 use App\Services\SubscriptionService;
 use Filament\Actions\Action;
 use Filament\Actions\Concerns\InteractsWithActions;
@@ -26,11 +26,17 @@ class SubscriptionUpgradeWidget extends Widget implements HasActions, HasSchemas
     use InteractsWithActions;
     use InteractsWithSchemas;
 
-    public ?string $snapToken = null;
+    public ?string $paymentUrl = null;
 
-    public ?string $clientKey = null;
+    public bool $hasPendingPayment = false;
 
-    public ?string $snapUrl = null;
+    public bool $showPaymentSuccess = false;
+
+    public ?int $observedPaymentId = null;
+
+    public ?string $observedPaymentStatus = null;
+
+    public ?int $lastGatewayCheckAt = null;
 
     protected static ?int $sort = 1;
 
@@ -41,6 +47,58 @@ class SubscriptionUpgradeWidget extends Widget implements HasActions, HasSchemas
     public static function canView(): bool
     {
         return Auth::user()?->role === UserRole::Owner->value || Auth::user()?->role === 'owner';
+    }
+
+    public function mount(): void
+    {
+        $payment = SubscriptionPayment::where('toko_id', Auth::user()?->toko_id)->latest('id')->first();
+        $this->observedPaymentId = $payment?->id;
+        $this->observedPaymentStatus = $payment?->status;
+        $this->refreshPendingPayment();
+    }
+
+    public function refreshPendingPayment(): void
+    {
+        $tokoId = Auth::user()?->toko_id;
+        if (! $tokoId) {
+            $this->hasPendingPayment = false;
+
+            return;
+        }
+
+        $payment = SubscriptionPayment::where('toko_id', $tokoId)->latest('id')->first();
+        if ($payment?->status === 'pending'
+            && $payment->created_at->greaterThanOrEqualTo(now()->subDay())
+            && ($this->lastGatewayCheckAt === null || now()->timestamp - $this->lastGatewayCheckAt >= 15)) {
+            $this->lastGatewayCheckAt = now()->timestamp;
+
+            try {
+                app(IpaymuService::class)->reconcileSubscriptionPayment($payment);
+                $payment->refresh();
+            } catch (\Throwable $exception) {
+                Log::warning('iPaymu subscription reconciliation failed', [
+                    'order_id' => $payment->order_id,
+                    'error' => $exception->getMessage(),
+                ]);
+            }
+        }
+
+        $this->hasPendingPayment = $payment?->status === 'pending'
+            && $payment->created_at->greaterThanOrEqualTo(now()->subDay());
+
+        if ($payment?->status === 'success'
+            && ($payment->id !== $this->observedPaymentId || $this->observedPaymentStatus !== 'success')) {
+            $this->showPaymentSuccess = true;
+
+            Notification::make()
+                ->title('Pembayaran berhasil')
+                ->body('Paket langganan sudah aktif. Refresh dashboard untuk melihat semua perubahan.')
+                ->success()
+                ->send();
+        }
+
+        $this->observedPaymentId = $payment?->id;
+        $this->observedPaymentStatus = $payment?->status;
     }
 
     /**
@@ -287,10 +345,7 @@ class SubscriptionUpgradeWidget extends Widget implements HasActions, HasSchemas
                 }
 
                 try {
-                    $this->snapToken = app(SubscriptionService::class)->initiateUpgrade($toko, $subscription);
-                    $doku = app(DokuService::class);
-                    $this->clientKey = $doku->clientKey();
-                    $this->snapUrl = $doku->snapUrl();
+                    $this->paymentUrl = app(SubscriptionService::class)->initiateUpgrade($toko, $subscription);
                 } catch (\Throwable $e) {
                     Notification::make()
                         ->title('Gagal memulai pembayaran')

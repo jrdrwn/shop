@@ -6,7 +6,7 @@ use App\Http\Controllers\TransactionController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
-Route::redirect('/login', '/owner/login')->name('login');
+Route::redirect('/login', '/owner/login');
 
 Route::get('/', function () {
     $user = Auth::user();
@@ -36,6 +36,9 @@ Route::get('/cashier/pos/check-status/{transactionNumber}', [PosController::clas
 Route::get('/cashier/pos/finish', [PosController::class, 'finish'])
     ->name('pos.finish');
 
+Route::post('/cashier/pos/ipaymu-notification', [PosController::class, 'handleIpaymuNotification'])
+    ->name('pos.ipaymu.notification');
+
 Route::post('/cashier/pos/cancel/{transactionNumber}', [PosController::class, 'cancelOrder'])
     ->name('pos.cancel')
     ->middleware(['auth']);
@@ -53,6 +56,9 @@ Route::prefix('subscription')->name('subscription.')->group(function () {
 
     Route::post('/notification', [SubscriptionPaymentController::class, 'handleNotification'])
         ->name('notification');
+
+    Route::post('/ipaymu/notification', [SubscriptionPaymentController::class, 'handleNotification'])
+        ->name('ipaymu.notification');
 
     Route::get('/finish', [SubscriptionPaymentController::class, 'finish'])
         ->name('finish');

@@ -118,31 +118,30 @@ class TokoForm
                                 ->label('Tipe QRIS')
                                 ->options([
                                     'manual' => 'Manual (Scan Statis / Foto)',
-                                    'doku' => 'Otomatis (Doku Dynamic QRIS / Checkout Link)',
+                                    'ipaymu' => 'Otomatis (iPaymu QRIS / Checkout Link)',
                                 ])
                                 ->required()
                                 ->live(),
 
                             Grid::make(2)
                                 ->schema([
-                                    TextInput::make('doku_client_id')
-                                        ->label('Doku Client ID')
-                                        ->placeholder('BRN-xxxx-xxxxxxxxxxxxxxx')
-                                        ->required(fn ($get) => $get('qris_type') === 'doku'),
-                                    TextInput::make('doku_secret_key')
-                                        ->label('Doku Secret Key')
+                                    TextInput::make('ipaymu_va')
+                                        ->label('iPaymu Virtual Account (VA)')
+                                        ->placeholder('Nomor VA iPaymu')
+                                        ->required(fn ($get) => $get('qris_type') === 'ipaymu'),
+                                    TextInput::make('ipaymu_api_key')
+                                        ->label('iPaymu API Key')
                                         ->password()
                                         ->revealable()
-                                        ->placeholder('SK-xxxxxxxxxxxxxxxxxx')
-                                        ->required(fn ($get) => $get('qris_type') === 'doku'),
-                                    Toggle::make('doku_is_production')
+                                        ->required(fn ($get) => $get('qris_type') === 'ipaymu'),
+                                    Toggle::make('ipaymu_is_production')
                                         ->label('Mode Produksi (Otomatis)')
-                                        ->helperText('Status mengikuti pengaturan sistem: '.(config('doku.is_production') ? 'PRODUCTION' : 'SANDBOX'))
-                                        ->default(config('doku.is_production'))
+                                        ->helperText('Status mengikuti pengaturan sistem: '.(config('ipaymu.is_production') ? 'PRODUCTION' : 'SANDBOX'))
+                                        ->default(config('ipaymu.is_production'))
                                         ->disabled()
                                         ->dehydrated(),
                                 ])
-                                ->visible(fn ($get) => $get('qris_type') === 'doku'),
+                                ->visible(fn ($get) => $get('qris_type') === 'ipaymu'),
                         ]),
                     // Subscription assignment — super admin only
                     Section::make('Langganan')

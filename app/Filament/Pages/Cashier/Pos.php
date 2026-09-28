@@ -44,7 +44,7 @@ class Pos extends Page
 
     public array $activePaymentMethods = [];
 
-    public ?string $dokuClientId = null;
+    public ?string $ipaymuVa = null;
 
     public function mount(): void
     {
@@ -60,7 +60,7 @@ class Pos extends Page
             $this->tokoCity = $toko->city;
             $this->tokoProvince = $toko->province;
             $this->qrisType = $toko->qris_type ?? 'manual';
-            $this->dokuClientId = $toko->doku_client_id;
+            $this->ipaymuVa = $toko->ipaymu_va;
 
             // Load active payment methods from the database
             $this->activePaymentMethods = $toko->paymentMethods()

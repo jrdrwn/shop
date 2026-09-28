@@ -91,25 +91,25 @@ class TokoInfolist
                         ]),
 
                     Section::make('Payment Gateway')
-                        ->description('Konfigurasi Doku untuk pembayaran otomatis.')
+                        ->description('Konfigurasi iPaymu untuk pembayaran otomatis.')
                         ->columns(2)
                         ->schema([
                             TextEntry::make('qris_type')
                                 ->label('Tipe QRIS')
                                 ->formatStateUsing(fn (string $state): string => strtoupper($state))
                                 ->badge()
-                                ->color(fn (string $state): string => $state === 'doku' ? 'success' : 'gray'),
-                            TextEntry::make('doku_client_id')
-                                ->label('Doku Client ID')
+                                ->color(fn (string $state): string => $state === 'ipaymu' ? 'success' : 'gray'),
+                            TextEntry::make('ipaymu_va')
+                                ->label('iPaymu VA')
                                 ->placeholder('-')
                                 ->copyable()
-                                ->visible(fn ($record) => $record->qris_type === 'doku'),
-                            TextEntry::make('doku_is_production')
-                                ->label('Mode Doku')
+                                ->visible(fn ($record) => $record->qris_type === 'ipaymu'),
+                            TextEntry::make('ipaymu_is_production')
+                                ->label('Mode iPaymu')
                                 ->formatStateUsing(fn ($state) => $state ? 'PRODUCTION' : 'SANDBOX')
                                 ->badge()
                                 ->color(fn ($state) => $state ? 'success' : 'warning')
-                                ->visible(fn ($record) => $record->qris_type === 'doku'),
+                                ->visible(fn ($record) => $record->qris_type === 'ipaymu'),
                         ]),
                 ]),
             ]);

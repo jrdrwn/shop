@@ -1,5 +1,14 @@
 <x-filament-widgets::widget>
     <div class="fi-subscription-upgrade">
+        <div wire:poll.5s.keep-alive="refreshPendingPayment"></div>
+
+        @if ($this->showPaymentSuccess)
+            <div class="mb-4 rounded-lg border border-green-300 bg-green-50 p-4 text-green-800 dark:border-green-700 dark:bg-green-950/30 dark:text-green-200">
+                Pembayaran berhasil. Paket langganan sudah aktif.
+                <x-filament::button type="button" color="success" x-on:click="window.location.reload()">Refresh dashboard</x-filament::button>
+            </div>
+        @endif
+
         <x-filament::section
             heading="Pilih Paket Langganan"
             description="Tingkatkan toko Anda dengan paket yang sesuai."
@@ -182,15 +191,21 @@
                 </div>
             @endif
 
+            @if ($this->hasPendingPayment)
+                <div class="mb-4 rounded-lg bg-yellow-50 p-3 text-sm text-yellow-800 dark:bg-yellow-950/30 dark:text-yellow-200">
+                    Pembayaran menunggu konfirmasi iPaymu. Status akan diperiksa otomatis.
+                </div>
+            @endif
+
             <div class="fi-subscription-upgrade__actions">
                 {{ $this->selectPlanAction() }}
             </div>
         </x-filament::section>
 
         <div x-data="{
-            token: @entangle('snapToken')
+            paymentUrl: @entangle('paymentUrl')
         }"
-        x-init="$watch('token', value => {
+        x-init="$watch('paymentUrl', value => {
             if (value) {
                 window.location.href = value;
             }

@@ -10,7 +10,9 @@ use App\Models\Product;
 use App\Models\Toko;
 use App\Models\Transaction;
 use App\Models\TransactionItem;
-use App\Services\DokuService;
+use App\Services\IpaymuService;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -18,7 +20,7 @@ use Illuminate\Support\Facades\Log;
 
 class PosController extends Controller
 {
-    public function checkout(Request $request)
+    public function checkout(Request $request): JsonResponse
     {
         $request->validate([
             'cart' => 'required|array|min:1',
@@ -167,11 +169,13 @@ class PosController extends Controller
                     'transaction_id' => $transaction->id,
                     'payment_method_id' => $paymentMethodRecord->id,
                     'amount' => $paidAmount,
-                    'reference_number' => "{$paymentMethod}-{$transaction->transaction_number}",
+                    'reference_number' => $paymentMethod === 'qris'
+                        ? $transaction->transaction_number
+                        : "{$paymentMethod}-{$transaction->transaction_number}",
                     'status' => $paymentStatus,
                 ]);
 
-                // QRIS Logic: Handle Doku vs Manual
+                // QRIS Logic: Handle iPaymu vs Manual
                 $qrisData = null;
                 $toko = Toko::find($user->toko_id);
                 Log::info('POS Checkout Debug', [
@@ -181,30 +185,32 @@ class PosController extends Controller
                 ]);
 
                 if ($paymentMethod === 'qris') {
-                    // Default to doku if keys are present but qris_type is N/A
-                    $effectiveQrisType = $toko->qris_type ?? (filled($toko->doku_client_id) ? 'doku' : 'manual');
+                    $effectiveQrisType = $toko->qris_type ?? (filled($toko->ipaymu_va) ? 'ipaymu' : 'manual');
 
-                    if ($effectiveQrisType === 'doku') {
+                    if ($effectiveQrisType === 'ipaymu') {
                         try {
-                            $dokuResponse = app(DokuService::class)->generateQris($transaction);
+                            $ipaymuResponse = app(IpaymuService::class)->generateQris($transaction);
 
                             $qrisData = [
-                                'type' => 'doku',
-                                'qr_url' => $dokuResponse['qr_url'] ?? null,
-                                'checkout_url' => $dokuResponse['checkout_url'] ?? null,
-                                'transaction_id' => $dokuResponse['transaction_id'] ?? null,
+                                'type' => 'ipaymu',
+                                'reference_id' => $ipaymuResponse['reference_id'],
+                                'qr_url' => $ipaymuResponse['qr_url'],
+                                'checkout_url' => $ipaymuResponse['checkout_url'],
+                                'transaction_id' => $ipaymuResponse['transaction_id'],
                                 'expiry_time' => now()->addMinutes(15)->format('H:i'),
                             ];
 
-                            if (empty($qrisData['checkout_url'])) {
-                                throw new \Exception('Doku tidak memberikan URL checkout. Cek konfigurasi pembayaran.');
+                            if (empty($qrisData['checkout_url']) && empty($qrisData['qr_url'])) {
+                                throw new \Exception('iPaymu tidak memberikan URL atau kode QRIS. Cek konfigurasi pembayaran.');
                             }
 
-                            // Save to payment metadata
-                            $payment->update(['metadata' => $qrisData]);
+                            $payment->update([
+                                'metadata' => $qrisData,
+                                'gateway_transaction_id' => $qrisData['transaction_id'],
+                            ]);
                         } catch (\Exception $e) {
-                            Log::error('Doku QRIS Error: '.$e->getMessage());
-                            throw new \Exception('Gagal terhubung ke Doku: '.$e->getMessage());
+                            Log::error('iPaymu QRIS Error: '.$e->getMessage());
+                            throw new \Exception('Gagal terhubung ke iPaymu: '.$e->getMessage());
                         }
                     }
                 }
@@ -238,7 +244,7 @@ class PosController extends Controller
         }
     }
 
-    public function checkStatus(string $transactionNumber)
+    public function checkStatus(string $transactionNumber): JsonResponse
     {
         $transaction = Transaction::where('transaction_number', $transactionNumber)
             ->where('toko_id', Auth::user()->toko_id)
@@ -248,52 +254,14 @@ class PosController extends Controller
             return response()->json(['status' => 'not_found'], 404);
         }
 
-        // If already completed in our DB, just return success
-        if ($transaction->status === 'completed') {
-            return response()->json(['status' => 'success']);
-        }
-
-        // If pending, try to check Doku directly for latest status
-        try {
-            $doku = app(DokuService::class)->forToko($transaction->toko);
-            $statusResponse = $doku->checkStatus($transactionNumber);
-
-            $transactionStatus = $statusResponse['status'] ?? '';
-
-            if ($transactionStatus === 'success') {
-                $transaction->update(['status' => 'completed']);
-                $transaction->payments()->update(['status' => 'success']);
-
-                // Record to cash flow if not already done
-                CashFlow::firstOrCreate(
-                    ['reference_id' => $transaction->id, 'reference_type' => 'transaction'],
-                    [
-                        'toko_id' => $transaction->toko_id,
-                        'type' => 'income',
-                        'category' => 'sales',
-                        'amount' => $transaction->total_amount,
-                        'description' => "Penjualan POS #{$transaction->transaction_number} (Doku Check)",
-                        'created_by' => $transaction->cashier_id,
-                    ]
-                );
-
-                return response()->json(['status' => 'success']);
-            }
-
-            if (in_array($transactionStatus, ['deny', 'cancel', 'expire', 'failure'])) {
-                $transaction->update(['status' => 'cancelled']);
-
-                return response()->json(['status' => 'failed']);
-            }
-
-        } catch (\Exception $e) {
-            // Ignore errors during check, just return current local status
-        }
-
-        return response()->json(['status' => $transaction->status]);
+        return response()->json(['status' => match ($transaction->status) {
+            'completed' => 'success',
+            'cancelled' => 'failed',
+            default => 'pending',
+        }]);
     }
 
-    public function cancelOrder(string $transactionNumber)
+    public function cancelOrder(string $transactionNumber): JsonResponse
     {
         $user = Auth::user();
         $transaction = Transaction::where('transaction_number', $transactionNumber)
@@ -303,6 +271,10 @@ class PosController extends Controller
 
         if (! $transaction) {
             return response()->json(['message' => 'Transaksi tidak ditemukan atau sudah diproses.'], 404);
+        }
+
+        if ($transaction->payments()->whereNotNull('gateway_transaction_id')->exists()) {
+            return response()->json(['message' => 'Pembayaran iPaymu sedang diproses. Tunggu konfirmasi gateway.'], 409);
         }
 
         DB::transaction(function () use ($transaction, $user) {
@@ -335,31 +307,24 @@ class PosController extends Controller
         return response()->json(['success' => true, 'message' => 'Pesanan berhasil dibatalkan dan stok telah kembali.']);
     }
 
-    public function finish(Request $request)
+    public function handleIpaymuNotification(Request $request): JsonResponse
     {
-        $orderId = $request->input('order_id');
+        try {
+            app(IpaymuService::class)->handleNotification($request->all(), $request->headers->all());
 
-        Log::info('Doku POS finish redirect triggered', ['order_id' => $orderId, 'query' => $request->all()]);
+            return response()->json(['message' => 'OK']);
+        } catch (\Throwable $exception) {
+            Log::error('iPaymu POS notification failed', ['error' => $exception->getMessage()]);
 
-        if ($orderId) {
-            $transaction = Transaction::where('transaction_number', $orderId)->first();
-            if ($transaction && $transaction->status === 'pending') {
-                try {
-                    $doku = app(DokuService::class)->forToko($transaction->toko);
-                    $statusResponse = $doku->checkStatus($orderId);
-                    $transactionStatus = $statusResponse['status'] ?? '';
-
-                    if ($transactionStatus === 'success') {
-                        $transaction->update(['status' => 'completed']);
-                        $transaction->payments()->update(['status' => 'success']);
-                    }
-                } catch (\Exception $e) {
-                    Log::error('Doku POS finish verification error: '.$e->getMessage());
-                }
-            }
+            return response()->json(['message' => $exception->getMessage()], 400);
         }
+    }
+
+    public function finish(Request $request): RedirectResponse
+    {
+        Log::info('iPaymu POS finish redirect triggered', ['order_id' => $request->input('order_id')]);
 
         return redirect('/cashier')
-            ->with('success', 'Transaksi selesai. Halaman kasir diperbarui.');
+            ->with('info', 'Status pembayaran akan diperbarui setelah notifikasi iPaymu diterima.');
     }
 }

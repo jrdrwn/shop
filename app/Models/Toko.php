@@ -11,6 +11,8 @@ class Toko extends Model
 
     protected $table = 'tokos';
 
+    protected $hidden = ['ipaymu_api_key', 'doku_secret_key'];
+
     protected $fillable = [
         'name',
         'address',
@@ -27,16 +29,17 @@ class Toko extends Model
         'tax_percentage',
         'service_charge_percentage',
         'qris_type',
-        'doku_client_id',
-        'doku_secret_key',
-        'doku_is_production',
+        'ipaymu_va',
+        'ipaymu_api_key',
+        'ipaymu_is_production',
     ];
 
     protected $casts = [
         'tax_percentage' => 'integer',
         'service_charge_percentage' => 'integer',
         'is_active' => 'boolean',
-        'doku_is_production' => 'boolean',
+        'ipaymu_is_production' => 'boolean',
+        'ipaymu_api_key' => 'encrypted',
     ];
 
     protected static function booted()

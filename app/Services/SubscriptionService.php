@@ -150,7 +150,7 @@ class SubscriptionService
     }
 
     // -------------------------------------------------------------------------
-    // Payment Gateway Integration (Doku)
+    // Payment Gateway Integration (iPaymu)
     // -------------------------------------------------------------------------
 
     /**
@@ -158,13 +158,13 @@ class SubscriptionService
      *
      * @param  Toko  $toko  The toko requesting the upgrade.
      * @param  Subscription  $subscription  Target subscription plan to upgrade to.
-     * @return string Checkout URL for Doku payment.
+     * @return string Checkout URL for iPaymu payment.
      */
     public function initiateUpgrade(Toko $toko, Subscription $subscription): string
     {
-        $doku = app(DokuService::class);
+        $ipaymu = app(IpaymuService::class);
 
-        return $doku->createSnapToken($toko, $subscription);
+        return $ipaymu->createPaymentUrl($toko, $subscription);
     }
 
     /**

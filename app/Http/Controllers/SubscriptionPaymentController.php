@@ -2,10 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Enums\UserRole;
 use App\Models\Subscription;
 use App\Models\SubscriptionPayment;
-use App\Services\DokuService;
+use App\Services\IpaymuService;
 use App\Services\SubscriptionService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -16,11 +15,11 @@ use Illuminate\Support\Facades\Log;
 class SubscriptionPaymentController extends Controller
 {
     public function __construct(
-        private readonly DokuService $dokuService
+        private readonly IpaymuService $ipaymuService
     ) {}
 
     /**
-     * Get Doku checkout URL for subscription upgrade.
+     * Get the hosted iPaymu payment URL for subscription upgrade.
      */
     public function getSnapToken(Request $request): JsonResponse
     {
@@ -30,7 +29,7 @@ class SubscriptionPaymentController extends Controller
 
         $user = Auth::user();
 
-        if (! $user || ($user->role !== UserRole::Owner->value && $user->role !== 'owner') || ! $user->toko_id) {
+        if (! $user || $user->role !== 'owner' || ! $user->toko_id) {
             return response()->json(['message' => 'Unauthorized.'], 403);
         }
 
@@ -42,57 +41,75 @@ class SubscriptionPaymentController extends Controller
 
         $subscription = Subscription::findOrFail($request->input('subscription_id'));
 
+        // Security: Ensure plan is active and available
+        if (! $subscription->is_active) {
+            return response()->json(['message' => 'Paket langganan ini sedang tidak tersedia.'], 422);
+        }
+
+        // Security: Prevent downgrade to free plan if they already have an active paid plan (optional business rule)
+        // Or at least prevent re-activating the exact same plan if it's still far from expiry
         if ($subscription->price <= 0) {
-            // Free plan — activate directly without payment
-            app(SubscriptionService::class)->activateSubscription($toko, $subscription, 'free-plan');
+            if ((int) $toko->subscription_id === (int) $subscription->id) {
+                return response()->json(['message' => 'Anda sudah menggunakan paket ini.'], 422);
+            }
+
+            // Direct activation for free plans
+            app(SubscriptionService::class)->activateSubscription($toko, $subscription, 'free-plan-'.time());
 
             return response()->json([
-                'message' => 'Langganan Free berhasil diaktifkan.',
+                'message' => 'Langganan berhasil diaktifkan.',
                 'redirect' => route('filament.owner.pages.owner-panel-dashboard'),
             ]);
         }
 
-        // Check for existing pending payments to avoid duplicates
+        // Security: Check for existing pending payments for this toko to avoid duplicates
         $existingPending = SubscriptionPayment::where('toko_id', $toko->id)
             ->where('subscription_id', $subscription->id)
             ->where('status', 'pending')
             ->where('created_at', '>', now()->subMinutes(15))
             ->first();
 
-        if ($existingPending && isset($existingPending->metadata['snap_token'])) {
+        if ($existingPending && isset($existingPending->metadata['checkout_url'])) {
             return response()->json([
-                'token' => $existingPending->metadata['snap_token'],
-                'client_key' => $this->dokuService->clientKey(),
-                'snap_url' => $this->dokuService->snapUrl(),
+                'token' => $existingPending->metadata['checkout_url'],
                 'message' => 'Melanjutkan pembayaran yang tertunda.',
             ]);
         }
 
-        $token = $this->dokuService->createSnapToken($toko, $subscription);
+        $paymentUrl = $this->ipaymuService->createPaymentUrl($toko, $subscription);
 
         return response()->json([
-            'token' => $token,
-            'client_key' => $this->dokuService->clientKey(),
-            'snap_url' => $this->dokuService->snapUrl(),
+            'token' => $paymentUrl,
         ]);
     }
 
     /**
-     * Handle Doku notification webhook.
+     * Handle iPaymu notification webhook.
      */
     public function handleNotification(Request $request): JsonResponse
     {
-        $payload = $request->all();
+        $content = $request->getContent();
+        $decoded = str_starts_with(ltrim($content), '{') ? json_decode($content, true) : null;
+        $payload = is_array($decoded) ? $decoded : $request->all();
+
         $headers = $request->headers->all();
 
-        Log::info('Doku notification received', $payload);
+        Log::info('iPaymu subscription notification received', [
+            'content_type' => $request->header('Content-Type'),
+            'raw_body_length' => strlen($content),
+            'payload_keys' => array_keys($payload),
+        ]);
 
         try {
-            $this->dokuService->handleNotification($payload, $headers);
+            $this->ipaymuService->handleNotification($payload, $headers);
 
-            return response()->json(['message' => 'OK']);
+            return response()->json(['message' => 'OK'], 200);
         } catch (\Throwable $e) {
-            Log::error('Doku notification failed', ['error' => $e->getMessage(), 'payload' => $payload]);
+            Log::error('iPaymu subscription notification failed', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'payload_size' => count($payload),
+            ]);
 
             return response()->json(['message' => $e->getMessage()], 400);
         }
@@ -105,41 +122,34 @@ class SubscriptionPaymentController extends Controller
     {
         $orderId = $request->input('order_id');
 
-        Log::info('Doku finish callback', ['order_id' => $orderId, 'query' => $request->all()]);
+        Log::info('iPaymu finish callback', ['order_id' => $orderId, 'query' => $request->all()]);
 
-        if ($orderId) {
-            $payment = SubscriptionPayment::where('order_id', $orderId)->first();
+        $payment = $orderId ? SubscriptionPayment::where('order_id', $orderId)->first() : null;
 
-            if ($payment && $payment->status === 'pending') {
-                try {
-                    // Call Doku API check status to verify actual status
-                    $statusResult = $this->dokuService->checkStatus($orderId);
-                    Log::info('Doku finish status verification result', ['order_id' => $orderId, 'result' => $statusResult]);
-
-                    if (($statusResult['status'] ?? '') === 'success') {
-                        $payment->update([
-                            'status' => 'success',
-                            'transaction_id' => $statusResult['transaction_id'] ?? $orderId,
-                            'settlement_time' => now(),
-                        ]);
-
-                        app(SubscriptionService::class)->activateSubscription(
-                            $payment->toko,
-                            $payment->subscription,
-                            $statusResult['transaction_id'] ?? $orderId
-                        );
-
-                        return redirect()->route('filament.owner.pages.owner-panel-dashboard')
-                            ->with('success', 'Pembayaran berhasil diverifikasi! Paket langganan Anda telah diperbarui.');
-                    }
-                } catch (\Throwable $e) {
-                    Log::error('Doku finish verification failed', ['order_id' => $orderId, 'error' => $e->getMessage()]);
-                }
+        if ($payment?->status === 'pending') {
+            try {
+                $this->ipaymuService->reconcileSubscriptionPayment($payment);
+                $payment->refresh();
+            } catch (\Throwable $exception) {
+                Log::warning('iPaymu return reconciliation failed', [
+                    'order_id' => $orderId,
+                    'error' => $exception->getMessage(),
+                ]);
             }
         }
 
+        if ($payment?->status === 'success') {
+            return redirect()->route('filament.owner.pages.owner-panel-dashboard')
+                ->with('success', 'Pembayaran berhasil. Paket langganan Anda telah diperbarui.');
+        }
+
+        if ($payment?->status === 'failed') {
+            return redirect()->route('filament.owner.pages.owner-panel-dashboard')
+                ->with('error', 'Pembayaran gagal. Silakan coba lagi.');
+        }
+
         return redirect()->route('filament.owner.pages.owner-panel-dashboard')
-            ->with('success', 'Pembayaran sedang diproses. Status langganan akan diperbarui setelah verifikasi.');
+            ->with('info', 'Pembayaran menunggu notifikasi iPaymu. Status langganan akan diperbarui otomatis.');
     }
 
     /**
@@ -149,9 +159,16 @@ class SubscriptionPaymentController extends Controller
     {
         $orderId = $request->input('order_id');
 
-        Log::warning('Doku error callback', ['order_id' => $orderId]);
+        Log::warning('iPaymu error callback', ['order_id' => $orderId]);
+
+        $payment = $orderId ? SubscriptionPayment::where('order_id', $orderId)->first() : null;
+
+        if ($payment?->status === 'failed') {
+            return redirect()->route('filament.owner.pages.owner-panel-dashboard')
+                ->with('error', 'Pembayaran gagal. Silakan coba lagi.');
+        }
 
         return redirect()->route('filament.owner.pages.owner-panel-dashboard')
-            ->with('error', 'Pembayaran gagal atau dibatalkan. Silakan coba lagi.');
+            ->with('info', 'Status pembayaran menunggu notifikasi iPaymu.');
     }
 }
