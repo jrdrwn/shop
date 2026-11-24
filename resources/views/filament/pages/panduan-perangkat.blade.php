@@ -83,6 +83,7 @@
             display: grid;
             grid-template-columns: repeat(1, minmax(0, 1fr));
             gap: 1.5rem;
+            align-items: start;
         }
 
         #hardware-guide-app .hg-grid-3 {
@@ -297,6 +298,29 @@
         #hardware-guide-app .hg-title-indigo { color: #4f46e5; }
         #hardware-guide-app .hg-title-sky { color: #0284c7; }
 
+        #guide-camera-viewport {
+            display: none;
+            position: relative;
+            width: 100%;
+            max-width: 360px;
+            aspect-ratio: 4 / 3;
+            margin: 0 auto;
+            border-radius: 0.75rem;
+            overflow: hidden;
+            border: 1px solid var(--hg-border);
+            background: #000000;
+        }
+
+        #guide-camera-viewport video,
+        #guide-camera-viewport canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100% !important;
+            height: 100% !important;
+            object-fit: cover;
+        }
+
         #test-receipt-print-area {
             display: none;
         }
@@ -427,7 +451,7 @@
                     </button>
                 </div>
 
-                <div id="guide-camera-viewport" style="display: none; border-radius: 0.75rem; overflow: hidden; border: 1px solid var(--hg-border); max-width: 360px; margin: 0 auto;"></div>
+                <div id="guide-camera-viewport"></div>
 
                 <div id="scan-result-box" class="hg-box hg-box-dashed">
                     <div class="hg-label" style="margin-bottom: 0;">Hasil Scan Terakhir</div>
@@ -759,12 +783,14 @@
                 cameraBtn.addEventListener('click', () => {
                     if (cameraRunning) {
                         Quagga.stop();
+                        cameraViewport.innerHTML = '';
                         cameraViewport.style.display = 'none';
                         cameraBtn.textContent = '📷 Tes Kamera';
                         cameraRunning = false;
                         return;
                     }
 
+                    cameraViewport.innerHTML = '';
                     cameraViewport.style.display = 'block';
                     cameraBtn.textContent = '⏹️ Stop Kamera';
                     Quagga.init({
@@ -780,6 +806,7 @@
                     }, (err) => {
                         if (err) {
                             showFeedback('Gagal membuka kamera: ' + err.message, 'error');
+                            cameraViewport.innerHTML = '';
                             cameraViewport.style.display = 'none';
                             cameraBtn.textContent = '📷 Tes Kamera';
                             return;
