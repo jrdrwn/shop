@@ -200,13 +200,9 @@
                             </span>
                             <input type="text" id="barcode-input" placeholder="Cari SKU / Nama / Scan Barcode..." class="w-full md:w-64 pl-12 pr-4 py-3 bg-gray-50 dark:bg-gray-800 border-none rounded-2xl text-sm focus:ring-2 focus:ring-primary-500 outline-none transition-all">
                         </div>
-                        <button type="button" id="toggle-camera-btn" title="Scan Barcode via Kamera" class="p-3 bg-primary-600 text-white rounded-2xl hover:bg-primary-700 transition-all shadow-lg shadow-primary-600/20 active:scale-95">
+                        <button type="button" id="toggle-camera-btn" title="Scan Barcode via Kamera" style="white-space: nowrap; flex-shrink: 0;" class="p-3 bg-primary-600 text-white rounded-2xl hover:bg-primary-700 transition-all shadow-lg shadow-primary-600/20 active:scale-95">
                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
                         </button>
-                        <a href="{{ url('/cashier/panduan-perangkat') }}" title="Panduan Scanner & Printer Struk" style="display: inline-flex; align-items: center; gap: 0.375rem; padding: 0.7rem 0.9rem; border-radius: 1rem; font-size: 0.75rem; font-weight: 700; text-decoration: none; white-space: nowrap; border: 1px solid rgba(16, 185, 129, 0.35); background: rgba(16, 185, 129, 0.12); color: #059669;">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>
-                            <span>Panduan Alat</span>
-                        </a>
                     </div>
                 </div>
                 <div id="interactive" class="viewport" style="display: none; width: 100%; max-width: 400px; margin: 10px auto; position: relative;"></div>
@@ -437,6 +433,21 @@
 
     <style>
         * { box-sizing: border-box; }
+        #interactive.viewport {
+            aspect-ratio: 4 / 3;
+            border-radius: 1rem;
+            overflow: hidden;
+            background: #000;
+        }
+        #interactive.viewport video,
+        #interactive.viewport canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100% !important;
+            height: 100% !important;
+            object-fit: cover;
+        }
             @media print {
                 body { background: #fff !important; padding: 0 !important; }
                 .logo-light { display: inline-block !important; }

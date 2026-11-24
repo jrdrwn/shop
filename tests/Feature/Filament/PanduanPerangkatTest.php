@@ -60,7 +60,7 @@ test('shortcut route /panduan-alat redirects each role to its panel guide page',
     get('/panduan-alat')->assertRedirect('/warehouse/panduan-perangkat');
 });
 
-test('pos page displays quick-access link to Panduan Alat and loads pos-hardware.js', function (): void {
+test('pos page loads pos-hardware.js without crowding the product header', function (): void {
     $admin = User::factory()->createOne(['role' => 'super_admin', 'is_active' => true]);
     $toko = Toko::query()->create(['name' => 'Toko Kasir', 'created_by' => $admin->id]);
     $kasir = User::factory()->createOne([
@@ -71,7 +71,5 @@ test('pos page displays quick-access link to Panduan Alat and loads pos-hardware
 
     Livewire::actingAs($kasir)
         ->test(Pos::class)
-        ->assertSeeHtml('/cashier/panduan-perangkat')
-        ->assertSee('Panduan Alat')
         ->assertSeeHtml('js/pos-hardware.js');
 });
