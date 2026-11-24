@@ -199,11 +199,16 @@
 
         <div class="receipt-actions">
             <button class="receipt-btn receipt-btn-primary" onclick="window.print()">Cetak Struk</button>
+            <a href="{{ url('/panduan-alat') }}" style="text-align: center; font-size: 0.8rem; color: #6b7280; text-decoration: none;">Panduan &amp; Pengaturan Printer Struk</a>
         </div>
     </div>
 
+    <script src="{{ asset('js/pos-hardware.js') }}"></script>
     <script>
         window.onload = function() {
+            if (window.PosHardware) {
+                window.PosHardware.applyReceiptPaperWidth();
+            }
             window.print();
         }
     </script>

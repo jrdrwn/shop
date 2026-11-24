@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Tokos\Pages;
 
 use App\Filament\Resources\Tokos\TokoResource;
+use App\Services\SubscriptionService;
 use Filament\Actions\Action;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\TextInput;
@@ -18,6 +19,34 @@ class ViewToko extends ViewRecord
     protected function getHeaderActions(): array
     {
         return [
+            Action::make('startTrial')
+                ->label('Aktifkan Trial 30 Hari')
+                ->icon('heroicon-o-clock')
+                ->authorize(fn (): bool => Auth::user()?->role === 'super_admin')
+                ->visible(fn (): bool => Auth::user()?->role === 'super_admin'
+                    && app(SubscriptionService::class)->canStartTrial($this->getRecord()))
+                ->requiresConfirmation()
+                ->modalDescription('Berikan akses Premium selama 30 hari. Setelah trial berakhir, paket kembali ke Free.')
+                ->action(function (SubscriptionService $subscriptions): void {
+                    abort_unless(Auth::user()?->role === 'super_admin', 403);
+
+                    if (! $subscriptions->startTrial($this->getRecord())) {
+                        Notification::make()
+                            ->title('Trial tidak dapat diaktifkan')
+                            ->body('Pastikan paket Free tersedia, Premium aktif, dan akun belum memiliki paket berbayar atau trial aktif.')
+                            ->warning()
+                            ->send();
+
+                        return;
+                    }
+
+                    Notification::make()
+                        ->title('Trial Premium 30 hari aktif')
+                        ->body('Berakhir pada '.$this->getRecord()->trial_ends_at->format('d-m-Y H:i').'.')
+                        ->success()
+                        ->send();
+                }),
+
             // Ganti Password — only for Owner (to change their own password)
             Action::make('ganti_password')
                 ->label('Ganti Password')

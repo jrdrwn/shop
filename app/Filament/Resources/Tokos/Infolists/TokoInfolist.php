@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Tokos\Infolists;
 
+use App\Models\Toko;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
@@ -45,6 +46,10 @@ class TokoInfolist
                         ->columns(2)
                         // ->visible($isSuperAdmin)
                         ->schema([
+                            TextEntry::make('trial_ends_at')
+                                ->label('Trial Premium berakhir')
+                                ->dateTime('d-m-Y H:i')
+                                ->visible(fn (Toko $record): bool => $record->trial_ends_at !== null),
                             TextEntry::make('subscription.name')
                                 ->label('Paket')
                                 ->badge()

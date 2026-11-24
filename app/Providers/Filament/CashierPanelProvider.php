@@ -5,6 +5,8 @@ namespace App\Providers\Filament;
 use App\Filament\Pages\Cashier\CashierLogin;
 use App\Filament\Pages\Cashier\CashierPanelDashboard;
 use App\Filament\Pages\Cashier\Pos;
+use App\Filament\Pages\PanduanPerangkat;
+use App\Http\Middleware\CheckSubscriptionExpiry;
 use Awcodes\LightSwitch\LightSwitchPlugin;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
@@ -45,6 +47,7 @@ class CashierPanelProvider extends PanelProvider
             ->pages([
                 CashierPanelDashboard::class,
                 Pos::class,
+                PanduanPerangkat::class,
             ])
             ->topNavigation()
             ->middleware([
@@ -60,10 +63,15 @@ class CashierPanelProvider extends PanelProvider
             ])
             ->authMiddleware([
                 Authenticate::class,
+                CheckSubscriptionExpiry::class,
             ])
             ->renderHook(
                 PanelsRenderHook::AUTH_LOGIN_FORM_AFTER,
                 fn (): string => Blade::render('<x-cashier-role-links />')
+            )
+            ->renderHook(
+                PanelsRenderHook::USER_MENU_BEFORE,
+                fn (): string => Blade::render('<x-panduan-alat-link panel="cashier" />')
             )->plugins([
                 LightSwitchPlugin::make(),
             ]);

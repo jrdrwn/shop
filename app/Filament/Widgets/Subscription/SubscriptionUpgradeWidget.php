@@ -151,6 +151,8 @@ class SubscriptionUpgradeWidget extends Widget implements HasActions, HasSchemas
             return null;
         }
 
+        app(SubscriptionService::class)->expireTrial($toko);
+
         $subscription = $toko->subscription;
         $plan = $subscription->plan;
 
@@ -185,6 +187,10 @@ class SubscriptionUpgradeWidget extends Widget implements HasActions, HasSchemas
         }
 
         $toko = Toko::with('subscription')->find($user->toko_id);
+
+        if ($toko?->trial_ends_at !== null) {
+            return max(0, $toko->trial_ends_at->getTimestamp() - now()->getTimestamp());
+        }
 
         // Don't show countdown for Free plan
         if ($toko && $toko->subscription && $toko->subscription->plan?->value === 'free') {
@@ -285,13 +291,14 @@ class SubscriptionUpgradeWidget extends Widget implements HasActions, HasSchemas
                     ->options(function (): array {
                         $user = Auth::user();
                         $currentToko = $user?->toko;
-                        $currentPlan = $currentToko?->subscription?->plan;
+                        $isOnTrial = $currentToko?->trial_ends_at?->isFuture() ?? false;
+                        $currentPlan = $isOnTrial ? null : $currentToko?->subscription?->plan;
 
                         $options = [];
                         foreach (SubscriptionPlan::cases() as $plan) {
                             $subscription = Subscription::where('plan', $plan->value)->where('is_active', true)->first();
 
-                            if ($subscription) {
+                            if ($subscription && (! $isOnTrial || $subscription->price > 0)) {
                                 $label = "{$subscription->name} — Rp ".number_format((int) $subscription->price, 0, ',', '.');
                                 $isDisabled = false;
 

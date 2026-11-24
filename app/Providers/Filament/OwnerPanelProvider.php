@@ -5,6 +5,7 @@ namespace App\Providers\Filament;
 use App\Filament\Pages\Owner\OwnerLogin;
 use App\Filament\Pages\Owner\OwnerPanelDashboard;
 use App\Filament\Pages\Owner\OwnerRegistration;
+use App\Filament\Pages\PanduanPerangkat;
 use App\Http\Middleware\CheckSubscriptionExpiry;
 use Awcodes\LightSwitch\LightSwitchPlugin;
 use Filament\Http\Middleware\Authenticate;
@@ -47,6 +48,7 @@ class OwnerPanelProvider extends PanelProvider
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\Filament\Widgets')
             ->pages([
                 OwnerPanelDashboard::class,
+                PanduanPerangkat::class,
             ])
             ->middleware([
                 EncryptCookies::class,
@@ -66,6 +68,10 @@ class OwnerPanelProvider extends PanelProvider
             ->renderHook(
                 PanelsRenderHook::AUTH_LOGIN_FORM_AFTER,
                 fn (): string => Blade::render('<x-owner-role-links />')
+            )
+            ->renderHook(
+                PanelsRenderHook::USER_MENU_BEFORE,
+                fn (): string => Blade::render('<x-panduan-alat-link panel="owner" />')
             )
             ->plugins([
                 LightSwitchPlugin::make(),

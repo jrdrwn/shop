@@ -2,8 +2,10 @@
 
 namespace App\Services;
 
+use App\Enums\SubscriptionPlan;
 use App\Models\Subscription;
 use App\Models\Toko;
+use Illuminate\Support\Facades\DB;
 
 class SubscriptionService
 {
@@ -176,9 +178,71 @@ class SubscriptionService
      */
     public function activateSubscription(Toko $toko, Subscription $subscription, string $transactionId): void
     {
-        $toko->update([
+        Toko::query()->whereKey($toko->getKey())->update([
             'subscription_id' => $subscription->id,
+            'trial_ends_at' => null,
         ]);
+
+        $toko->refresh();
+    }
+
+    public function canStartTrial(Toko $toko): bool
+    {
+        return $toko->trial_ends_at === null
+            && ($toko->subscription_id === null || $toko->subscription?->plan === SubscriptionPlan::Free);
+    }
+
+    public function startTrial(Toko $toko): bool
+    {
+        return DB::transaction(function () use ($toko): bool {
+            $record = Toko::query()->lockForUpdate()->findOrFail($toko->getKey());
+
+            if (! $this->canStartTrial($record)
+                || ! Subscription::query()->where('plan', SubscriptionPlan::Free)->exists()) {
+                return false;
+            }
+
+            $premium = Subscription::query()->where('plan', SubscriptionPlan::Premium)->where('is_active', true)->first();
+
+            if (! $premium) {
+                return false;
+            }
+
+            $record->forceFill([
+                'subscription_id' => $premium->id,
+                'trial_ends_at' => now()->addDays(30),
+            ])->save();
+
+            $toko->refresh();
+
+            return true;
+        });
+    }
+
+    public function expireTrial(Toko $toko): void
+    {
+        if ($toko->trial_ends_at === null || $toko->trial_ends_at->isFuture()) {
+            return;
+        }
+
+        DB::transaction(function () use ($toko): void {
+            $record = Toko::query()->lockForUpdate()->findOrFail($toko->getKey());
+
+            if ($record->trial_ends_at === null || $record->trial_ends_at->isFuture()) {
+                return;
+            }
+
+            $free = Subscription::query()->where('plan', SubscriptionPlan::Free)->firstOrFail();
+
+            $record->forceFill([
+                'subscription_id' => $free->id,
+                'trial_ends_at' => null,
+            ])->save();
+
+            $this->enforceLimits($record);
+        });
+
+        $toko->refresh();
     }
 
     /**

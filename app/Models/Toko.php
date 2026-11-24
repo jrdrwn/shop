@@ -35,6 +35,7 @@ class Toko extends Model
     ];
 
     protected $casts = [
+        'trial_ends_at' => 'immutable_datetime',
         'tax_percentage' => 'integer',
         'service_charge_percentage' => 'integer',
         'is_active' => 'boolean',

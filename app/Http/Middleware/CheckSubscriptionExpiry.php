@@ -21,8 +21,14 @@ class CheckSubscriptionExpiry
     public function handle(Request $request, Closure $next): Response
     {
         $user = auth()->user();
+        $toko = $user?->toko;
+        if ($toko?->trial_ends_at !== null) {
+            app(SubscriptionService::class)->expireTrial($toko);
+
+            return $next($request);
+        }
+
         if ($user && in_array($user->role, [UserRole::Owner->value, 'owner', 'gudang'], true) && $user->toko_id) {
-            $toko = $user->toko;
             if ($toko && $toko->subscription_id) {
                 $subscription = $toko->subscription;
                 if ($subscription && $subscription->plan !== SubscriptionPlan::Free) {

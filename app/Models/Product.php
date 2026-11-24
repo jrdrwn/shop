@@ -10,7 +10,7 @@ class Product extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['toko_id', 'category_id', 'name', 'description', 'price', 'discount_percentage', 'stock', 'sku', 'image_url', 'is_active', 'has_variants', 'variants'];
+    protected $fillable = ['toko_id', 'category_id', 'name', 'description', 'price', 'discount_percentage', 'stock', 'sku', 'barcode_type', 'image_url', 'is_active', 'has_variants', 'variants'];
 
     protected $casts = [
         'has_variants' => 'boolean',

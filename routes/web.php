@@ -3,6 +3,7 @@
 use App\Http\Controllers\PosController;
 use App\Http\Controllers\SubscriptionPaymentController;
 use App\Http\Controllers\TransactionController;
+use App\Http\Middleware\CheckSubscriptionExpiry;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -27,7 +28,7 @@ Route::get('/', function () {
 // POS checkout endpoint used by the Filament Cashier POS page
 Route::post('/cashier/pos/checkout', [PosController::class, 'checkout'])
     ->name('pos.checkout')
-    ->middleware(['auth']);
+    ->middleware(['auth', CheckSubscriptionExpiry::class]);
 
 Route::get('/cashier/pos/check-status/{transactionNumber}', [PosController::class, 'checkStatus'])
     ->name('pos.check-status')
@@ -47,6 +48,17 @@ Route::post('/cashier/pos/cancel/{transactionNumber}', [PosController::class, 'c
 Route::get('/transactions/{transaction}/receipt', [TransactionController::class, 'receipt'])
     ->name('transactions.receipt')
     ->middleware(['auth']);
+
+// Quick shortcut to hardware guide page matching the user's panel
+Route::get('/panduan-alat', function () {
+    $user = Auth::user();
+
+    return match ($user?->role) {
+        'kasir', 'cashier' => redirect('/cashier/panduan-perangkat'),
+        'gudang', 'warehouse' => redirect('/warehouse/panduan-perangkat'),
+        default => redirect('/owner/panduan-perangkat'),
+    };
+})->middleware(['auth'])->name('panduan.alat');
 
 // Subscription payment routes
 Route::prefix('subscription')->name('subscription.')->group(function () {

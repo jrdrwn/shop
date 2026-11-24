@@ -71,6 +71,11 @@ class SubscriptionForm
                             ->helperText('Paket nonaktif tidak bisa dipilih saat membuat langganan baru.'),
                         Textarea::make('features')
                             ->label('Deskripsi Fitur (Marketing)')
+                            ->formatStateUsing(fn (?array $state): string => implode("\n", $state ?? []))
+                            ->dehydrateStateUsing(fn (?string $state): array => array_values(array_filter(
+                                array_map(trim(...), preg_split('/\r\n|\r|\n/', $state ?? '')),
+                                fn (string $feature): bool => $feature !== '',
+                            )))
                             ->helperText('Teks promosi yang ditampilkan ke pengguna. Satu baris per fitur.')
                             ->rows(4)
                             ->columnSpanFull(),

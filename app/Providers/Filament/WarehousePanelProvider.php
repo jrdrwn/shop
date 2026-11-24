@@ -2,6 +2,7 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Pages\PanduanPerangkat;
 use App\Filament\Pages\Warehouse\WarehouseDashboard;
 use App\Filament\Pages\Warehouse\WarehouseLogin;
 use App\Http\Middleware\AuthenticateWarehouse;
@@ -46,6 +47,7 @@ class WarehousePanelProvider extends PanelProvider
             ->discoverPages(in: app_path('Filament/Pages/Warehouse'), for: 'App\Filament\Pages\Warehouse')
             ->pages([
                 WarehouseDashboard::class,
+                PanduanPerangkat::class,
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets/Warehouse'), for: 'App\Filament\Widgets\Warehouse')
             ->widgets([
@@ -71,6 +73,10 @@ class WarehousePanelProvider extends PanelProvider
             ->renderHook(
                 PanelsRenderHook::AUTH_LOGIN_FORM_AFTER,
                 fn (): string => Blade::render('<x-warehouse-role-links />')
+            )
+            ->renderHook(
+                PanelsRenderHook::USER_MENU_BEFORE,
+                fn (): string => Blade::render('<x-panduan-alat-link panel="warehouse" />')
             )->plugins([
                 LightSwitchPlugin::make(),
             ]);

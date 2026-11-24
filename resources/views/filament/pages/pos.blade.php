@@ -200,9 +200,13 @@
                             </span>
                             <input type="text" id="barcode-input" placeholder="Cari SKU / Nama / Scan Barcode..." class="w-full md:w-64 pl-12 pr-4 py-3 bg-gray-50 dark:bg-gray-800 border-none rounded-2xl text-sm focus:ring-2 focus:ring-primary-500 outline-none transition-all">
                         </div>
-                        <button type="button" id="toggle-camera-btn" class="p-3 bg-primary-600 text-white rounded-2xl hover:bg-primary-700 transition-all shadow-lg shadow-primary-600/20 active:scale-95">
+                        <button type="button" id="toggle-camera-btn" title="Scan Barcode via Kamera" class="p-3 bg-primary-600 text-white rounded-2xl hover:bg-primary-700 transition-all shadow-lg shadow-primary-600/20 active:scale-95">
                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
                         </button>
+                        <a href="{{ url('/cashier/panduan-perangkat') }}" title="Panduan Scanner & Printer Struk" style="display: inline-flex; align-items: center; gap: 0.375rem; padding: 0.7rem 0.9rem; border-radius: 1rem; font-size: 0.75rem; font-weight: 700; text-decoration: none; white-space: nowrap; border: 1px solid rgba(16, 185, 129, 0.35); background: rgba(16, 185, 129, 0.12); color: #059669;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>
+                            <span>Panduan Alat</span>
+                        </a>
                     </div>
                 </div>
                 <div id="interactive" class="viewport" style="display: none; width: 100%; max-width: 400px; margin: 10px auto; position: relative;"></div>
@@ -482,6 +486,7 @@
                 .receipt-actions, #receipt-qris-section { display: none !important; visibility: hidden !important; }
             }
         </style>
+        <script src="{{ asset('js/pos-hardware.js') }}"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
         <script>
             (() => {
@@ -739,17 +744,38 @@
                     });
                 }
 
+            if (window.PosHardware) {
+                window.PosHardware.attachGlobalBarcodeScanner((scannedCode) => {
+                    findAndAddProductBySku(scannedCode);
+                });
+            }
+
             function findAndAddProductBySku(sku) {
-                const card = document.querySelector(`.pos-card[data-sku="${sku}"]`);
+                const normalized = String(sku || '').trim();
+                if (!normalized) return;
+
+                const lower = normalized.toLowerCase();
+                const ean12 = /^\d{13}$/.test(normalized) ? normalized.slice(0, 12) : null;
+
+                const cards = Array.from(document.querySelectorAll('.pos-card'));
+                const card = cards.find((el) => {
+                    const cardSku = (el.getAttribute('data-sku') || '').trim();
+                    if (!cardSku) return false;
+                    if (cardSku.toLowerCase() === lower) return true;
+                    if (ean12 && cardSku === ean12) return true;
+                    if (/^\d{12}$/.test(normalized) && cardSku.startsWith(normalized) && cardSku.length === 13) return true;
+                    return false;
+                });
+
                 if (card) {
                     const btn = card.querySelector('.add-to-cart');
                     if (btn) {
                         btn.click();
-                        showToast(`Produk masuk: ${sku}`, 'success');
+                        showToast(`Produk masuk: ${normalized}`, 'success');
                     }
                 } else {
-                    showToast(`SKU tidak ditemukan: ${sku}`, 'error');
-                    addLog(`WARN: Scan SKU ${sku} gagal - Tidak ada di database.`);
+                    showToast(`SKU tidak ditemukan: ${normalized}`, 'error');
+                    addLog(`WARN: Scan SKU ${normalized} gagal - Tidak ada di database.`);
                 }
             }
             const toastEl = document.getElementById('pos-toast');
@@ -1384,9 +1410,64 @@
                 receiptModal.classList.remove('active');
             });
 
-            // Print receipt
-            printBtn.addEventListener('click', () => {
-                window.print();
+            // Print receipt (supports Browser Print 58mm/80mm, Web Serial ESC/POS, Web Bluetooth ESC/POS)
+            printBtn.addEventListener('click', async () => {
+                if (!window.PosHardware) {
+                    window.print();
+                    return;
+                }
+
+                const settings = window.PosHardware.getSettings();
+                if (settings.printerMode === 'browser') {
+                    window.PosHardware.applyReceiptPaperWidth();
+                    window.print();
+                    return;
+                }
+
+                const parseRp = (elId) => {
+                    const text = document.getElementById(elId)?.textContent || '0';
+                    return parseInt(text.replace(/[^\d]/g, ''), 10) || 0;
+                };
+
+                const items = Array.from(document.querySelectorAll('#receipt-items-list > div')).map((row) => {
+                    const spans = row.querySelectorAll('span, strong');
+                    const label = spans[0]?.textContent?.trim() || 'Item';
+                    const subtotalText = spans[1]?.textContent?.trim() || '0';
+                    const match = label.match(/^(.*)\s+x\s*(\d+)$/i);
+                    return {
+                        name: match ? match[1].trim() : label,
+                        qty: match ? parseInt(match[2], 10) : 1,
+                        subtotal: parseInt(subtotalText.replace(/[^\d]/g, ''), 10) || 0,
+                    };
+                });
+
+                @php
+                    $tokoFullAddress = implode(', ', array_filter([$tokoAddress ?? null, $tokoCity ?? null, $tokoProvince ?? null]));
+                @endphp
+                const receiptData = {
+                    storeName: @json($tokoName),
+                    storeAddress: @json($tokoFullAddress),
+                    transactionNumber: document.getElementById('receipt-trx-num')?.textContent?.trim() || '',
+                    items,
+                    subtotal: parseRp('receipt-subtotal'),
+                    tax: document.getElementById('receipt-tax-row')?.style.display !== 'none' ? parseRp('receipt-tax-amt') : 0,
+                    service: document.getElementById('receipt-service-row')?.style.display !== 'none' ? parseRp('receipt-service-amt') : 0,
+                    discount: document.getElementById('receipt-discount-row')?.style.display !== 'none' ? parseRp('receipt-discount-amt') : 0,
+                    total: parseRp('receipt-total'),
+                    paymentMethod: document.getElementById('receipt-payment-method')?.textContent?.trim() || 'CASH',
+                    paid: parseRp('receipt-paid'),
+                    change: parseRp('receipt-change'),
+                    time: document.getElementById('receipt-time')?.textContent?.trim() || '',
+                };
+
+                try {
+                    await window.PosHardware.printReceipt(receiptData);
+                    showToast('Struk berhasil dikirim ke printer thermal!', 'success');
+                } catch (err) {
+                    showToast((err && err.message ? err.message : 'Gagal cetak langsung') + ' — beralih ke cetak browser.', 'error');
+                    window.PosHardware.applyReceiptPaperWidth();
+                    window.print();
+                }
             });
 
             // Cancel

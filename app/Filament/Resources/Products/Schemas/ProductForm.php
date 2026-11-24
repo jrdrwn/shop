@@ -2,9 +2,12 @@
 
 namespace App\Filament\Resources\Products\Schemas;
 
+use App\Enums\BarcodeType;
 use App\Models\Toko;
 use App\Services\BarcodeService;
 use App\Services\SubscriptionService;
+use Closure;
+use Filament\Actions\Action;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\RichEditor;
@@ -61,24 +64,79 @@ class ProductForm
                             ->required()
                             ->placeholder('Contoh: Nasi Goreng Spesial')
                             ->maxLength(255),
+                        Select::make('barcode_type')
+                            ->label('Jenis Barcode')
+                            ->options(BarcodeType::options())
+                            ->default(BarcodeType::Code128->value)
+                            ->required()
+                            ->live()
+                            ->helperText('Pilih Code 128 (versi lama, bebas huruf/angka) atau EAN-13 (standar retail 13 digit angka).'),
                         TextInput::make('sku')
-                            ->label('SKU')
-                            ->placeholder('SKU-001')
+                            ->label('SKU / Kode Barcode')
+                            ->placeholder(fn ($get): string => $get('barcode_type') === BarcodeType::Ean13->value ? 'Contoh: 8991234567893' : 'SKU-001')
                             ->maxLength(100)
-                            ->live(),
+                            ->live()
+                            ->helperText(fn ($get): string => $get('barcode_type') === BarcodeType::Ean13->value
+                                ? 'Masukkan 12 atau 13 digit angka EAN-13, atau klik tombol Generate di kanan.'
+                                : 'Bisa diisi kode bebas (huruf, angka, tanda hubung).')
+                            ->rule(function ($get): Closure {
+                                return function (string $attribute, mixed $value, Closure $fail) use ($get): void {
+                                    if (! filled($value)) {
+                                        return;
+                                    }
+
+                                    if ($get('barcode_type') === BarcodeType::Ean13->value) {
+                                        $service = app(BarcodeService::class);
+                                        if (! $service->isValidEan13((string) $value)) {
+                                            $fail('Format EAN-13 tidak valid. Gunakan 12 atau 13 digit angka yang valid, atau klik tombol Generate EAN-13.');
+                                        }
+                                    }
+                                };
+                            })
+                            ->suffixAction(
+                                Action::make('generate_ean13')
+                                    ->label('Generate EAN-13')
+                                    ->icon('heroicon-o-sparkles')
+                                    ->tooltip('Buat kode barcode EAN-13 13 digit secara otomatis')
+                                    ->action(function ($set): void {
+                                        $set('barcode_type', BarcodeType::Ean13->value);
+                                        $set('sku', app(BarcodeService::class)->generateEan13Code());
+                                    })
+                            ),
                         Placeholder::make('barcode_preview')
                             ->label('Preview Barcode')
+                            ->columnSpanFull()
                             ->content(function ($get) {
-                                $sku = $get('sku');
-                                if (! $sku) {
-                                    return 'Isi SKU untuk melihat barcode';
-                                }
-                                try {
-                                    $barcode = app(BarcodeService::class)->generateBarcode($sku);
+                                $sku = trim((string) ($get('sku') ?? ''));
+                                $type = BarcodeType::tryFrom((string) ($get('barcode_type') ?? BarcodeType::Code128->value)) ?? BarcodeType::Code128;
 
-                                    return new HtmlString('<img src="data:image/png;base64,'.$barcode.'" alt="Barcode" style="max-height: 40px;" />');
+                                if ($sku === '') {
+                                    return 'Isi SKU / Kode Barcode untuk melihat preview barcode.';
+                                }
+
+                                $service = app(BarcodeService::class);
+
+                                if ($type === BarcodeType::Ean13 && ! $service->isValidEan13($sku)) {
+                                    return new HtmlString(
+                                        '<div style="padding: 8px 12px; border-radius: 8px; background: #fef3c7; color: #92400e; font-size: 0.85rem;">'
+                                        .'⚠️ EAN-13 membutuhkan 12 atau 13 digit angka yang valid. Klik tombol <strong>Generate EAN-13</strong> atau ubah Jenis Barcode ke <strong>Code 128 (Versi Lama)</strong>.'
+                                        .'</div>'
+                                    );
+                                }
+
+                                try {
+                                    $displaySku = $type === BarcodeType::Ean13 ? $service->normalizeEan13($sku) : $sku;
+                                    $barcode = $service->generateBarcode($sku, 'png', $type);
+
+                                    return new HtmlString(
+                                        '<div style="display: inline-flex; flex-direction: column; align-items: center; gap: 6px; padding: 10px 14px; border-radius: 10px; background: #ffffff; border: 1px solid #e5e7eb;">'
+                                        .'<span style="font-size: 0.7rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #059669;">'.$type->shortLabel().'</span>'
+                                        .'<img src="data:image/png;base64,'.$barcode.'" alt="Barcode '.$type->shortLabel().'" style="max-height: 48px;" />'
+                                        .'<span style="font-family: monospace; font-size: 0.8rem; color: #374151;">'.e($displaySku).'</span>'
+                                        .'</div>'
+                                    );
                                 } catch (\Exception $e) {
-                                    return 'Gagal generate barcode';
+                                    return 'Gagal generate barcode: '.$e->getMessage();
                                 }
                             }),
                         Select::make('category_id')
